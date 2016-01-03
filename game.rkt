@@ -33,7 +33,14 @@
     ;;   act until it's the player's turn
     ;;   (will need other entry points besides `handle-input`, that return
     ;;   action-taken)
-    (game-loop (next-state s action-taken))))
+    (define new-s (next-state s action-taken))
+    ;; end of turn cleanup
+    (parameterize ([current-state new-s])
+      ;; TODO this `parameterize` is probably a sign that this code is in the
+      ;; wrong place...
+      (remove-dead-monsters! (state-floor s)))
+    ;; TODO detect whether player is dead
+    (game-loop new-s)))
 
 (module+ main
   (set-up-ui)

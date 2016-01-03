@@ -11,25 +11,24 @@
    active-character ; is-a? character%
    mode)) ; a mode is either `(move ,n-moves-left) or 'attack
 
-(define (enqueue-message! m)
-  (set-state-message-queue! (current-state)
-                            (cons m (state-message-queue (current-state)))))
+(define (enqueue-message! m [s (current-state)])
+  (set-state-message-queue! s (cons m (state-message-queue s))))
 
 (define current-state (make-parameter #f))
 
 ;; TODO allow taking moves and attacks to be in a different order, or broken up
 ;;   (for now, always move, then attack, then end of turn)
 (define (next-state s action-taken)
-  (match-define (state player floor q active mode) s)
+  (match-define (state player the-floor q active mode) s)
   (define (new-turn)
     ;; TODO change active character, once we have more than 1 character
     ;;   probably need a character queue (order of initiative) for that
     ;;   (could have global initiative for starters, then per-encounter later)
     (new-move-state (get-field speed active)))
   (define (new-move-state n)
-    (state player floor q active `(move ,n)))
+    (state player the-floor q active `(move ,n)))
   (define (new-attack-state)
-    (state player floor q active 'attack))
+    (state player the-floor q active 'attack))
   (match mode
     [`(move ,n-moves-left)
      (case action-taken

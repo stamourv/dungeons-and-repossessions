@@ -1,16 +1,17 @@
 #lang racket
 
 (require "grid.rkt"
-         "character.rkt")
+         "character.rkt"
+         "state.rkt")
 
 (provide new-floor
          show-floor
-         floor-player)
+         remove-dead-monsters!)
 
 (struct floor
   (grid
-   player))
-;; TODO encounters, entry and exit, chests (or are those just cells?), etc.
+   [monsters #:mutable]))
+;; TODO entry and exit, chests (or are those just cells?), etc.
 
 (define (show-floor f)
   (show-grid (floor-grid f)))
@@ -18,7 +19,7 @@
 (define (new-floor los p #:player-pos player-pos
                    #:other-characters [other-characters '()]); dictof character%
   (define g (parse-grid los))
-  (define f (floor g p))
+  (define f (floor g (dict-keys other-characters)))
   ;; TODO eventually, those next two lines should go in a separate function
   ;;   so that we can create floors without putting the player there
   ;;   (and the player can move between (possibly existing) floors)
@@ -29,29 +30,38 @@
     (send char move pos))
   f)
 
+(define (remove-dead-monsters! f)
+  (define new-monsters ; remove dead monsters
+    (for/list ([m (in-list (floor-monsters f))]
+               #:when (if (positive? (get-field current-hp m))
+                          #t ; alive, keep
+                          (begin (send m die) #f))) ; dead, remove
+      m))
+  (set-floor-monsters! f new-monsters))
+
 
 (module+ test
   (require rackunit)
 
   (define (render-grid g) (string-join g "\n" #:after-last "\n"))
 
+  (define p1 (new player%))
   (define g1
     '("****"
       "*  *"
       "****"))
   (define f1
-    (new-floor g1 #:player-pos #(1 1)))
+    (new-floor g1 p1 #:player-pos #(1 1)))
   (check-equal? (show-floor f1)
                 (render-grid '("****"
                                "*@ *"
                                "****")))
-  (define p1 (floor-player f1))
-  (send p1 move-right)
+  (void (send p1 move-right))
   (check-equal? (show-floor f1)
                 (render-grid '("****"
                                "* @*"
                                "****")))
-  (send p1 move-up) ; can't move into a wall
+  (void (send p1 move-up)) ; can't move into a wall
   (check-equal? (show-floor f1)
                 (render-grid '("****"
                                "* @*"

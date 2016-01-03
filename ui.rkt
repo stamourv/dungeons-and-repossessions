@@ -46,7 +46,7 @@
 (define (handle-input s)
   (parameterize ([current-state s])
     (intercept-tty)
-    (define player (floor-player (state-floor s)))
+    (define player (state-player s))
     (define in (read-char))
     (begin0
         (match in

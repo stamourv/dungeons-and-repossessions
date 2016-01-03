@@ -57,6 +57,11 @@
     (define/public (get-damage-die)
       d6) ; TODO have it based on equipped weapon
 
+    (define/public (die)
+      (enqueue-message!
+       (format "~a dies." (send this describe #:capitalize? #t #:specific? #t)))
+      (set-field! occupant (array-ref grid pos) #f))
+
     (super-new)))
 
 (define (attack-hits? attack-roll ac)
@@ -85,7 +90,7 @@
 
 (module+ test
   (define (get-log thunk)
-    (define s (state #f '() #f #f)) ; "mock" state
+    (define s (state #f #f '() #f #f)) ; "mock" state
     (parameterize ([current-state s])
       (thunk))
     (string-join (state-message-queue s) "\n"))
