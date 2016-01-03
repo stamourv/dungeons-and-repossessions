@@ -29,7 +29,9 @@
     (define/override (free?)
       (not occupant))
     (define/override (show)
-      #\space)
+      (if occupant
+          (send occupant show)
+          #\space))
     (super-new)))
 (register-cell-type! empty-cell% #\space)
 

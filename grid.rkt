@@ -3,6 +3,8 @@
 (require math/array math/matrix
          "cell.rkt")
 
+(provide (all-defined-out))
+
 ;; a Grid is a math/matrix Matrix of cell%
 
 ;; parses a list of strings into a grid, based on the printed representation
@@ -22,6 +24,23 @@
         (for ([c (in-array r)])
           (display (send c show)))
         (newline)))))
+
+(define (within-grid? g pos)
+  (and (<= 0 (vector-ref pos 0) (sub1 (matrix-num-rows g)))
+       (<= 0 (vector-ref pos 1) (sub1 (matrix-num-cols g)))))
+
+(define (left pos)
+  (vector (vector-ref pos 0)
+          (sub1 (vector-ref pos 1))))
+(define (right pos)
+  (vector (vector-ref pos 0)
+          (add1 (vector-ref pos 1))))
+(define (up pos)
+  (vector (sub1 (vector-ref pos 0))
+          (vector-ref pos 1)))
+(define (down pos)
+  (vector (add1 (vector-ref pos 0))
+          (vector-ref pos 1)))
 
 
 (module+ test
@@ -49,4 +68,13 @@
       "*        *"
       "*****"))
   (check-equal? (parse-and-show g3) (render-grid g2))
+
+  (define g2* (parse-grid g2))
+  (check-true (within-grid? g2* '#(0 0)))
+  (check-true (within-grid? g2* '#(0 1)))
+  (check-true (within-grid? g2* '#(1 0)))
+  (check-true (within-grid? g2* '#(4 4)))
+  (check-false (within-grid? g2* '#(0 10)))
+  (check-false (within-grid? g2* '#(5 0)))
+  (check-false (within-grid? g2* '#(5 10)))
   )
