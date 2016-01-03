@@ -12,9 +12,11 @@
 ;; will have to do
 (define character%
   (class object%
-    (field [grid #f]  ; grid where the character is active
-           [pos  #f]  ; 2-vector of integer (what math/array uses as indices)
-           [speed 6]) ; default to human speed (30 ft = 6 squares)
+    (field [grid #f] ; grid where the character is active
+           [pos  #f] ; 2-vector of integer (what math/array uses as indices)
+           [speed 6] ; default to human speed (30 ft = 6 squares)
+           [proficiency-bonus 0]
+           )
 
     (define/public (move new-pos)
       (cond
@@ -43,14 +45,43 @@
     (define/public (move-down)
       (move (down pos)))
 
+    (define/public (get-attack-bonus)
+      ;; Note: assumes we're proficient with whatever weapon we're using
+      proficiency-bonus) ; TODO add strength
+    (define/public (get-ac)
+      10) ; TODO add dex, armor, etc.
+    (define/public (get-damage-die)
+      d6) ; TODO have it based on equipped weapon
+
     (super-new)))
 
+(define (random-between min max) ;; TODO replace with 6.4's `random`
+  (+ min (random (- max min))))
+(define (d6)
+  (random-between 1 7))
+(define (d20)
+  (random-between 1 21))
+
+(define (attack-hits? attack-roll ac)
+  (and (not (= attack-roll 1)) ; automatic miss
+       (or (>= attack-roll ac)
+           (=  attack-roll 20)))) ; automatic hit
+
 (define (attack attacker defender)
-  ;; TODO add attack rolls, damage rolls, death, etc.
-  (enqueue-message!
-   (format "~a attacks ~a!"
-           (send attacker describe #:capitalize? #t #:specific? #t)
-           (send defender describe #:specific? #t)))
+  (define base-message
+    (format "~a attacks ~a"
+            (send attacker describe #:capitalize? #t #:specific? #t)
+            (send defender describe #:specific? #t)))
+  ;; TODO add advantage / disadvantage, criticals, etc.
+  (define attack-roll (+ (d20) (send attacker get-attack-bonus)))
+  (cond [(attack-hits? attack-roll (send defender get-ac))
+         (define damage-roll ((send attacker get-damage-die)))
+         ;; TODO actually deal damage, death, player death, etc.
+         (enqueue-message!
+          (format "~a and deals ~a damage!" base-message damage-roll))]
+        [else
+         (enqueue-message!
+          (string-append base-message " and misses."))])
   'attack)
 
 ;; TODO have in some misc utils file
