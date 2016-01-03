@@ -29,8 +29,7 @@
           'move] ; return the action we took
          [(get-field occupant new-cell) =>
           (lambda (occ)
-            (enqueue-message! "Attack!")
-            'attack)] ; we attack whoever is there
+            (attack this occ))] ; we attack whoever is there
          [else
           'invalid])]
        [else
@@ -45,6 +44,10 @@
       (move (down pos)))
 
     (super-new)))
+
+(define (attack attacker defender)
+  (enqueue-message! "Attack!")
+  'attack)
 
 (define player%
   (class character%
