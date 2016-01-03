@@ -46,15 +46,16 @@
 (define (handle-input s)
   (intercept-tty)
   (define player (state-player s))
+  (define mode   (state-mode   s)) ; to check move validity
   (define in (read-char))
   (begin0
       (match in
         [(app char->integer 27) ; escape, we're trying to move
          (case (which-direction?)
-           [(up)    (send player move-up)]
-           [(down)  (send player move-down)]
-           [(right) (send player move-right)]
-           [(left)  (send player move-left)]
+           [(up)    (send player move-up    mode)]
+           [(down)  (send player move-down  mode)]
+           [(right) (send player move-right mode)]
+           [(left)  (send player move-left  mode)]
            [else 'invalid])]
         [#\s ; suicide
          (set-field! current-hp player 0)

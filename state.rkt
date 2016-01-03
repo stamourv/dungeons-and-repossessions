@@ -28,7 +28,7 @@
   ;; place characters
   (for ([(char pos) (in-dict (dict-set other-characters p player-pos))])
     (set-field! grid char g)
-    (send char move pos))
+    (send char move pos '(move 1))) ; dummy mode, to ensure move validity
   (state p
          g
          initiative-order
@@ -46,21 +46,25 @@
            grid
            new-initiative-order
            `(move ,(get-field speed (first new-initiative-order)))))
-  (define (new-move-state n)
-    (state player grid initiative-order `(move ,n)))
+  (define (new-move-state n #:dash? [dash? #f])
+    (state player grid initiative-order `(,(if dash? 'dash 'move) ,n)))
   (define (new-attack-state)
     (state player grid initiative-order 'attack))
   (match mode
-    [`(move ,n-moves-left)
+    [`(,(and head (or 'move 'dash)) ,n-moves-left)
      (case action-taken
        [(wait)
         (new-attack-state)]
        [(move)
         (define new-n (sub1 n-moves-left))
+        (define dash? (equal? head 'dash))
         (if (zero? new-n) ; no more moves
-            (new-attack-state)
-            (new-move-state new-n))]
+            (if dash?
+                (new-turn)
+                (new-attack-state))
+            (new-move-state new-n #:dash? dash?))]
        [(attack) ; end move prematurely to attack
+        ;; (invalid when dashing. checking in character% move method)
         (new-turn)]
        [(invalid) ; doesn't count against the number of moves
         s]
@@ -72,8 +76,8 @@
        [(wait)
         (new-turn)]
        [(move) ; forego attack for double move
-        ;; TODO bug: since we go back to the move mode, it's never anyone else's turn
         (new-move-state
+         #:dash? #t
          (sub1 (get-field speed (first initiative-order))))] ; already moved 1
        [(attack)
         (new-turn)]

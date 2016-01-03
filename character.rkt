@@ -28,7 +28,7 @@
     (define/public (describe)
       (error "can't describe a character%"))
 
-    (define/public (move new-pos)
+    (define/public (move new-pos mode)
       (cond
        [(within-grid? grid new-pos) ; don't go off the map
         (define new-cell (array-ref grid new-pos))
@@ -39,21 +39,25 @@
           (set! pos new-pos)
           (set-field! occupant new-cell this)
           'move] ; return the action we took
-         [(get-field occupant new-cell) =>
+         [(get-field occupant new-cell) => ; occupied, try to attack
           (lambda (occ)
-            (attack this occ))] ; we attack whoever is there
+            (match mode
+              [`(dash ,_) ; already gave up on attacking this turn
+               'invalid]
+              [_
+               (attack this occ)]))] ; we attack whoever is there
          [else
           'invalid])]
        [else
         'invalid]))
-    (define/public (move-left)
-      (move (left pos)))
-    (define/public (move-right)
-      (move (right pos)))
-    (define/public (move-up)
-      (move (up pos)))
-    (define/public (move-down)
-      (move (down pos)))
+    (define/public (move-left mode)
+      (move (left pos) mode))
+    (define/public (move-right mode)
+      (move (right pos) mode))
+    (define/public (move-up mode)
+      (move (up pos) mode))
+    (define/public (move-down mode)
+      (move (down pos) mode))
 
     (define/public (get-attack-bonus)
       ;; Note: assumes we're proficient with whatever weapon we're using
@@ -84,12 +88,12 @@
                 (render-grid '("****"
                                "*@ *"
                                "****")))
-  (void (send p1 move-right))
+  (void (send p1 move-right '(move 1)))
   (check-equal? (show-grid (state-grid s1))
                 (render-grid '("****"
                                "* @*"
                                "****")))
-  (void (send p1 move-up)) ; can't move into a wall
+  (void (send p1 move-up '(move 1))) ; can't move into a wall
   (check-equal? (show-grid (state-grid s1))
                 (render-grid '("****"
                                "* @*"
@@ -180,9 +184,9 @@
     ;; moves at random, which attacks if it runs into something
     (define/override (act mode)
       (case (random 5)
-        [(0) (send this move-left)]
-        [(1) (send this move-right)]
-        [(2) (send this move-up)]
-        [(3) (send this move-down)]
+        [(0) (send this move-left  mode)]
+        [(1) (send this move-right mode)]
+        [(2) (send this move-up    mode)]
+        [(3) (send this move-down  mode)]
         [(4) 'wait]))
     (super-new [name "brownian dummy"] [max-hp 10])))
