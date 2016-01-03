@@ -6,7 +6,8 @@
          "utils.rkt")
 
 (provide player%
-         training-dummy%)
+         training-dummy%
+         brownian-dummy%)
 
 (module+ test (require rackunit))
 
@@ -171,3 +172,16 @@
                                         #:capitalize? #t #:specific? #t))))
       'wait)
     (super-new [name "training dummy"] [max-hp 10])))
+
+(define brownian-dummy%
+  (class npc%
+    (define/override (show)
+      #\B)
+    ;; moves at random, which attacks if it runs into something
+    (define/override (act mode)
+      (case (random 4)
+        [(0) (send this move-left)]
+        [(1) (send this move-right)]
+        [(2) (send this move-up)]
+        [(3) (send this move-down)]))
+    (super-new [name "brownian dummy"] [max-hp 10])))

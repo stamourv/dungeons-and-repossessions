@@ -16,11 +16,10 @@
       "*        *"
       "**********"))
   (enqueue-message! "Welcome!")
-  (define p     (new player%))
-  (define dummy (new training-dummy%))
-  (new-state p grid
+  (new-state (new player%) grid
              #:player-pos #(1 1)
-             #:other-characters `((,dummy . #(1 8)))))
+             #:other-characters `((,(new brownian-dummy%) . #(1 8))
+                                  (,(new training-dummy%) . #(3 8)))))
 
 (define (game-loop s)
   (define active-character (first (state-initiative-order s)))
