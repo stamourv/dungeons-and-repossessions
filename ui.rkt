@@ -44,27 +44,26 @@
 
 ;; game-state -> kind-of-action-performed
 (define (handle-input s)
-  (parameterize ([current-state s])
-    (intercept-tty)
-    (define player (state-player s))
-    (define in (read-char))
-    (begin0
-        (match in
-          [(app char->integer 27) ; escape, we're trying to move
-           (case (which-direction?)
-             [(up)    (send player move-up)]
-             [(down)  (send player move-down)]
-             [(right) (send player move-right)]
-             [(left)  (send player move-left)]
-             [else 'invalid])]
-          [#\s ; suicide
-           (set-field! current-hp player 0)
-           'invalid]
-          [#\q
-           'quit]
-          [#\space
-           'wait]
-          [_
-           (invalid-command)
-           'invalid])
-      (restore-tty))))
+  (intercept-tty)
+  (define player (state-player s))
+  (define in (read-char))
+  (begin0
+      (match in
+        [(app char->integer 27) ; escape, we're trying to move
+         (case (which-direction?)
+           [(up)    (send player move-up)]
+           [(down)  (send player move-down)]
+           [(right) (send player move-right)]
+           [(left)  (send player move-left)]
+           [else 'invalid])]
+        [#\s ; suicide
+         (set-field! current-hp player 0)
+         'invalid]
+        [#\q
+         'quit]
+        [#\space
+         'wait]
+        [_
+         (invalid-command)
+         'invalid])
+    (restore-tty)))

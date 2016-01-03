@@ -124,11 +124,22 @@
     (super-new [max-hp 10])))
 
 
-(define training-dummy%
+(define npc%
   (class character%
+    (define/public (act) ; returns a kind of action
+      (error "npc%s can't act"))
+    (super-new)))
+
+(define training-dummy%
+  (class npc%
     (define/override (show)
       #\D)
     (define/override (describe #:capitalize? [capitalize? #f]
                                #:specific?   [specific?   #f])
       (string-append (article capitalize? specific?) " training dummy"))
+    (define/override (act) ; the dummy doesn't do anything
+      (enqueue-message! (format "~a waits."
+                                (send this describe
+                                      #:capitalize? #t #:specific? #t)))
+      'wait)
     (super-new [max-hp 10])))
