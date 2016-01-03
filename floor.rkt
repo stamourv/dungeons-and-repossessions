@@ -9,6 +9,12 @@
          remove-dead-monsters!)
 
 (struct floor
+  ;; TODO unclear I even need that structure anymore
+  ;;   well, assuming we can't go back to previous floors
+  ;;     (which, given current design, makes sense)
+  ;;   may come in handy when we add generation, to keep list of
+  ;;     rooms, empty cells, etc. so we can place thing
+  ;;     but that's a structure useful for generation, not during the game
   (grid
    [monsters #:mutable]))
 ;; TODO entry and exit, chests (or are those just cells?), etc.
