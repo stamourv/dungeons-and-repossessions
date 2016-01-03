@@ -26,7 +26,7 @@
   (set-state-message-queue! s '()))
 
 (define (invalid-command)
-  (enqueue-message! (current-state) "Invalid command."))
+  (enqueue-message! "Invalid command."))
 
 (define (which-direction?)
   (define char (read-char))

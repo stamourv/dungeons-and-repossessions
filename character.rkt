@@ -1,9 +1,11 @@
 #lang racket
 
 (require math/array
-         "grid.rkt")
+         "grid.rkt"
+         "state.rkt")
 
-(provide player%)
+(provide player%
+         training-dummy%)
 
 ;; should not be instantiated directly (hence not exported)
 ;; interfaces can't have method definitions (AFAICT), so this "abstract class"
@@ -25,6 +27,10 @@
           (set! pos new-pos)
           (set-field! occupant new-cell this)
           'move] ; return the action we took
+         [(get-field occupant new-cell) =>
+          (lambda (occ)
+            (enqueue-message! "Attack!")
+            'attack)] ; we attack whoever is there
          [else
           'invalid])]
        [else
@@ -44,4 +50,10 @@
   (class character%
     (define/public (show)
       #\@) ;; TODO add parsing for player position
+    (super-new)))
+
+(define training-dummy%
+  (class character%
+    (define/public (show)
+      #\D)
     (super-new)))

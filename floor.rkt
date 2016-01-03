@@ -15,7 +15,8 @@
 (define (show-floor f)
   (show-grid (floor-grid f)))
 
-(define (new-floor los p #:player-pos player-pos)
+(define (new-floor los p #:player-pos player-pos
+                   #:other-characters [other-characters '()]); dictof character%
   (define g (parse-grid los))
   (define f (floor g p))
   ;; TODO eventually, those next two lines should go in a separate function
@@ -23,6 +24,9 @@
   ;;   (and the player can move between (possibly existing) floors)
   (set-field! grid p g)
   (send p move player-pos)
+  (for ([(char pos) (in-dict other-characters)])
+    (set-field! grid char g)
+    (send char move pos))
   f)
 
 

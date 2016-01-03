@@ -10,8 +10,9 @@
    active-character ; is-a? character%
    mode)) ; a mode is either `(move ,n-moves-left) or 'attack
 
-(define (enqueue-message! s m)
-  (set-state-message-queue! s (cons m (state-message-queue s))))
+(define (enqueue-message! m)
+  (set-state-message-queue! (current-state)
+                            (cons m (state-message-queue (current-state)))))
 
 (define current-state (make-parameter #f))
 

@@ -13,8 +13,10 @@
 (define (char->cell% char)
   (dict-ref chars->cell%s char))
 
-(define cell%
+(define cell% ; some kind of obstacle by default
   (class object%
+    (init-field [items    '()]
+                [occupant #f]) ; player, monster, etc.
     (define/public (free?)
       #f)
     (define/public (show)
@@ -24,8 +26,7 @@
 
 (define empty-cell%
   (class cell%
-    (init-field [items    '()]
-                [occupant #f]) ; player, monster, etc.
+    (inherit-field occupant)
     (define/override (free?)
       (not occupant))
     (define/override (show)

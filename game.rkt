@@ -17,7 +17,8 @@
       "*        *"
       "**********"))
   (define p (new player%))
-  (state (new-floor grid p #:player-pos #(1 1))
+  (state (new-floor grid p #:player-pos #(1 1)
+                    #:other-characters `((,(new training-dummy%) . #(1 8))))
          '("Welcome!")
          p ;; TODO roll initiative instead
          `(move 1))) ;; TODO base on active character. encapsulate in state.rkt
