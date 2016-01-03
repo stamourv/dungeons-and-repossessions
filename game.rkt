@@ -1,7 +1,6 @@
 #lang racket
 
 (require "character.rkt"
-         "floor.rkt"
          "state.rkt"
          "ui.rkt")
 
@@ -19,11 +18,9 @@
   (enqueue-message! "Welcome!")
   (define p     (new player%))
   (define dummy (new training-dummy%))
-  (state p
-         (new-floor grid p #:player-pos #(1 1)
-                    #:other-characters `((,dummy . #(1 8))))
-         (list p dummy) ;; TODO roll initiative instead
-         `(move 1))) ;; TODO base on active character. encapsulate in state.rkt
+  (new-state p grid
+             #:player-pos #(1 1)
+             #:other-characters `((,dummy . #(1 8)))))
 
 (define (game-loop s)
   (define active-character (first (state-initiative-order s)))

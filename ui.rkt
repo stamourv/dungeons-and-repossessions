@@ -1,7 +1,7 @@
 #lang racket
 
-(require "floor.rkt"
-         "character.rkt"
+(require "character.rkt"
+         "grid.rkt"
          "state.rkt"
          "terminal.rkt")
 
@@ -23,7 +23,7 @@
   (clear-all)
   (displayln (state-mode s))
   (printf "~a HP\n" (get-field current-hp (state-player s)))
-  (display (show-floor (state-floor s)))
+  (display (show-grid (state-grid s)))
   (for-each displayln (reverse message-queue))
   (reset-message-queue!))
 

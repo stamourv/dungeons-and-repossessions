@@ -69,6 +69,32 @@
 
     (super-new)))
 
+
+(module+ test
+  (define (render-grid g) (string-join g "\n" #:after-last "\n"))
+  (define p1 (new player%))
+  (define g1
+    '("****"
+      "*  *"
+      "****"))
+  (define s1
+    (new-state p1 g1 #:player-pos #(1 1)))
+  (check-equal? (show-grid (state-grid s1))
+                (render-grid '("****"
+                               "*@ *"
+                               "****")))
+  (void (send p1 move-right))
+  (check-equal? (show-grid (state-grid s1))
+                (render-grid '("****"
+                               "* @*"
+                               "****")))
+  (void (send p1 move-up)) ; can't move into a wall
+  (check-equal? (show-grid (state-grid s1))
+                (render-grid '("****"
+                               "* @*"
+                               "****"))))
+
+
 (define (attack-hits? attack-roll ac)
   (and (not (= attack-roll 1)) ; automatic miss
        (or (>= attack-roll ac)

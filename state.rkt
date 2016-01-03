@@ -1,5 +1,7 @@
 #lang racket
 
+(require "grid.rkt")
+
 (provide (all-defined-out))
 
 ;; list of strings (messages) which were produced since the previous
@@ -12,25 +14,42 @@
 
 (struct state
   (player
-   floor
+   grid
    initiative-order ; listof character%
    mode)) ; a mode is either `(move ,n-moves-left) or 'attack
+
+
+(define (new-state p map-los
+                   #:player-pos player-pos
+                   #:other-characters [other-characters '()]); dictof character%
+  (define g (parse-grid map-los))
+  (define initiative-order
+    (cons p (dict-keys other-characters))) ;; TODO roll initiative instead
+  ;; place characters
+  (for ([(char pos) (in-dict (dict-set other-characters p player-pos))])
+    (set-field! grid char g)
+    (send char move pos))
+  (state p
+         g
+         initiative-order
+         `(move ,(get-field speed (first initiative-order)))))
+
 
 ;; TODO allow taking moves and attacks to be in a different order, or broken up
 ;;   (for now, always move, then attack, then end of turn)
 (define (next-state s action-taken)
-  (match-define (state player the-floor initiative-order mode) s)
+  (match-define (state player grid initiative-order mode) s)
   (define (new-turn) ; switch active character and go back to moving
     (define new-initiative-order
       (append (rest initiative-order) (list (first initiative-order))))
     (state player
-           the-floor
+           grid
            new-initiative-order
            `(move ,(get-field speed (first new-initiative-order)))))
   (define (new-move-state n)
-    (state player the-floor initiative-order `(move ,n)))
+    (state player grid initiative-order `(move ,n)))
   (define (new-attack-state)
-    (state player the-floor initiative-order 'attack))
+    (state player grid initiative-order 'attack))
   (match mode
     [`(move ,n-moves-left)
      (case action-taken
@@ -69,7 +88,7 @@
 
 ;; end of turn cleanup
 (define (state-cleanup s)
-  (match-define (state player the-floor initiative-order mode) s)
+  (match-define (state player grid initiative-order mode) s)
   ;; remove dead monsters
   (define new-initiative-order
     (for/list ([m (in-list initiative-order)]
@@ -78,4 +97,4 @@
                           #t ; alive, keep
                           (begin (send m die) #f))) ; dead, remove
       m))
-  (state player the-floor new-initiative-order mode))
+  (state player grid new-initiative-order mode))
