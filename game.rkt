@@ -24,12 +24,13 @@
 (define (game-loop s)
   (define active-character (first (state-initiative-order s)))
   (define action-taken
-    (if (equal? active-character
-                (state-player s))
-        ;; TODO should this be a player's `act` method?
-        (begin (display-state s)
-               (handle-input s))
-        (send active-character act (state-mode s))))
+    (cond [(equal? active-character
+                   (state-player s))
+           ;; TODO should this be a player's `act` method?
+           (display-state s)
+           (handle-input s)]
+          [else
+           (send active-character act (state-mode s))]))
   (unless (equal? action-taken 'quit)
     (define new-s (state-cleanup (next-state s action-taken)))
     (cond [(positive? (get-field current-hp (state-player new-s)))
