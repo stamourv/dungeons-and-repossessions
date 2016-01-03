@@ -52,6 +52,8 @@
            [else 'invalid])]
         [#\q
          'quit]
+        [#\space
+         'wait]
         [_
          (invalid-command)
          'invalid])
