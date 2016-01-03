@@ -3,6 +3,10 @@
 (require "grid.rkt"
          "player.rkt")
 
+(provide new-floor
+         show-floor
+         floor-player)
+
 (struct floor
   (grid
    player))
