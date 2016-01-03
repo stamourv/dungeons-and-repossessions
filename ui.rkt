@@ -1,7 +1,7 @@
 #lang racket
 
 (require "floor.rkt"
-         "player.rkt"
+         "character.rkt"
          "state.rkt"
          "terminal.rkt")
 

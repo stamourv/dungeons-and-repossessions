@@ -1,7 +1,7 @@
 #lang racket
 
 (require "grid.rkt"
-         "player.rkt")
+         "character.rkt")
 
 (provide new-floor
          show-floor
