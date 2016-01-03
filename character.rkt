@@ -46,17 +46,36 @@
     (super-new)))
 
 (define (attack attacker defender)
-  (enqueue-message! "Attack!")
+  ;; TODO add attack rolls, damage rolls, death, etc.
+  (enqueue-message!
+   (format "~a attacks ~a!"
+           (send attacker describe #:capitalize? #t #:specific? #t)
+           (send defender describe #:specific? #t)))
   'attack)
+
+;; TODO have in some misc utils file
+(define (article capitalize? specific?
+                 #:an? [an? #f])
+  (if specific?
+      (if capitalize? "The" "the")
+      (if an?
+          (if capitalize? "An" "an")
+          (if capitalize? "A"  "a"))))
 
 (define player%
   (class character%
     (define/public (show)
       #\@) ;; TODO add parsing for player position
+    (define/public (describe #:capitalize? [capitalize? #f]
+                             #:specific?   [specific?   'n/a]) ; always specific
+      (string-append (article capitalize? #t) " player")) ; TODO have a name
     (super-new)))
 
 (define training-dummy%
   (class character%
     (define/public (show)
       #\D)
+    (define/public (describe #:capitalize? [capitalize? #f]
+                             #:specific?   [specific?   #f])
+      (string-append (article capitalize? specific?) " training dummy"))
     (super-new)))
