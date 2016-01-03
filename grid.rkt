@@ -1,7 +1,6 @@
 #lang racket
 
-(require racket/format
-         math/array math/matrix
+(require math/array math/matrix
          "cell.rkt")
 
 ;; a Grid is a math/matrix Matrix of cell%
