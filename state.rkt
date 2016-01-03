@@ -2,36 +2,35 @@
 
 (provide (all-defined-out))
 
-;; message-queue is a list of strings (messages) which were produced
-;; during the previous round, and need to be displayed now
+;; list of strings (messages) which were produced since the previous
+;; previous display, and need to be displayed now
+(define message-queue '())
+(define (enqueue-message! m)
+  (set! message-queue (cons m message-queue)))
+(define (reset-message-queue!)
+  (set! message-queue '()))
+
 (struct state
   (player
    floor
-   [message-queue #:mutable]
    initiative-order ; listof character%
    mode)) ; a mode is either `(move ,n-moves-left) or 'attack
-
-(define (enqueue-message! m [s (current-state)])
-  (set-state-message-queue! s (cons m (state-message-queue s))))
-
-(define current-state (make-parameter #f))
 
 ;; TODO allow taking moves and attacks to be in a different order, or broken up
 ;;   (for now, always move, then attack, then end of turn)
 (define (next-state s action-taken)
-  (match-define (state player the-floor q initiative-order mode) s)
+  (match-define (state player the-floor initiative-order mode) s)
   (define (new-turn) ; switch active character and go back to moving
     (define new-initiative-order
       (append (rest initiative-order) (list (first initiative-order))))
     (state player
            the-floor
-           q
            new-initiative-order
            `(move ,(get-field speed (first new-initiative-order)))))
   (define (new-move-state n)
-    (state player the-floor q initiative-order `(move ,n)))
+    (state player the-floor initiative-order `(move ,n)))
   (define (new-attack-state)
-    (state player the-floor q initiative-order 'attack))
+    (state player the-floor initiative-order 'attack))
   (match mode
     [`(move ,n-moves-left)
      (case action-taken

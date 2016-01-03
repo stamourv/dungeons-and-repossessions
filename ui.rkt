@@ -24,8 +24,8 @@
   (displayln (state-mode s))
   (printf "~a HP\n" (get-field current-hp (state-player s)))
   (display (show-floor (state-floor s)))
-  (for-each displayln (reverse (state-message-queue s)))
-  (set-state-message-queue! s '()))
+  (for-each displayln (reverse message-queue))
+  (reset-message-queue!))
 
 (define (invalid-command)
   (enqueue-message! "Invalid command."))

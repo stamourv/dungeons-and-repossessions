@@ -95,10 +95,9 @@
 
 (module+ test
   (define (get-log thunk)
-    (define s (state #f #f '() #f #f)) ; "mock" state
-    (parameterize ([current-state s])
-      (thunk))
-    (string-join (state-message-queue s) "\n"))
+    (thunk)
+    (begin0 (string-join message-queue "\n")
+      (reset-message-queue!)))
 
   (random-seed 10)
   (check-equal?
