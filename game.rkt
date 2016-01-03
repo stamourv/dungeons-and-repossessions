@@ -27,6 +27,11 @@
   (display-state s)
   (define action-taken (handle-input s))
   (unless (equal? action-taken 'quit)
+    ;; TODO once we have other agents, return to main loop only if player is
+    ;;   the active character, otherwise have an inner loop to have monsters
+    ;;   act until it's the player's turn
+    ;;   (will need other entry points besides `handle-input`, that return
+    ;;   action-taken)
     (game-loop (next-state s action-taken))))
 
 (module+ main
