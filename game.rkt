@@ -25,5 +25,4 @@
   (set-up-ui)
   (with-handlers ([values values]) ; whatever we do, always tear down UI
     (game-loop (init-game)))
-  (tear-down-ui)
-  (void))
+  (void (tear-down-ui)))
