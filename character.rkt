@@ -10,8 +10,8 @@
 ;; will have to do
 (define character%
   (class object%
-    (init-field [grid #f]) ; grid where the character is active
-    (field [pos  #f]) ; 2-vector of integer (what math/array uses as indices)
+    (field [grid #f]  ; grid where the character is active
+           [pos  #f]) ; 2-vector of integer (what math/array uses as indices)
 
     (define/public (move new-pos)
       (when (within-grid? grid new-pos) ; don't go off the map

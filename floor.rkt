@@ -15,10 +15,13 @@
 (define (show-floor f)
   (show-grid (floor-grid f)))
 
-(define (new-floor los #:player-pos player-pos)
+(define (new-floor los p #:player-pos player-pos)
   (define g (parse-grid los))
-  (define p (new player% [grid g]))
   (define f (floor g p))
+  ;; TODO eventually, those next two lines should go in a separate function
+  ;;   so that we can create floors without putting the player there
+  ;;   (and the player can move between (possibly existing) floors)
+  (set-field! grid p g)
   (send p move player-pos)
   f)
 
