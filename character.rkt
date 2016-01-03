@@ -7,6 +7,8 @@
 (provide player%
          training-dummy%)
 
+(module+ test (require rackunit))
+
 ;; should not be instantiated directly (hence not exported)
 ;; interfaces can't have method definitions (AFAICT), so this "abstract class"
 ;; will have to do
@@ -83,6 +85,27 @@
          (enqueue-message!
           (string-append base-message " and misses."))])
   'attack)
+
+(module+ test
+  (define (get-log thunk)
+    (define s (state #f '() #f #f)) ; "mock" state
+    (parameterize ([current-state s])
+      (thunk))
+    (string-join (state-message-queue s) "\n"))
+
+  (random-seed 10)
+  (check-equal?
+   (get-log (lambda ()
+              (define p (new player%))
+              (define d (new training-dummy%))
+              (for ([i 5]) (attack p d))))
+   (string-join '("The player attacks the training dummy and deals 6 damage!"
+                  "The player attacks the training dummy and deals 3 damage!"
+                  "The player attacks the training dummy and misses."
+                  "The player attacks the training dummy and misses."
+                  "The player attacks the training dummy and misses.")
+                "\n")))
+
 
 ;; TODO have in some misc utils file
 (define (article capitalize? specific?
