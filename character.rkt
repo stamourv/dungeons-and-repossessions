@@ -22,6 +22,11 @@
            [proficiency-bonus 0]
            [current-hp max-hp])
 
+    (define/public (show)
+      (error "can't show a character%"))
+    (define/public (describe)
+      (error "can't describe a character%"))
+
     (define/public (move new-pos)
       (cond
        [(within-grid? grid new-pos) ; don't go off the map
@@ -108,20 +113,22 @@
                   "The player attacks the training dummy and misses.")
                 "\n")))
 
+
 (define player%
   (class character%
-    (define/public (show)
+    (define/override (show)
       #\@) ;; TODO add parsing for player position
-    (define/public (describe #:capitalize? [capitalize? #f]
-                             #:specific?   [specific?   'n/a]) ; always specific
+    (define/override (describe #:capitalize? [capitalize? #f]
+                               #:specific?   [specific? 'n/a]) ; always specific
       (string-append (article capitalize? #t) " player")) ; TODO have a name
     (super-new [max-hp 10])))
 
+
 (define training-dummy%
   (class character%
-    (define/public (show)
+    (define/override (show)
       #\D)
-    (define/public (describe #:capitalize? [capitalize? #f]
-                             #:specific?   [specific?   #f])
+    (define/override (describe #:capitalize? [capitalize? #f]
+                               #:specific?   [specific?   #f])
       (string-append (article capitalize? specific?) " training dummy"))
     (super-new [max-hp 10])))
