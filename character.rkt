@@ -179,9 +179,10 @@
       #\B)
     ;; moves at random, which attacks if it runs into something
     (define/override (act mode)
-      (case (random 4)
+      (case (random 5)
         [(0) (send this move-left)]
         [(1) (send this move-right)]
         [(2) (send this move-up)]
-        [(3) (send this move-down)]))
+        [(3) (send this move-down)]
+        [(4) 'wait]))
     (super-new [name "brownian dummy"] [max-hp 10])))
