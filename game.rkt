@@ -39,8 +39,12 @@
       ;; TODO this `parameterize` is probably a sign that this code is in the
       ;; wrong place...
       (remove-dead-monsters! (state-floor s)))
-    ;; TODO detect whether player is dead
-    (game-loop new-s)))
+    (cond [(positive? (get-field current-hp (state-player new-s)))
+           (game-loop new-s)] ; alive, keep going
+          [else
+           (printf "~a has died.\nGame over.\n"
+                   (send (state-player new-s) describe
+                         #:capitalize? #t))])))
 
 (module+ main
   (set-up-ui)

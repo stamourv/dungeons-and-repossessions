@@ -57,6 +57,9 @@
              [(right) (send player move-right)]
              [(left)  (send player move-left)]
              [else 'invalid])]
+          [#\s ; suicide
+           (set-field! current-hp player 0)
+           'invalid]
           [#\q
            'quit]
           [#\space
