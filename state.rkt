@@ -5,7 +5,8 @@
 ;; message-queue is a list of strings (messages) which were produced
 ;; during the previous round, and need to be displayed now
 (struct state
-  (floor
+  (player
+   floor
    [message-queue #:mutable]
    active-character ; is-a? character%
    mode)) ; a mode is either `(move ,n-moves-left) or 'attack
@@ -19,16 +20,16 @@
 ;; TODO allow taking moves and attacks to be in a different order, or broken up
 ;;   (for now, always move, then attack, then end of turn)
 (define (next-state s action-taken)
-  (match-define (state floor q active mode) s)
+  (match-define (state player floor q active mode) s)
   (define (new-turn)
     ;; TODO change active character, once we have more than 1 character
     ;;   probably need a character queue (order of initiative) for that
     ;;   (could have global initiative for starters, then per-encounter later)
     (new-move-state (get-field speed active)))
   (define (new-move-state n)
-    (state floor q active `(move ,n)))
+    (state player floor q active `(move ,n)))
   (define (new-attack-state)
-    (state floor q active 'attack))
+    (state player floor q active 'attack))
   (match mode
     [`(move ,n-moves-left)
      (case action-taken

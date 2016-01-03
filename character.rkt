@@ -15,11 +15,12 @@
 ;; will have to do
 (define character%
   (class object%
+    (init-field [max-hp 1])
     (field [grid #f] ; grid where the character is active
            [pos  #f] ; 2-vector of integer (what math/array uses as indices)
            [speed 6] ; default to human speed (30 ft = 6 squares)
            [proficiency-bonus 0]
-           )
+           [current-hp max-hp])
 
     (define/public (move new-pos)
       (cond
@@ -72,7 +73,9 @@
   (define attack-roll (+ (d20) (send attacker get-attack-bonus)))
   (cond [(attack-hits? attack-roll (send defender get-ac))
          (define damage-roll ((send attacker get-damage-die)))
-         ;; TODO actually deal damage, death, player death, etc.
+         (set-field! current-hp defender
+                     (- (get-field current-hp defender) damage-roll))
+         ;; TODO death, player death, etc.
          (enqueue-message!
           (format "~a and deals ~a damage!" base-message damage-roll))]
         [else
@@ -107,7 +110,7 @@
     (define/public (describe #:capitalize? [capitalize? #f]
                              #:specific?   [specific?   'n/a]) ; always specific
       (string-append (article capitalize? #t) " player")) ; TODO have a name
-    (super-new)))
+    (super-new [max-hp 10])))
 
 (define training-dummy%
   (class character%
@@ -116,4 +119,4 @@
     (define/public (describe #:capitalize? [capitalize? #f]
                              #:specific?   [specific?   #f])
       (string-append (article capitalize? specific?) " training dummy"))
-    (super-new)))
+    (super-new [max-hp 10])))
