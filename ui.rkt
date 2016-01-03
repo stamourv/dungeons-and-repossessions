@@ -50,10 +50,10 @@
         (match in
           [(app char->integer 27) ; escape, we're trying to move
            (case (which-direction?)
-             [(up)    (send player move-up)    'move]
-             [(down)  (send player move-down)  'move]
-             [(right) (send player move-right) 'move]
-             [(left)  (send player move-left)  'move]
+             [(up)    (send player move-up)]
+             [(down)  (send player move-down)]
+             [(right) (send player move-right)]
+             [(left)  (send player move-left)]
              [else 'invalid])]
           [#\q
            'quit]

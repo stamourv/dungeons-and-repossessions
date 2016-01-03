@@ -21,7 +21,8 @@
           (when pos ; when initially placed, won't have a position
             (set-field! occupant (array-ref grid pos) #f))
           (set! pos new-pos)
-          (set-field! occupant new-cell this))))
+          (set-field! occupant new-cell this)))
+      'move) ; return the action we took
     (define/public (move-left)
       (move (left pos)))
     (define/public (move-right)
