@@ -18,6 +18,7 @@
   (cursor-on)
   (echo-on))
 
+;; TODO flickers, not sure why. old roguelike does not, see what's different
 (define (display-state s)
   (clear-all)
   (displayln (state-mode s))
