@@ -151,6 +151,10 @@
 
 (define npc%
   (class character%
+    [init-field name]
+    (define/override (describe #:capitalize? [capitalize? #f]
+                               #:specific?   [specific?   #f])
+      (string-append (article capitalize? specific?) " " name))
     (define/public (act) ; returns a kind of action
       (error "npc%s can't act"))
     (super-new)))
@@ -159,9 +163,6 @@
   (class npc%
     (define/override (show)
       #\D)
-    (define/override (describe #:capitalize? [capitalize? #f]
-                               #:specific?   [specific?   #f])
-      (string-append (article capitalize? specific?) " training dummy"))
     (define/override (act mode) ; the dummy doesn't do anything
       ;; to avoid printing both when moving and attackin
       (when (equal? mode 'attack)
@@ -169,4 +170,4 @@
                                   (send this describe
                                         #:capitalize? #t #:specific? #t))))
       'wait)
-    (super-new [max-hp 10])))
+    (super-new [name "training dummy"] [max-hp 10])))
