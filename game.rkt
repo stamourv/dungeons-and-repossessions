@@ -33,7 +33,7 @@
         ;; TODO should this be a player's `act` method?
         (begin (display-state s)
                (handle-input s))
-        (send active-character act)))
+        (send active-character act (state-mode s))))
   (unless (equal? action-taken 'quit)
     (define new-s (next-state s action-taken))
     ;; end of turn cleanup

@@ -136,9 +136,11 @@
     (define/override (describe #:capitalize? [capitalize? #f]
                                #:specific?   [specific?   #f])
       (string-append (article capitalize? specific?) " training dummy"))
-    (define/override (act) ; the dummy doesn't do anything
-      (enqueue-message! (format "~a waits."
-                                (send this describe
-                                      #:capitalize? #t #:specific? #t)))
+    (define/override (act mode) ; the dummy doesn't do anything
+      ;; to avoid printing both when moving and attackin
+      (when (equal? mode 'attack)
+        (enqueue-message! (format "~a waits."
+                                  (send this describe
+                                        #:capitalize? #t #:specific? #t))))
       'wait)
     (super-new [max-hp 10])))
