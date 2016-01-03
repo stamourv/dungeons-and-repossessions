@@ -11,7 +11,8 @@
 (define character%
   (class object%
     (field [grid #f]  ; grid where the character is active
-           [pos  #f]) ; 2-vector of integer (what math/array uses as indices)
+           [pos  #f]  ; 2-vector of integer (what math/array uses as indices)
+           [speed 6]) ; default to human speed (30 ft = 6 squares)
 
     (define/public (move new-pos)
       (when (within-grid? grid new-pos) ; don't go off the map

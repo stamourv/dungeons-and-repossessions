@@ -20,6 +20,7 @@
 
 (define (display-state s)
   (clear-all)
+  (displayln (state-mode s))
   (display (show-floor (state-floor s)))
   (for-each displayln (reverse (state-message-queue s)))
   (set-state-message-queue! s '()))

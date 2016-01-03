@@ -19,8 +19,8 @@
   (define p (new player%))
   (state (new-floor grid p #:player-pos #(1 1))
          '("Welcome!")
-         p
-         'move))
+         p ;; TODO roll initiative instead
+         `(move 1))) ;; TODO base on active character. encapsulate in state.rkt
 
 (define (game-loop s)
   (display-state s)

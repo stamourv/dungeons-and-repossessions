@@ -1,4 +1,4 @@
-#lang racket/base
+#lang racket
 
 (provide (all-defined-out))
 
@@ -16,4 +16,23 @@
 (define current-state (make-parameter #f))
 
 (define (next-state s action-taken)
-  s) ;; TODO
+  (match-define (state floor q active mode) s)
+  (define (new-move-state n)
+    (state floor q active `(move ,n)))
+  (define (new-attack-state)
+    (state floor q active 'attack))
+  (match mode
+    [`(move ,n-moves-left)
+     (define new-n (sub1 n-moves-left))
+     ;; TODO take action-taken into account
+     (if (zero? new-n)
+         (new-attack-state)
+         (new-move-state new-n))]
+    ['attack
+     ;; TODO take action-taken into account
+     ;; TODO change active character, once we have more than 1 character
+     ;;   probably need a character queue (order of initiative) for that
+     ;;   (could have global initiative for starters, then per-encounter later)
+     (new-move-state (get-field speed active))]
+    [else
+     (raise-argument-error 'next-state "valid mode" mode)]))
