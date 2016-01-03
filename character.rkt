@@ -2,7 +2,8 @@
 
 (require math/array
          "grid.rkt"
-         "state.rkt")
+         "state.rkt"
+         "utils.rkt")
 
 (provide player%
          training-dummy%)
@@ -57,13 +58,6 @@
 
     (super-new)))
 
-(define (random-between min max) ;; TODO replace with 6.4's `random`
-  (+ min (random (- max min))))
-(define (d6)
-  (random-between 1 7))
-(define (d20)
-  (random-between 1 21))
-
 (define (attack-hits? attack-roll ac)
   (and (not (= attack-roll 1)) ; automatic miss
        (or (>= attack-roll ac)
@@ -105,16 +99,6 @@
                   "The player attacks the training dummy and misses."
                   "The player attacks the training dummy and misses.")
                 "\n")))
-
-
-;; TODO have in some misc utils file
-(define (article capitalize? specific?
-                 #:an? [an? #f])
-  (if specific?
-      (if capitalize? "The" "the")
-      (if an?
-          (if capitalize? "An" "an")
-          (if capitalize? "A"  "a"))))
 
 (define player%
   (class character%
