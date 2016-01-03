@@ -6,7 +6,8 @@
 
 (provide set-up-ui
          tear-down-ui
-         display-game-state
+         state
+         display-state
          handle-input)
 
 (define (set-up-ui)
@@ -16,13 +17,23 @@
   (cursor-on)
   (echo-on))
 
-;; A game state is a Floor
+;; TODO the definition of a game state probably shouldn't be with the ui code...
+;; message-queue is a list of strings (messages) which were produced
+;; during the previous round, and need to be displayed now
+(struct state (floor [message-queue #:mutable]))
+(define (enqueue-message! s m)
+  (set-state-message-queue! s (cons m (state-message-queue s))))
 
-(define (display-game-state f)
+(define (display-state s)
   (clear-all)
-  (display (show-floor f)))
+  (display (show-floor (state-floor s)))
+  (for-each displayln (reverse (state-message-queue s)))
+  (set-state-message-queue! s '()))
 
-(define (invalid-command) (display "Invalid command.\n"))
+(define current-state (make-parameter #f))
+
+(define (invalid-command)
+  (enqueue-message! (current-state) "Invalid command."))
 
 (define (which-direction?)
   (define char (read-char))
@@ -37,24 +48,25 @@
     (else  (invalid-command))))
 
 ;; game-state -> kind-of-action-performed
-(define (handle-input f)
-  (intercept-tty)
-  (define player (floor-player f))
-  (define in (read-char))
-  (begin0
-      (match in
-        [(app char->integer 27) ; escape, we're trying to move
-         (case (which-direction?)
-           [(up)    (send player move-up)    'move]
-           [(down)  (send player move-down)  'move]
-           [(right) (send player move-right) 'move]
-           [(left)  (send player move-left)  'move]
-           [else 'invalid])]
-        [#\q
-         'quit]
-        [#\space
-         'wait]
-        [_
-         (invalid-command)
-         'invalid])
-    (restore-tty)))
+(define (handle-input s)
+  (parameterize ([current-state s])
+    (intercept-tty)
+    (define player (floor-player (state-floor s)))
+    (define in (read-char))
+    (begin0
+        (match in
+          [(app char->integer 27) ; escape, we're trying to move
+           (case (which-direction?)
+             [(up)    (send player move-up)    'move]
+             [(down)  (send player move-down)  'move]
+             [(right) (send player move-right) 'move]
+             [(left)  (send player move-left)  'move]
+             [else 'invalid])]
+          [#\q
+           'quit]
+          [#\space
+           'wait]
+          [_
+           (invalid-command)
+           'invalid])
+      (restore-tty))))

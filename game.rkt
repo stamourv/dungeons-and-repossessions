@@ -14,10 +14,11 @@
       "* *      *"
       "*        *"
       "**********"))
-  (new-floor grid #:player-pos #(1 1)))
+  (state (new-floor grid #:player-pos #(1 1))
+         '("Welcome!")))
 
 (define (game-loop f)
-  (display-game-state f)
+  (display-state f)
   (unless (equal? (handle-input f) 'quit)
     (game-loop f)))
 
