@@ -2,6 +2,7 @@
 
 (require "floor.rkt"
          "player.rkt"
+         "state.rkt"
          "terminal.rkt")
 
 (provide set-up-ui
@@ -17,20 +18,11 @@
   (cursor-on)
   (echo-on))
 
-;; TODO the definition of a game state probably shouldn't be with the ui code...
-;; message-queue is a list of strings (messages) which were produced
-;; during the previous round, and need to be displayed now
-(struct state (floor [message-queue #:mutable]))
-(define (enqueue-message! s m)
-  (set-state-message-queue! s (cons m (state-message-queue s))))
-
 (define (display-state s)
   (clear-all)
   (display (show-floor (state-floor s)))
   (for-each displayln (reverse (state-message-queue s)))
   (set-state-message-queue! s '()))
-
-(define current-state (make-parameter #f))
 
 (define (invalid-command)
   (enqueue-message! (current-state) "Invalid command."))

@@ -1,6 +1,7 @@
 #lang racket
 
 (require "floor.rkt"
+         "state.rkt"
          "ui.rkt")
 
 ;; A game state is a Floor
