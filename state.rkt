@@ -65,3 +65,17 @@
          'next-state "valid action (attack state)" action-taken)])]
     [else
      (raise-argument-error 'next-state "valid mode" mode)]))
+
+
+;; end of turn cleanup
+(define (state-cleanup s)
+  (match-define (state player the-floor initiative-order mode) s)
+  ;; remove dead monsters
+  (define new-initiative-order
+    (for/list ([m (in-list initiative-order)]
+               #:when (if (or (positive? (get-field current-hp m))
+                              (equal? m player)) ; dead player handled elsewhere
+                          #t ; alive, keep
+                          (begin (send m die) #f))) ; dead, remove
+      m))
+  (state player the-floor new-initiative-order mode))

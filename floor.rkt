@@ -5,8 +5,7 @@
          "state.rkt")
 
 (provide new-floor
-         show-floor
-         remove-dead-monsters!)
+         show-floor)
 
 (struct floor
   ;; TODO unclear I even need that structure anymore
@@ -15,8 +14,7 @@
   ;;   may come in handy when we add generation, to keep list of
   ;;     rooms, empty cells, etc. so we can place thing
   ;;     but that's a structure useful for generation, not during the game
-  (grid
-   [monsters #:mutable]))
+  (grid))
 ;; TODO entry and exit, chests (or are those just cells?), etc.
 
 (define (show-floor f)
@@ -25,7 +23,8 @@
 (define (new-floor los p #:player-pos player-pos
                    #:other-characters [other-characters '()]); dictof character%
   (define g (parse-grid los))
-  (define f (floor g (dict-keys other-characters)))
+  (define f (floor g ; (dict-keys other-characters)
+                   ))
   ;; TODO eventually, those next two lines should go in a separate function
   ;;   so that we can create floors without putting the player there
   ;;   (and the player can move between (possibly existing) floors)
@@ -35,16 +34,6 @@
     (set-field! grid char g)
     (send char move pos))
   f)
-
-(define (remove-dead-monsters! f)
-  (define new-monsters ; remove dead monsters
-    (for/list ([m (in-list (floor-monsters f))]
-               #:when (if (positive? (get-field current-hp m))
-                          #t ; alive, keep
-                          (begin (send m die) #f))) ; dead, remove
-      m))
-  (set-floor-monsters! f new-monsters))
-
 
 (module+ test
   (require rackunit)
