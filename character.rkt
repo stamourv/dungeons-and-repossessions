@@ -150,7 +150,7 @@
     (define/override (describe #:capitalize? [capitalize? #f]
                                #:specific?   [specific? 'n/a]) ; always specific
       (string-append (article capitalize? #t) " player")) ; TODO have a name
-    (super-new [max-hp 10])))
+    (super-new [max-hp 10]))) ; as a fighter ;; TODO add constitution
 
 
 (define npc%
