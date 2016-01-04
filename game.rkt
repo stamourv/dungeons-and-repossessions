@@ -34,9 +34,11 @@
     (cond [(positive? (get-field current-hp (state-player new-s)))
            (game-loop new-s)] ; alive, keep going
           [else
-           (printf "~a has died.\nGame over.\n"
-                   (send (state-player new-s) describe
-                         #:capitalize? #t))])))
+           (enqueue-message!
+            (format "~a has died.\nGame over.\n"
+                    (send (state-player new-s) describe
+                          #:capitalize? #t)))
+           (display-state new-s)])))
 
 (module+ main
   (set-up-ui)
