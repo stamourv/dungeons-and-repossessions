@@ -8,13 +8,13 @@
 
 (define (init-game)
   (define grid
-    '("**********"
-      "* *      *"
-      "* *   ****"
-      "* *      *"
-      "* *      *"
-      "*        *"
-      "**********"))
+    '("╔═╦══════╗"
+      "║ ║      ║"
+      "║ ║   ═══╣"
+      "║ ║      ║"
+      "║ ║      ║"
+      "║        ║"
+      "╚════════╝"))
   (enqueue-message! "Welcome!")
   (new-state (new player%) grid
              #:player-pos #(1 1)
