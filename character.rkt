@@ -116,7 +116,6 @@
          (define damage-roll ((send attacker get-damage-die)))
          (set-field! current-hp defender
                      (- (get-field current-hp defender) damage-roll))
-         ;; TODO death, player death, etc.
          (enqueue-message!
           (format "~a and deals ~a damage!" base-message damage-roll))]
         [else
