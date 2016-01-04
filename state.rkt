@@ -52,16 +52,18 @@
     (state player grid initiative-order 'attack))
   (match mode
     [`(,(and head (or 'move 'dash)) ,n-moves-left)
+     (define dash? (equal? head 'dash))
+     (define (next-phase)
+       (if dash?
+           (new-turn)
+           (new-attack-state)))
      (case action-taken
        [(wait)
-        (new-attack-state)]
+        (next-phase)]
        [(move)
         (define new-n (sub1 n-moves-left))
-        (define dash? (equal? head 'dash))
         (if (zero? new-n) ; no more moves
-            (if dash?
-                (new-turn)
-                (new-attack-state))
+            (next-phase)
             (new-move-state new-n #:dash? dash?))]
        [(attack) ; end move prematurely to attack
         ;; (invalid when dashing. checking in character% move method)

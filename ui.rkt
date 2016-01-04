@@ -21,11 +21,13 @@
 ;; TODO flickers, not sure why. old roguelike does not, see what's different
 (define (display-state s)
   (clear-all)
-  (displayln (state-mode s))
+  (printf "~a: ~a\n"
+          (send (first (state-initiative-order s)) describe
+                #:capitalize? #t #:specific? #f)
+          (state-mode s))
   (printf "~a HP\n" (get-field current-hp (state-player s)))
   (display (show-grid (state-grid s)))
-  (for-each displayln (reverse message-queue))
-  (reset-message-queue!))
+  (for-each displayln (reverse message-queue)))
 
 (define (invalid-command)
   (enqueue-message! "Invalid command."))
