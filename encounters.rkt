@@ -4,6 +4,40 @@
 
 (provide make-encounter)
 
+;; An Encounter is a Listof Monster
+
+;; maps (level . difficulty) pairs to sets of encounters
+(define possible-encounters (make-hash))
+
+(define (close-enough? x y) ; within 25%
+  (<= (* 0.75 y) x (* 1.25 y)))
+(define (make-encounter level difficulty . monsters)
+  (define total-xp
+    (for/sum ([m (in-list monsters)]) (get-field xp-value (new m))))
+  (define adjusted-xp
+    (* total-xp
+       (encounter-multiplier (length monsters))
+       ;; additional fudge factor
+       ;; we have a single character, so things are even harder
+       ;; and makes it possible to fit certain budgets that would
+       ;; be impossible to fit (i.e., level 1 easy)
+       ;; computed to be what makes a single CR 0 monster an easy
+       ;; level 1 encounter
+       ;; subject to tweaking (or even removal, and going back to
+       ;; allowing skipping the budget check, as we had before)
+       (exact->inexact 5/3))) ; float for printing
+  (define budget (encounter-experience-budget level difficulty))
+  (unless (close-enough? adjusted-xp budget)
+    (raise-arguments-error 'make-encounter "not within budget"
+                           "encounter" monsters
+                           "budget"    budget
+                           "cost"      adjusted-xp))
+  (hash-update! possible-encounters
+                (cons level difficulty)
+                (lambda (xs) (cons monsters xs))
+                '()))
+
+
 ;; from DM Basic Rules, page 57: Adventuring Day XP
 ;; these values are after adjusting with the encounter-multiplier
 (define (floor-experience-budget level)
@@ -73,37 +107,3 @@
     [( 7  8  9 10) 3]
     [(11 12 13 14) 4]
     [else          5]))
-
-
-;; An Encounter is a Listof Monster
-
-;; maps (level . difficulty) pairs to sets of encounters
-(define possible-encounters (make-hash))
-
-(define (close-enough? x y) ; within 25%
-  (<= (* 0.75 y) x (* 1.25 y)))
-(define (make-encounter level difficulty . monsters)
-  (define total-xp
-    (for/sum ([m (in-list monsters)]) (get-field xp-value (new m))))
-  (define adjusted-xp
-    (* total-xp
-       (encounter-multiplier (length monsters))
-       ;; additional fudge factor
-       ;; we have a single character, so things are even harder
-       ;; and makes it possible to fit certain budgets that would
-       ;; be impossible to fit (i.e., level 1 easy)
-       ;; computed to be what makes a single CR 0 monster an easy
-       ;; level 1 encounter
-       ;; subject to tweaking (or even removal, and going back to
-       ;; allowing skipping the budget check, as we had before)
-       (exact->inexact 5/3))) ; float for printing
-  (define budget (encounter-experience-budget level difficulty))
-  (unless (close-enough? adjusted-xp budget)
-    (raise-arguments-error 'make-encounter "not within budget"
-                           "encounter" monsters
-                           "budget"    budget
-                           "cost"      adjusted-xp))
-  (hash-update! possible-encounters
-                (cons level difficulty)
-                (lambda (xs) (cons monsters xs))
-                '()))
