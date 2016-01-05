@@ -162,7 +162,7 @@
                                #:specific?   [specific?   #f])
       (string-append (article capitalize? specific?) " " name))
     (define/public (act) ; returns a kind of action
-      (error "npc%s can't act"))
+      (raise-argument-error 'act "this npc% can't act" this))
     (super-new)))
 
 (define training-dummy%
