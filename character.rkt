@@ -67,7 +67,7 @@
     (define/public (get-ac)
       10) ; TODO add dex, armor, etc.
     (define/public (get-damage-die)
-      d6) ; TODO have it based on equipped weapon
+      d6) ; TODO have it based on equipped weapon, and add strength
 
     (define/public (die)
       (enqueue-message!
