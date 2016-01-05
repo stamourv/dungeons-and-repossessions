@@ -4,7 +4,8 @@
          "grid.rkt"
          "message-queue.rkt"
          "state.rkt"
-         "terminal.rkt")
+         "terminal.rkt"
+         math/array) ;; TODO for testing
 
 (provide set-up-ui
          tear-down-ui
@@ -58,6 +59,14 @@
            [(right) (send player move-right mode)]
            [(left)  (send player move-left  mode)]
            [else 'invalid])]
+        [#\o ; open
+         (for ([c (in-array (state-grid s))]) ;; TODO for testing
+           (send c open))
+         'move]
+        [#\c ; close
+         (for ([c (in-array (state-grid s))]) ;; TODO for testing
+           (send c close))
+         'move]
         [#\s ; suicide
          (set-field! current-hp player 0)
          'invalid]

@@ -1,5 +1,7 @@
 #lang racket
 
+(require "message-queue.rkt")
+
 (provide
  char->cell%
  cell%
@@ -21,6 +23,12 @@
       #f)
     (define/public (show)
       #\*) ; for debugging
+    (define/public (open)
+      ; (enqueue-message! "Can't open that.") ;; TODO for testing
+      #f)
+    (define/public (close)
+      ; (enqueue-message! "Can't close that.") ;; TODO for testing
+      #f)
     (super-new)))
 (register-cell-type! cell% #\*)
 
@@ -59,4 +67,35 @@
 (define-wall east-tee-wall%    #\u2524 #\u2563)
 (define-wall west-tee-wall%    #\u251c #\u2560)
 
-;; TODO chests, doors, entry/exit
+(define door%
+  (class cell%
+    (init-field [open? #f])
+    (define/override (free?)
+      open?)
+    (define/override (open)
+      (set! open? #t))
+    (define/override (close)
+      (set! open? #f))
+    (super-new)))
+(define vertical-door%
+  (class door%
+    (inherit-field open? occupant)
+    (define/override (show)
+      (if open?
+          (if occupant (send occupant show) #\_)
+          #\|))
+    (super-new)))
+(register-cell-type! vertical-door% #\|)
+(register-cell-type! (class vertical-door% (super-new [open? #t])) #\_)
+(define horizontal-door%
+  (class door%
+    (inherit-field open? occupant)
+    (define/override (show)
+      (if open?
+          (if occupant (send occupant show) #\')
+          #\-))
+    (super-new)))
+(register-cell-type! horizontal-door% #\-)
+(register-cell-type! (class horizontal-door% (super-new [open? #t])) #\')
+
+;; TODO chests, entry/exit

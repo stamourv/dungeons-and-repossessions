@@ -10,10 +10,10 @@
 (define (init-game)
   (define grid
     '("╔═╦══════╗"
-      "║ ║      ║"
+      "║ ║   |  ║"
       "║ ║   ═══╣"
       "║ ║      ║"
-      "║ ║      ║"
+      "║-║  #   ║"
       "║        ║"
       "╚════════╝"))
   (enqueue-message! "Welcome!")
