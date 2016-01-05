@@ -2,6 +2,7 @@
 
 (require "character.rkt"
          "grid.rkt"
+         "message-queue.rkt"
          "state.rkt"
          "terminal.rkt")
 

@@ -2,6 +2,7 @@
 
 (require math/array
          "grid.rkt"
+         "message-queue.rkt"
          "state.rkt"
          "utils.rkt")
 

@@ -1,6 +1,7 @@
 #lang racket
 
 (require "character.rkt"
+         "message-queue.rkt"
          "state.rkt"
          "ui.rkt")
 
