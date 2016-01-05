@@ -46,7 +46,7 @@
          (register-cell-type! name single-bar)
          (register-cell-type! name double-bar)
          (provide name)))
-(define-wall pillar%           #\+     #\+)
+(define-wall pillar%           #\+     #\#)
 (define-wall vertical-wall%    #\u2502 #\u2551)
 (define-wall horizontal-wall%  #\u2500 #\u2550)
 (define-wall four-corner-wall% #\u253c #\u256c)
