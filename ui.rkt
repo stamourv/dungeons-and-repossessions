@@ -1,11 +1,11 @@
 #lang racket
 
-(require "character.rkt"
+(require math/array
+         "character.rkt"
          "grid.rkt"
          "message-queue.rkt"
          "state.rkt"
-         "terminal.rkt"
-         math/array) ;; TODO for testing
+         "terminal.rkt")
 
 (provide set-up-ui
          tear-down-ui
@@ -30,7 +30,8 @@
   (reset-message-queue!))
 
 (define (invalid-command)
-  (enqueue-message! "Invalid command."))
+  (enqueue-message! "Invalid command.")
+  'invalid)
 
 (define (which-direction?)
   (define char (read-char))
@@ -43,6 +44,27 @@
     ((#\C) 'right)
     ((#\D) 'left)
     (else  (invalid-command))))
+
+(define (choose-direction)
+  (if (= (char->integer (read-char)) 27) ; escape
+      (case (which-direction?)
+        ((up)    up)
+        ((down)  down)
+        ((left)  left)
+        ((right) right))
+      #f))
+
+(define (direction-command s name f)
+  (printf "~a in which direction?\n" name)
+  (cond [(choose-direction) =>
+         (lambda (dir)
+           (define target-pos (dir (get-field pos (state-player s))))
+           (define grid       (state-grid s))
+           (if (within-grid? grid target-pos)
+               (f (array-ref grid target-pos))
+               (invalid-command)))]
+        [else
+         (invalid-command)]))
 
 ;; game-state -> kind-of-action-performed
 (define (handle-input s)
@@ -60,13 +82,9 @@
            [(left)  (send player move-left  mode)]
            [else 'invalid])]
         [#\o ; open
-         (for ([c (in-array (state-grid s))]) ;; TODO for testing
-           (send c open))
-         'move]
+         (direction-command s "Open" (lambda (x) (send x open) 'move))]
         [#\c ; close
-         (for ([c (in-array (state-grid s))]) ;; TODO for testing
-           (send c close))
-         'move]
+         (direction-command s "Close" (lambda (x) (send x close) 'move))]
         [#\s ; suicide
          (set-field! current-hp player 0)
          'invalid]
@@ -75,6 +93,5 @@
         [#\space
          'wait]
         [_
-         (invalid-command)
-         'invalid])
+         (invalid-command)])
     (restore-tty)))

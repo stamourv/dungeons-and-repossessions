@@ -24,11 +24,9 @@
     (define/public (show)
       #\*) ; for debugging
     (define/public (open)
-      ; (enqueue-message! "Can't open that.") ;; TODO for testing
-      #f)
+      (enqueue-message! "Can't open that."))
     (define/public (close)
-      ; (enqueue-message! "Can't close that.") ;; TODO for testing
-      #f)
+      (enqueue-message! "Can't close that."))
     (super-new)))
 (register-cell-type! cell% #\*)
 
@@ -73,9 +71,13 @@
     (define/override (free?)
       open?)
     (define/override (open)
-      (set! open? #t))
+      (if open?
+          (enqueue-message! "The door is already open.")
+          (set! open? #t)))
     (define/override (close)
-      (set! open? #f))
+      (if open?
+          (set! open? #f)
+          (enqueue-message! "The door is already closed.")))
     (super-new)))
 (define vertical-door%
   (class door%
