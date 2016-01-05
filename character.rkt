@@ -169,9 +169,9 @@
   (class npc%
     (define/override (show)
       #\D)
-    (define/override (act mode) ; the dummy doesn't do anything
+    (define/override (act state) ; the dummy doesn't do anything
       ;; to avoid printing both when moving and attackin
-      (when (equal? mode 'attack)
+      (when (equal? (state-mode state) 'attack)
         (enqueue-message! (format "~a waits."
                                   (send this describe
                                         #:capitalize? #t #:specific? #t))))
@@ -183,7 +183,8 @@
     (define/override (show)
       #\B)
     ;; moves at random, which attacks if it runs into something
-    (define/override (act mode)
+    (define/override (act state)
+      (define mode (state-mode state))
       (case (random 5)
         [(0) (send this move-left  mode)]
         [(1) (send this move-right mode)]

@@ -29,7 +29,7 @@
            (display-state s)
            (handle-input s)]
           [else ; npc
-           (send active-character act (state-mode s))]))
+           (send active-character act s)]))
   (unless (equal? action-taken 'quit)
     (define new-s (state-cleanup (next-state s action-taken)))
     (cond [(positive? (get-field current-hp (state-player new-s)))
