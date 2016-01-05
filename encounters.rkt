@@ -81,17 +81,23 @@
 
 (define (close-enough? x y) ; within 25%
   (<= (* 0.75 y) x (* 1.25 y)))
-(define (make-encounter level difficulty
-                        ;; some level+difficulty pairs can't actually be done
-                        ;; within budget, so allow cheating
-                        #:no-check? [no-check? #f]
-                        . monsters)
+(define (make-encounter level difficulty . monsters)
   (define total-xp
     (for/sum ([m (in-list monsters)]) (get-field xp-value m)))
   (define adjusted-xp
-    (* total-xp (encounter-multiplier (length monsters))))
+    (* total-xp
+       (encounter-multiplier (length monsters))
+       ;; additional fudge factor
+       ;; we have a single character, so things are even harder
+       ;; and makes it possible to fit certain budgets that would
+       ;; be impossible to fit (i.e., level 1 easy)
+       ;; computed to be what makes a single CR 0 monster an easy
+       ;; level 1 encounter
+       ;; subject to tweaking (or even removal, and going back to
+       ;; allowing skipping the budget check, as we had before)
+       5/3))
   (define budget (encounter-experience-budget level difficulty))
-  (unless (or no-check? (close-enough? adjusted-xp budget))
+  (unless (close-enough? adjusted-xp budget)
     (raise-arguments-error 'make-encounter "not within budget"
                            "encounter" monsters
                            "budget"    budget
@@ -101,5 +107,4 @@
                 (lambda (xs) (cons monsters xs))
                 '()))
 
-;; no encounter can meet the level 1 easy budget
-(make-encounter 1 'easy (new rat%) #:no-check? #t)
+(make-encounter 1 'easy (new rat%))
