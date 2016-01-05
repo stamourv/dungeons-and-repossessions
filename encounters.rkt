@@ -96,7 +96,7 @@
        ;; level 1 encounter
        ;; subject to tweaking (or even removal, and going back to
        ;; allowing skipping the budget check, as we had before)
-       5/3))
+       (exact->inexact 5/3))) ; float for printing
   (define budget (encounter-experience-budget level difficulty))
   (unless (close-enough? adjusted-xp budget)
     (raise-arguments-error 'make-encounter "not within budget"
