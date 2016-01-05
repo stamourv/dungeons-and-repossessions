@@ -7,6 +7,7 @@
          "utils.rkt")
 
 (provide player%
+         npc%
          training-dummy%
          brownian-dummy%)
 
