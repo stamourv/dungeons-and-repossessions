@@ -1,7 +1,8 @@
 #lang 2d racket
 
-(require 2d/match
-         "monsters.rkt")
+(require 2d/match)
+
+(provide make-encounter)
 
 ;; from DM Basic Rules, page 57: Adventuring Day XP
 ;; these values are after adjusting with the encounter-multiplier
@@ -106,5 +107,3 @@
                 (cons level difficulty)
                 (lambda (xs) (cons monsters xs))
                 '()))
-
-(make-encounter 1 'easy (new rat%))
