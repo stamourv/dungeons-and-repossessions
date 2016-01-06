@@ -1,10 +1,14 @@
 #lang 2d racket
 
-(require 2d/match)
+(require 2d/match
+         math/distributions)
 
 (provide make-encounter)
 
 ;; An Encounter is a Listof Monster
+
+(define (encounter-cost monsters)
+  (for/sum ([m (in-list monsters)]) (get-field xp-value (new m))))
 
 ;; maps (level . difficulty) pairs to sets of encounters
 (define possible-encounters (make-hash))
@@ -13,8 +17,7 @@
   (<= (* 0.75 y) x (* 1.25 y)))
 
 (define (make-encounter level difficulty . monsters)
-  (define total-xp
-    (for/sum ([m (in-list monsters)]) (get-field xp-value (new m))))
+  (define total-xp (encounter-cost monsters))
   (define adjusted-xp
     (* total-xp
        (encounter-multiplier (length monsters))
@@ -37,6 +40,63 @@
                 (cons level difficulty)
                 (lambda (xs) (cons monsters xs))
                 '()))
+
+
+;; pulled out of thin air, subject to tweaking
+(define encounter-difficulty-probabilities
+  '((easy   . 0.3)
+    (medium . 0.4)
+    (hard   . 0.2)
+    (deadly . 0.1)))
+(define max-n-encounters 6)
+
+;; given the player's level, allocate a floor's xp budget between a number
+;; of encounters of varying difficulty
+;; returns a list of difficulties
+(define (generate-encounter-template character-level)
+  (define budget (floor-experience-budget character-level))
+  ;; subject to tweaking, based on how crowded we want floors to feel
+  (define costs
+    `((easy   . ,(encounter-experience-budget character-level 'easy))
+      (medium . ,(encounter-experience-budget character-level 'medium))
+      (hard   . ,(encounter-experience-budget character-level 'hard))
+      (deadly . ,(encounter-experience-budget character-level 'deadly))))
+  (define (try)
+    (let loop ([encs-so-far '()] [remaining-budget budget])
+      (cond
+       ;; Note: budget is currently checked based on the expected encounter
+       ;;   cost (determined by level and difficulty), not on the actual cost
+       ;;   of the concrete encounters
+       ;;   in the end (I think) the total cost per floor remains bounded by
+       ;;   the `close-enough?` ratio anyway
+       [(close-enough? budget
+                       (for/sum ([e (in-list encs-so-far)])
+                         (dict-ref costs e)))
+        encs-so-far] ; we're done
+       [(>= (length encs-so-far) max-n-encounters)
+        ;; too many encounters, and not at budget yet. try again
+        (try)]
+       [else
+        (define possible-difficulties
+          (filter (lambda (p) (<= (cdr p) remaining-budget)) costs))
+        (when (empty? possible-difficulties)
+          ;; we're not close enough, and nothing can fit
+          ;; that probably shouldn't happen. internal error
+          (raise-arguments-error 'generate-floor-encounters "nothing can fit"
+                                 "encounters" encs-so-far
+                                 "remaining budget" remaining-budget
+                                 "level" character-level))
+        ;; TODO computing this over and over again is silly
+        ;;   there's only 4 possible distributions per level
+        (define dist
+          (discrete-dist (map car possible-difficulties)
+                         (for/list ([(d c) (in-dict possible-difficulties)])
+                           (dict-ref encounter-difficulty-probabilities d))))
+        (define new (sample dist))
+        ;; TODO try preventing 2+ deadlies on the same floor?
+        (loop (cons new encs-so-far)
+              (- budget (dict-ref costs new)))])))
+  (try))
 
 
 ;; from DM Basic Rules, page 57: Adventuring Day XP
