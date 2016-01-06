@@ -97,6 +97,11 @@
               (- budget (dict-ref costs new)))])))
   (try))
 
+;; (module+ main ; to test it out
+;;   (for ([i 10])
+;;     (displayln (generate-encounter-template 1))))
+
+
 
 ;; from DM Basic Rules, page 57: Adventuring Day XP
 ;; these values are after adjusting with the encounter-multiplier
