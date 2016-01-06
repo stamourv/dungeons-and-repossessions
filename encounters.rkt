@@ -3,7 +3,8 @@
 (require 2d/match
          math/distributions)
 
-(provide make-encounter)
+(provide make-encounter
+         all-encounters) ; for debugging
 
 ;; An Encounter is a Listof Monster
 
