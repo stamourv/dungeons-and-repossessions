@@ -68,8 +68,9 @@
 (define door%
   (class cell%
     (init-field [open? #f])
+    (inherit-field occupant)
     (define/override (free?)
-      open?)
+      (and open? (not occupant)))
     (define/override (open)
       (if open?
           (enqueue-message! "The door is already open.")
