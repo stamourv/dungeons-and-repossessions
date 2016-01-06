@@ -44,12 +44,12 @@
     (state player grid initiative-order 'attack))
   (match mode
     [`(,(and head (or 'move 'dash)) ,n-moves-left)
+     (define dash? (equal? head 'dash))
      (case action-taken
        [(wait)
-        (new-attack-state)]
+        (if dash? (new-turn) (new-attack-state))]
        [(move)
         (define new-n (sub1 n-moves-left))
-        (define dash? (equal? head 'dash))
         (if (zero? new-n) ; no more moves
             (if dash?
                 (new-turn)
