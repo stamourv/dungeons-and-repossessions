@@ -11,7 +11,7 @@
   (for/sum ([m (in-list monsters)]) (get-field xp-value (new m))))
 
 ;; maps (level . difficulty) pairs to sets of encounters
-(define possible-encounters (make-hash))
+(define all-encounters (make-hash))
 
 (define (close-enough? x y) ; within 25%
   (<= (* 0.75 y) x (* 1.25 y)))
@@ -36,7 +36,7 @@
                            "encounter" monsters
                            "budget"    budget
                            "cost"      adjusted-xp))
-  (hash-update! possible-encounters
+  (hash-update! all-encounters
                 (cons level difficulty)
                 (lambda (xs) (cons monsters xs))
                 '()))
@@ -101,6 +101,18 @@
 ;;   (for ([i 10])
 ;;     (displayln (generate-encounter-template 1))))
 
+;; generates a list of encounters for a given player level
+(define (generate-encounters level)
+  (define template            (generate-encounter-template level))
+  (for/list ([diff (in-list template)])
+    (define possible-encounters (dict-ref all-encounters (cons level diff)))
+    (sample (discrete-dist possible-encounters))))
+
+;; (module+ main ; to test it out
+;;   (dynamic-require "monsters.rkt" #f)
+;;   (for ([i 10])
+;;     (for-each displayln (generate-encounters 1))
+;;     (newline)))
 
 
 ;; from DM Basic Rules, page 57: Adventuring Day XP
