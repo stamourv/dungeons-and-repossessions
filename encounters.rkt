@@ -78,7 +78,9 @@
         (try)]
        [else
         (define possible-difficulties
-          (filter (lambda (p) (<= (cdr p) remaining-budget)) costs))
+          (filter (lambda (diff+prob) (<= (dict-ref costs (car diff+prob))
+                                          remaining-budget))
+                  encounter-difficulty-probabilities))
         (when (empty? possible-difficulties)
           ;; we're not close enough, and nothing can fit
           ;; that probably shouldn't happen. internal error
@@ -86,12 +88,9 @@
                                  "encounters" encs-so-far
                                  "remaining budget" remaining-budget
                                  "level" character-level))
-        ;; TODO computing this over and over again is silly
-        ;;   there's only 4 possible distributions per level
         (define dist
           (discrete-dist (map car possible-difficulties)
-                         (for/list ([(d c) (in-dict possible-difficulties)])
-                           (dict-ref encounter-difficulty-probabilities d))))
+                         (map cdr possible-difficulties)))
         (define new (sample dist))
         ;; TODO try preventing 2+ deadlies on the same floor?
         (loop (cons new encs-so-far)
