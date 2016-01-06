@@ -68,13 +68,12 @@
 (module+ main
   ;; show how many of each kind of encounter we have
   (display (~a "" #:min-width 5))
-  (define diffs '(easy medium hard deadly))
-  (for ([d diffs])
+  (for ([d all-difficulties])
     (display (~a d #:min-width 10)))
   (newline)
   (for ([l (in-range 1 21)])
     (define counts
-      (for/list ([d diffs])
+      (for/list ([d all-difficulties])
         (length (dict-ref all-encounters (cons l d) '()))))
     (unless (andmap zero? counts)
       (display (~a l #:min-width 5))

@@ -4,7 +4,8 @@
          math/distributions)
 
 (provide make-encounter
-         all-encounters) ; for debugging
+         all-difficulties
+         all-encounters)
 
 ;; An Encounter is a Listof Monster
 
@@ -13,6 +14,8 @@
 
 ;; maps (level . difficulty) pairs to sets of encounters
 (define all-encounters (make-hash))
+
+(define all-difficulties '(easy medium hard deadly))
 
 (define (close-enough? x y) ; within 25%
   (<= (* 0.75 y) x (* 1.25 y)))
@@ -61,10 +64,8 @@
 (define (generate-encounter-template character-level)
   (define budget (floor-experience-budget character-level))
   (define costs
-    `((easy   . ,(encounter-experience-budget character-level 'easy))
-      (medium . ,(encounter-experience-budget character-level 'medium))
-      (hard   . ,(encounter-experience-budget character-level 'hard))
-      (deadly . ,(encounter-experience-budget character-level 'deadly))))
+    (for/list ([d (in-list all-difficulties)])
+      (cons d (encounter-experience-budget character-level d))))
   (define (try)
     (let loop ([encs-so-far '()] [remaining-budget budget])
       (cond
