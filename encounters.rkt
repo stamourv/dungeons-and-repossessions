@@ -11,6 +11,7 @@
 
 (define (close-enough? x y) ; within 25%
   (<= (* 0.75 y) x (* 1.25 y)))
+
 (define (make-encounter level difficulty . monsters)
   (define total-xp
     (for/sum ([m (in-list monsters)]) (get-field xp-value (new m))))
