@@ -7,9 +7,12 @@
          all-difficulties
          all-encounters)
 
-;; An Encounter is a Listof Monster
+;; An Encounter is a (Pair Theme (Listof Monster))
+;; where a Theme is a symbol (chosen from a small set) that determines
+;; which encounters can go together (i.e., have the same theme)
 
-(define (encounter-cost monsters)
+(define (encounter-cost encounter)
+  (define monsters (cdr encounter))
   (for/sum ([m (in-list monsters)]) (get-field xp-value (new m))))
 
 ;; maps (level . difficulty) pairs to sets of encounters
@@ -20,8 +23,15 @@
 (define (close-enough? x y) ; within 25%
   (<= (* 0.75 y) x (* 1.25 y)))
 
-(define (make-encounter level difficulty . monsters)
-  (define total-xp (encounter-cost monsters))
+(define (make-encounter level difficulty theme . monsters)
+  (unless (integer? level)
+    (raise-argument-error 'make-encounter "integer?" level))
+  (unless (member difficulty all-difficulties)
+    (raise-argument-error 'make-encounter "difficulty?" difficulty))
+  (unless (symbol? theme)
+    (raise-argument-error 'make-encounter "symbol?" theme))
+  (define encounter (cons theme monsters))
+  (define total-xp (encounter-cost encounter))
   (define adjusted-xp
     (* total-xp
        (encounter-multiplier (length monsters))
@@ -42,7 +52,7 @@
                            "cost"      adjusted-xp))
   (hash-update! all-encounters
                 (cons level difficulty)
-                (lambda (xs) (cons monsters xs))
+                (lambda (xs) (cons encounter xs))
                 '()))
 
 
@@ -109,14 +119,24 @@
 ;; generates a list of encounters for a given player level
 (define (generate-encounters level)
   (define template            (generate-encounter-template level))
+  (define possible-themes ; stick to one theme for the floor
+    ;; Note: we assume that if one theme exists for a level at one
+    ;;   difficulty, it does for all of them (o/w, bug in encounter list)
+    (remove-duplicates
+     (map first (dict-ref all-encounters
+                          (cons level (first all-difficulties))))))
+  (define theme (sample (discrete-dist possible-themes)))
   (for/list ([diff (in-list template)])
     (define possible-encounters (dict-ref all-encounters (cons level diff)))
-    (sample (discrete-dist possible-encounters))))
+    (define in-theme-encounters (for/list ([e (in-list possible-encounters)]
+                                           #:when (equal? (car e) theme))
+                                  e))
+    (sample (discrete-dist in-theme-encounters))))
 
 ;; (module+ main ; to test it out
 ;;   (dynamic-require "monsters.rkt" #f)
 ;;   (for ([i 10])
-;;     (for-each displayln (generate-encounters 1))
+;;     (for-each displayln (generate-encounters 2))
 ;;     (newline)))
 
 
