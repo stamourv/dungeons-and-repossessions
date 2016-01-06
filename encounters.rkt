@@ -48,6 +48,10 @@
     (medium . 0.4)
     (hard   . 0.2)
     (deadly . 0.1)))
+
+;; subject to tweaking, based on how crowded we want floors to feel
+;; Note: also useful to avoid a "long tail" of easy encounters to fill
+;;   a budget, when nothing else will fit
 (define max-n-encounters 6)
 
 ;; given the player's level, allocate a floor's xp budget between a number
@@ -55,7 +59,6 @@
 ;; returns a list of difficulties
 (define (generate-encounter-template character-level)
   (define budget (floor-experience-budget character-level))
-  ;; subject to tweaking, based on how crowded we want floors to feel
   (define costs
     `((easy   . ,(encounter-experience-budget character-level 'easy))
       (medium . ,(encounter-experience-budget character-level 'medium))
