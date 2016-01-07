@@ -13,7 +13,21 @@
 
 (define (encounter-cost encounter)
   (define monsters (cdr encounter))
-  (for/sum ([m (in-list monsters)]) (get-field xp-value (new m))))
+  (define total-xp
+    (for/sum ([m (in-list monsters)]) (get-field xp-value (new m))))
+  (define adjusted-xp
+    (* total-xp
+       (encounter-multiplier (length monsters))
+       ;; additional fudge factor
+       ;; we have a single character, so things are even harder
+       ;; and makes it possible to fit certain budgets that would
+       ;; be impossible to fit (i.e., level 1 easy)
+       ;; computed to be what makes a single CR 0 monster an easy
+       ;; level 1 encounter
+       ;; subject to tweaking (or even removal, and going back to
+       ;; allowing skipping the budget check, as we had before)
+       (exact->inexact 5/3))) ; float for printing
+  adjusted-xp)
 
 ;; maps (level . difficulty) pairs to sets of encounters
 (define all-encounters (make-hash))
@@ -31,19 +45,7 @@
   (unless (symbol? theme)
     (raise-argument-error 'make-encounter "symbol?" theme))
   (define encounter (cons theme monsters))
-  (define total-xp (encounter-cost encounter))
-  (define adjusted-xp
-    (* total-xp
-       (encounter-multiplier (length monsters))
-       ;; additional fudge factor
-       ;; we have a single character, so things are even harder
-       ;; and makes it possible to fit certain budgets that would
-       ;; be impossible to fit (i.e., level 1 easy)
-       ;; computed to be what makes a single CR 0 monster an easy
-       ;; level 1 encounter
-       ;; subject to tweaking (or even removal, and going back to
-       ;; allowing skipping the budget check, as we had before)
-       (exact->inexact 5/3))) ; float for printing
+  (define adjusted-xp (encounter-cost encounter))
   (define budget (encounter-experience-budget level difficulty))
   (unless (close-enough? adjusted-xp budget)
     (raise-arguments-error 'make-encounter "not within budget"
