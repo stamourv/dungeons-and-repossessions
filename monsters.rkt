@@ -10,13 +10,17 @@
     [init-field xp-value]
     (super-new)))
 
+(define all-monsters '())
+
 (define-syntax-rule (define-simple-monster def-name char n hp xp)
-  (define def-name
-    (class monster%
-      (define/override (show)
-        char)
-      ;; TODO act method
-      (super-new [name n] [max-hp hp] [xp-value xp]))))
+  (begin
+    (define def-name
+      (class monster%
+        (define/override (show)
+          char)
+        ;; TODO act method
+        (super-new [name n] [max-hp hp] [xp-value xp])))
+    (set! all-monsters (cons def-name all-monsters))))
 ;; TODO add ac, damage die, stats, speed, etc.
 
 (define-simple-monster bat% #\b "bat" 1 10) ; TODO 1 -> (max 1d4-1 1)
