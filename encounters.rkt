@@ -116,9 +116,8 @@
 ;;   (for ([i 10])
 ;;     (displayln (generate-encounter-template 1))))
 
-;; generates a list of encounters for a given player level
-(define (generate-encounters level)
-  (define template            (generate-encounter-template level))
+;; pick concrete encounters given a template and the character level
+(define (fill-encounter-template template level)
   (define possible-themes ; stick to one theme for the floor
     ;; Note: we assume that if one theme exists for a level at one
     ;;   difficulty, it does for all of them (o/w, bug in encounter list)
@@ -133,10 +132,18 @@
                                   e))
     (sample (discrete-dist in-theme-encounters))))
 
+;; generates a list of encounters for a given player level
+(define (generate-encounters level)
+  (fill-encounter-template (generate-encounter-template level) level))
+
 ;; (module+ main ; to test it out
 ;;   (dynamic-require "monsters.rkt" #f)
+;;   (define level 2)
 ;;   (for ([i 10])
-;;     (for-each displayln (generate-encounters 2))
+;;     (define t (generate-encounter-template level))
+;;     (for ([d t]
+;;           [e (fill-encounter-template t level)])
+;;       (printf "~a ~a\n" (~a d #:min-width 6) e))
 ;;     (newline)))
 
 
