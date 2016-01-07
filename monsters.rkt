@@ -82,7 +82,7 @@
 (make-encounter 2 'easy 'cult cultist%)
 (make-encounter 2 'medium 'cult cultist% commoner%)
 (make-encounter 2 'hard 'cult cultist% guard%)
-(make-encounter 2 'hard'cult cultist% commoner% commoner%)
+(make-encounter 2 'hard 'cult cultist% commoner% commoner%)
 (make-encounter 2 'hard 'cult cultist% cultist%)
 
 (define-simple-monster acolyte% #\a "acolyte" 9 50) ; TODO 9 -> 2d8
