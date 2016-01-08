@@ -5,7 +5,9 @@
 (provide
  char->cell%
  cell%
- empty-cell%)
+ empty-cell%
+ void-cell%
+ wall%)
 
 ;; maps printed representations to cell classes
 ;; for map parsing
@@ -42,10 +44,22 @@
     (super-new)))
 (register-cell-type! empty-cell% #\space)
 
+(define void-cell%
+  (class cell%
+    (define/override (show) #\.) ; for testing only
+    (super-new)))
+(register-cell-type! void-cell% #\.)
+
+(define wall%
+  (class cell%
+    (define/override (show) #\X) ; for testing only
+    (super-new)))
+(register-cell-type! wall% #\X)
+
 (define double-bar? #t)
 (define-syntax-rule (define-wall name single-bar double-bar)
   (begin (define name
-           (class cell%
+           (class wall%
              (define/override (show) (if double-bar? double-bar single-bar))
              (super-new)))
          ;; parse either kind

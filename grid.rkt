@@ -1,33 +1,35 @@
 #lang racket
 
-(require math/array math/matrix
+(require math/array
          "cell.rkt")
 
 (provide (all-defined-out))
 
-;; a Grid is a math/matrix Matrix of cell%
+;; a Grid is a math/array Mutable-Array of cell%
+;; (mutability is required for dungeon generation)
 
 ;; parses a list of strings into a grid, based on the printed representation
 ;; of each cell
 (define (parse-grid los)
-  (for*/matrix (length los)
-               (apply max (map string-length los))
-               #:fill (new cell%)
-               ([s (in-list los)]
-                [c (in-string s)])
+  (for*/array #:shape (vector (length los)
+                              (apply max (map string-length los)))
+              #:fill (new cell%)
+              ([s (in-list los)]
+               [c (in-string s)])
      (new (char->cell% c))))
 
 (define (show-grid g)
   (with-output-to-string
     (lambda ()
-      (for ([r (in-list (matrix-rows g))])
+      (for ([r (in-array-axis g)])
         (for ([c (in-array r)])
           (display (send c show)))
         (newline)))))
 
 (define (within-grid? g pos)
-  (and (<= 0 (vector-ref pos 0) (sub1 (matrix-num-rows g)))
-       (<= 0 (vector-ref pos 1) (sub1 (matrix-num-cols g)))))
+  (match-define (vector rows cols) (array-shape g))
+  (and (<= 0 (vector-ref pos 0) (sub1 rows))
+       (<= 0 (vector-ref pos 1) (sub1 cols))))
 (define (grid-ref g pos)
   (and (within-grid? g pos)
        (array-ref g pos)))
