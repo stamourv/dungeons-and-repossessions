@@ -3,7 +3,7 @@
 (require math/array
          "cell.rkt" "grid.rkt")
 
-;; floor generation
+;; dungeon generation
 
 (struct room
   (poss->cells ; maps positions to cell constructors

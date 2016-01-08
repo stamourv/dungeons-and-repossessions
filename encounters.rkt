@@ -65,16 +65,16 @@
     (hard   . 0.2)
     (deadly . 0.1)))
 
-;; subject to tweaking, based on how crowded we want floors to feel
+;; subject to tweaking, based on how crowded we want dungeons to feel
 ;; Note: also useful to avoid a "long tail" of easy encounters to fill
 ;;   a budget, when nothing else will fit
 (define max-n-encounters 6)
 
-;; given the player's level, allocate a floor's xp budget between a number
+;; given the player's level, allocate a day's xp budget between a number
 ;; of encounters of varying difficulty
 ;; returns a list of difficulties
 (define (generate-encounter-template character-level)
-  (define budget (floor-experience-budget character-level))
+  (define budget (day-experience-budget character-level))
   (define costs
     (for/list ([d (in-list all-difficulties)])
       (cons d (encounter-experience-budget character-level d))))
@@ -84,7 +84,7 @@
        ;; Note: budget is currently checked based on the expected encounter
        ;;   cost (determined by level and difficulty), not on the actual cost
        ;;   of the concrete encounters
-       ;;   in the end (I think) the total cost per floor remains bounded by
+       ;;   in the end (I think) the total cost per day remains bounded by
        ;;   the `close-enough?` ratio anyway
        [(close-enough? budget
                        (for/sum ([e (in-list encs-so-far)])
@@ -101,7 +101,7 @@
         (when (empty? possible-difficulties)
           ;; we're not close enough, and nothing can fit
           ;; that probably shouldn't happen. internal error
-          (raise-arguments-error 'generate-floor-encounters "nothing can fit"
+          (raise-arguments-error 'generate-encounter-template "nothing can fit"
                                  "encounters" encs-so-far
                                  "remaining budget" remaining-budget
                                  "level" character-level))
@@ -109,7 +109,7 @@
           (discrete-dist (map car possible-difficulties)
                          (map cdr possible-difficulties)))
         (define new (sample dist))
-        ;; TODO try preventing 2+ deadlies on the same floor?
+        ;; TODO try preventing 2+ deadlies in the same dungeon?
         (loop (cons new encs-so-far)
               (- budget (dict-ref costs new)))])))
   (try))
@@ -120,7 +120,7 @@
 
 ;; pick concrete encounters given a template and the character level
 (define (fill-encounter-template template level)
-  (define possible-themes ; stick to one theme for the floor
+  (define possible-themes ; stick to one theme for the dungeon
     ;; Note: we assume that if one theme exists for a level at one
     ;;   difficulty, it does for all of them (o/w, bug in encounter list)
     (remove-duplicates
@@ -151,7 +151,7 @@
 
 ;; from DM Basic Rules, page 57: Adventuring Day XP
 ;; these values are after adjusting with the encounter-multiplier
-(define (floor-experience-budget level)
+(define (day-experience-budget level)
   (case level
     [( 1)   300] [( 2)   600] [( 3)  1200] [( 4)  1700] [ (5)  3500]
     [( 6)  4000] [( 7)  5000] [( 8)  6000] [( 9)  7500] [(10)  9000]
