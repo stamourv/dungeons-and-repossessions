@@ -32,24 +32,24 @@
 
     (define/public (move new-pos mode)
       (cond
-       [(within-grid? grid new-pos) ; don't go off the map
-        (define new-cell (array-ref grid new-pos))
-        (cond
-         [(send new-cell free?) ; can move there
-          (when pos ; when initially placed, won't have a position
-            (set-field! occupant (array-ref grid pos) #f))
-          (set! pos new-pos)
-          (set-field! occupant new-cell this)
-          'move] ; return the action we took
-         [(get-field occupant new-cell) => ; occupied, try to attack
-          (lambda (occ)
-            (match mode
-              [`(dash ,_) ; already gave up on attacking this turn
-               'invalid]
-              [_
-               (attack this occ)]))] ; we attack whoever is there
-         [else
-          'invalid])]
+       [(grid-ref grid new-pos) => ; don't go off the map
+        (lambda (new-cell)
+          (cond
+           [(send new-cell free?) ; can move there
+            (when pos ; when initially placed, won't have a position
+              (set-field! occupant (array-ref grid pos) #f))
+            (set! pos new-pos)
+            (set-field! occupant new-cell this)
+            'move] ; return the action we took
+           [(get-field occupant new-cell) => ; occupied, try to attack
+            (lambda (occ)
+              (match mode
+                [`(dash ,_) ; already gave up on attacking this turn
+                 'invalid]
+                [_
+                 (attack this occ)]))] ; we attack whoever is there
+           [else
+            'invalid]))]
        [else
         'invalid]))
     (define/public (move-left mode)

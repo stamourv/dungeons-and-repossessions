@@ -58,11 +58,10 @@
   (printf "~a in which direction?\n" name)
   (cond [(choose-direction) =>
          (lambda (dir)
-           (define target-pos (dir (get-field pos (state-player s))))
-           (define grid       (state-grid s))
-           (if (within-grid? grid target-pos)
-               (f (array-ref grid target-pos))
-               (invalid-command)))]
+           (cond [(grid-ref (state-grid s)
+                            (dir (get-field pos (state-player s))))
+                  => f]
+                 [else (invalid-command)]))]
         [else
          (invalid-command)]))
 

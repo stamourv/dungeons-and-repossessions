@@ -28,6 +28,9 @@
 (define (within-grid? g pos)
   (and (<= 0 (vector-ref pos 0) (sub1 (matrix-num-rows g)))
        (<= 0 (vector-ref pos 1) (sub1 (matrix-num-cols g)))))
+(define (grid-ref g pos)
+  (and (within-grid? g pos)
+       (array-ref g pos)))
 
 (define (left pos)
   (vector (vector-ref pos 0)
