@@ -111,3 +111,89 @@
                                "....."
                                ".....")))
   )
+
+
+(define (new-room grid pos dir)
+  (define w (random-between 5 9)) ; TODO tweak
+  (define h (random-between 5 9))
+  (try-add-rectangle grid pos w h dir))
+(define (new-corridor grid pos dir)
+  (define horizontal? (or (eq? dir 'east) (eq? dir 'west)))
+  (define len (random-between 4 10))
+  (define h (if horizontal? 3   len)) ; TODO tweak. and have wider too
+  (define w (if horizontal? len 3))
+  (try-add-rectangle grid pos h w dir))
+;; TODO have bent corridors too
+
+(define (random-direction) (random-from '(east west north south)))
+
+(define animate-generation? #f) ; to see intermediate steps
+
+(define dungeon-height 18) ; to be easy to display in 80x24, with other stuff
+(define dungeon-width  60)
+(define (generate-dungeon encounters)
+  ;; a room for each encounter, and a few empty ones
+  (define n-rooms (+ (length encounters) (random 4)))
+  (define grid
+    (array->mutable-array
+     (build-array (vector dungeon-height dungeon-width)
+                  (lambda _ (new void-cell%)))))
+  (define first-room
+    (let loop ()
+      (define starting-point
+        (vector (random dungeon-height)
+                (random dungeon-width)))
+      (define first-room
+        (new-room grid starting-point (random-direction)))
+      (or first-room (loop)))) ; if it doesn't fit, try again
+  (commit-room grid first-room)
+  (when animate-generation? (display (show-grid grid)))
+
+  ;; for the rest of the rooms, try sprouting a corridor, with a room at the end
+  ;; try until it works
+  (define-values (_1 all-rooms _2)
+    (for/fold ([n-rooms-to-go    (sub1 n-rooms)]
+               [rooms            (list first-room)]
+               [extension-points (room-extension-points first-room)])
+        ([_ (in-naturals)])
+      #:break (= n-rooms-to-go 0)
+      ;; pick an extension point at random
+      (define ext (random-from extension-points))
+      ;; first, try branching a corridor at random
+      (define corridor-dir (random-direction))
+      (cond [(new-corridor grid ext corridor-dir) =>
+             (lambda (corridor)
+               ;; now try adding a room at the end
+               ;; Note: we don't commit the corridor until we know the room fits
+               ;;   This means that `try-add-rectangle` can't check whether the
+               ;;   two collide. It so happens that, since we're putting the
+               ;;   room at the far end of the corridor (and extending from it),
+               ;;   then that can't happen. We rely on that invariant.
+               (match-define (vector ext-x ext-y) ext)
+               (define corridor-height (room-height corridor))
+               (define corridor-width  (room-width  corridor))
+               (define new-ext
+                 (case corridor-dir
+                   ;; add1 and sub1 for make corridor and room abut
+                   [(north) (vector (add1 (- ext-x corridor-height)) ext-y)]
+                   [(south) (vector (sub1 (+ ext-x corridor-height)) ext-y)]
+                   [(east)  (vector ext-x (sub1 (+ ext-y corridor-width)))]
+                   [(west)  (vector ext-x (add1 (- ext-y corridor-width)))]))
+               (cond [(new-room grid new-ext corridor-dir) =>
+                      (lambda (room) ; worked, commit both an keep going
+                        (commit-room grid corridor)
+                        (commit-room grid room)
+                        (when animate-generation? (display (show-grid grid)))
+                        (values (sub1 n-rooms-to-go)
+                                (cons room rooms) ; corridors don't count
+                                (append (room-extension-points corridor)
+                                        (room-extension-points room)
+                                        extension-points)))]
+                     [else ; didn't fit, try again
+                      (values n-rooms-to-go rooms extension-points)]))]
+            [else ; didn't fit, try again
+             (values n-rooms-to-go rooms extension-points)])))
+  grid)
+
+(module+ main
+  (display (show-grid (generate-dungeon (range 3)))))
