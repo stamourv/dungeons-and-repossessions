@@ -222,6 +222,10 @@
   (define (wall-or-door? pos)
     (or (wall? pos)
         (is-a? (grid-ref grid pos) door%)))
+  (define (counts-as-free? pos) ; i.e., player could be there
+    (define c (grid-ref grid pos))
+    (or (is-a? c empty-cell%)
+        (is-a? c door%)))
   (when (wall? pos)
     (define u  (wall-or-door? (up    pos)))
     (define d  (wall-or-door? (down  pos)))
@@ -248,15 +252,54 @@
         [(#F #T #F #F) vertical-wall%]
         [(#F #T #F #T) north-west-wall%]
         [(#F #T #T #F) north-east-wall%]
-        [(#F #T #T #T) north-tee-wall%]
+        [(#F #T #T #T) (if (or (counts-as-free? (down (left  pos)))
+                               (counts-as-free? (down (right pos))))
+                           ;; only have tees if enough corners are "inside"
+                           north-tee-wall%
+                           horizontal-wall%)]
         [(#T #F #F #F) vertical-wall%]
         [(#T #F #F #T) south-west-wall%]
         [(#T #F #T #F) south-east-wall%]
-        [(#T #F #T #T) south-tee-wall%]
+        [(#T #F #T #T) (if (or (counts-as-free? (up (left  pos)))
+                               (counts-as-free? (up (right pos))))
+                           south-tee-wall%
+                           horizontal-wall%)]
         [(#T #T #F #F) vertical-wall%]
-        [(#T #T #F #T) west-tee-wall%]
-        [(#T #T #T #F) east-tee-wall%]
-        [(#T #T #T #T) four-corner-wall%])))))
+        [(#T #T #F #T) (if (or (counts-as-free? (up   (right pos)))
+                               (counts-as-free? (down (right pos))))
+                           west-tee-wall%
+                           vertical-wall%)]
+        [(#T #T #T #F) (if (or (counts-as-free? (up   (left pos)))
+                               (counts-as-free? (down (left pos))))
+                           east-tee-wall%
+                           vertical-wall%)]
+        [(#T #T #T #T) (cond ; similar to the tee cases
+                        [(or (and (counts-as-free? (up   (left  pos)))
+                                  (counts-as-free? (down (right pos))))
+                             (and (counts-as-free? (up   (right pos)))
+                                  (counts-as-free? (down (left  pos)))))
+                         ;; if diagonals are free, need a four-corner wall
+                         four-corner-wall%]
+                        [(and (counts-as-free? (up (left  pos)))
+                              (counts-as-free? (up (right pos))))
+                         south-tee-wall%]
+                        [(and (counts-as-free? (down (left  pos)))
+                              (counts-as-free? (down (right pos))))
+                         north-tee-wall%]
+                        [(and (counts-as-free? (up   (left pos)))
+                              (counts-as-free? (down (left pos))))
+                         east-tee-wall%]
+                        [(and (counts-as-free? (up   (right pos)))
+                              (counts-as-free? (down (right pos))))
+                         west-tee-wall%]
+                        [(counts-as-free? (up (left pos)))
+                         south-east-wall%]
+                        [(counts-as-free? (up (right pos)))
+                         south-west-wall%]
+                        [(counts-as-free? (down (left pos)))
+                         north-east-wall%]
+                        [(counts-as-free? (down (right pos)))
+                         south-east-wall%])])))))
 
 
 (module+ main
