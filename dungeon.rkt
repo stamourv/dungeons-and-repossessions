@@ -3,6 +3,9 @@
 (require math/array
          "cell.rkt" "grid.rkt" "utils.rkt")
 
+(provide generate-dungeon
+         smooth-walls) ; for testing, and visibility
+
 ;; dungeon generation
 
 (struct room

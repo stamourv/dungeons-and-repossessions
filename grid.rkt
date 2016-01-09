@@ -13,7 +13,7 @@
 (define (parse-grid los)
   (for*/array #:shape (vector (length los)
                               (apply max (map string-length los)))
-              #:fill (new cell%)
+              #:fill (new void-cell%)
               ([s (in-list los)]
                [c (in-string s)])
      (new (char->cell% c))))
@@ -77,7 +77,13 @@
       "*        *"
       "*        *"
       "*****"))
-  (check-equal? (parse-and-show g3) (render-grid g2))
+  (define g3*
+    '("**********"
+      "*        *"
+      "*        *"
+      "*        *"
+      "*****....."))
+  (check-equal? (parse-and-show g3) (render-grid g3*))
 
   (define g2* (parse-grid g2))
   (check-true (within-grid? g2* '#(0 0)))
