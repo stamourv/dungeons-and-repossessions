@@ -2,12 +2,7 @@
 
 (require "message-queue.rkt")
 
-(provide
- char->cell%
- cell%
- empty-cell%
- void-cell%
- wall%)
+(provide (all-defined-out))
 
 ;; maps printed representations to cell classes
 ;; for map parsing

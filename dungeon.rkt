@@ -113,19 +113,21 @@
   )
 
 
+(define (random-direction) (random-from '(east west north south)))
+(define (horizontal? dir)  (or (eq? dir 'east)  (eq? dir 'west)))
+(define (vertical? dir)    (or (eq? dir 'north) (eq? dir 'south)))
+
 (define (new-room grid pos dir)
   (define w (random-between 5 9)) ; TODO tweak
   (define h (random-between 5 9))
   (try-add-rectangle grid pos w h dir))
 (define (new-corridor grid pos dir)
-  (define horizontal? (or (eq? dir 'east) (eq? dir 'west)))
+  (define h? (horizontal? dir))
   (define len (random-between 4 10))
-  (define h (if horizontal? 3   len)) ; TODO tweak. and have wider too
-  (define w (if horizontal? len 3))
+  (define h (if h? 3   len)) ; TODO tweak. and have wider too
+  (define w (if h? len 3))
   (try-add-rectangle grid pos h w dir))
 ;; TODO have bent corridors too
-
-(define (random-direction) (random-from '(east west north south)))
 
 (define animate-generation? #f) ; to see intermediate steps
 
@@ -160,8 +162,8 @@
       ;; pick an extension point at random
       (define ext (random-from extension-points))
       ;; first, try branching a corridor at random
-      (define corridor-dir (random-direction))
-      (cond [(new-corridor grid ext corridor-dir) =>
+      (define dir (random-direction))
+      (cond [(new-corridor grid ext dir) =>
              (lambda (corridor)
                ;; now try adding a room at the end
                ;; Note: we don't commit the corridor until we know the room fits
@@ -173,16 +175,23 @@
                (define corridor-height (room-height corridor))
                (define corridor-width  (room-width  corridor))
                (define new-ext
-                 (case corridor-dir
+                 (case dir
                    ;; add1 and sub1 for make corridor and room abut
                    [(north) (vector (add1 (- ext-x corridor-height)) ext-y)]
                    [(south) (vector (sub1 (+ ext-x corridor-height)) ext-y)]
                    [(east)  (vector ext-x (sub1 (+ ext-y corridor-width)))]
                    [(west)  (vector ext-x (add1 (- ext-y corridor-width)))]))
-               (cond [(new-room grid new-ext corridor-dir) =>
+               (cond [(new-room grid new-ext dir) =>
                       (lambda (room) ; worked, commit both an keep going
                         (commit-room grid corridor)
                         (commit-room grid room)
+                        ;; add doors
+                        (define door-kind
+                          (if (horizontal? dir)
+                              vertical-door%
+                              horizontal-door%))
+                        (array-set! grid ext     (new door-kind))
+                        (array-set! grid new-ext (new door-kind))
                         (when animate-generation? (display (show-grid grid)))
                         (values (sub1 n-rooms-to-go)
                                 (cons room rooms) ; corridors don't count
