@@ -241,6 +241,10 @@
     (define connects-down?  (and d (not (and dl dr))))
     (define connects-left?  (and l (not (and ul dl))))
     (define connects-right? (and r (not (and ur dr))))
+    (define ful (counts-as-free? (up    (left  pos))))
+    (define fur (counts-as-free? (up    (right pos))))
+    (define fdl (counts-as-free? (down  (left  pos))))
+    (define fdr (counts-as-free? (down  (right pos))))
     (array-set!
      grid pos
      (new
@@ -252,54 +256,35 @@
         [(#F #T #F #F) vertical-wall%]
         [(#F #T #F #T) north-west-wall%]
         [(#F #T #T #F) north-east-wall%]
-        [(#F #T #T #T) (if (or (counts-as-free? (down (left  pos)))
-                               (counts-as-free? (down (right pos))))
+        [(#F #T #T #T) (if (or fdl fdr)
                            ;; only have tees if enough corners are "inside"
                            north-tee-wall%
                            horizontal-wall%)]
         [(#T #F #F #F) vertical-wall%]
         [(#T #F #F #T) south-west-wall%]
         [(#T #F #T #F) south-east-wall%]
-        [(#T #F #T #T) (if (or (counts-as-free? (up (left  pos)))
-                               (counts-as-free? (up (right pos))))
+        [(#T #F #T #T) (if (or ful fur)
                            south-tee-wall%
                            horizontal-wall%)]
         [(#T #T #F #F) vertical-wall%]
-        [(#T #T #F #T) (if (or (counts-as-free? (up   (right pos)))
-                               (counts-as-free? (down (right pos))))
+        [(#T #T #F #T) (if (or fur fdr)
                            west-tee-wall%
                            vertical-wall%)]
-        [(#T #T #T #F) (if (or (counts-as-free? (up   (left pos)))
-                               (counts-as-free? (down (left pos))))
+        [(#T #T #T #F) (if (or ful fdl)
                            east-tee-wall%
                            vertical-wall%)]
         [(#T #T #T #T) (cond ; similar to the tee cases
-                        [(or (and (counts-as-free? (up   (left  pos)))
-                                  (counts-as-free? (down (right pos))))
-                             (and (counts-as-free? (up   (right pos)))
-                                  (counts-as-free? (down (left  pos)))))
+                        [(or (and ful fdr) (and fur fdl))
                          ;; if diagonals are free, need a four-corner wall
                          four-corner-wall%]
-                        [(and (counts-as-free? (up (left  pos)))
-                              (counts-as-free? (up (right pos))))
-                         south-tee-wall%]
-                        [(and (counts-as-free? (down (left  pos)))
-                              (counts-as-free? (down (right pos))))
-                         north-tee-wall%]
-                        [(and (counts-as-free? (up   (left pos)))
-                              (counts-as-free? (down (left pos))))
-                         east-tee-wall%]
-                        [(and (counts-as-free? (up   (right pos)))
-                              (counts-as-free? (down (right pos))))
-                         west-tee-wall%]
-                        [(counts-as-free? (up (left pos)))
-                         south-east-wall%]
-                        [(counts-as-free? (up (right pos)))
-                         south-west-wall%]
-                        [(counts-as-free? (down (left pos)))
-                         north-east-wall%]
-                        [(counts-as-free? (down (right pos)))
-                         south-east-wall%])])))))
+                        [(and ful fur) south-tee-wall%]
+                        [(and fdl fdr) north-tee-wall%]
+                        [(and ful fdl) east-tee-wall%]
+                        [(and fur fdr) west-tee-wall%]
+                        [ful           south-east-wall%]
+                        [fur           south-west-wall%]
+                        [fdl           north-east-wall%]
+                        [fdr           south-east-wall%])])))))
 
 
 (module+ main
