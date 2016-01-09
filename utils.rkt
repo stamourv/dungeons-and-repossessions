@@ -17,3 +17,6 @@
   (random-between 1 7))
 (define (d20)
   (random-between 1 21))
+
+(define (random-from l)
+  (first (shuffle l)))
