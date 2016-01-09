@@ -16,22 +16,22 @@
 (define (try-add-rectangle grid pos height width direction)
   ;; height and width include a wall of one cell wide on each side
   (match-define (vector x y) pos)
-  (define min-x (case direction
-                  [(south) x]
+  (define min-x (match direction
+                  [(== down) x]
                   ;; expanding north, we have to move the top of the room
                   ;; up so the bottom reaches the starting point
-                  [(north) (+ (- x height) 1)]
+                  [(== up) (+ (- x height) 1)]
                   ;; expanding east or west, position ourselves so the
                   ;; middle of the wall of the new room starts here
                   ;; TODO try not having it in the middle always
                   ;;   could even try shifting along that axis if we don't fit
                   ;;   (or maybe better to stick with random)
                   [else    (- x (quotient height 2))]))
-  (define min-y (case direction
+  (define min-y (match direction
                   ;; same idea as for x
-                  [(east) y]
-                  [(west) (+ (- y width) 1)]
-                  [else   (- y (quotient width 2))]))
+                  [(== right) y]
+                  [(== left)  (+ (- y width) 1)]
+                  [else       (- y (quotient width 2))]))
   (define max-x (+ min-x height))
   (define max-y (+ min-y width))
   (define-values (success? poss->cells free-cells extension-points)
@@ -86,16 +86,16 @@
                                "....."
                                "....."
                                ".....")))
-  (check-false (try-add-rectangle g1 #(10 10) 3 3 'east)) ; out of bounds
-  (commit-room g1 (try-add-rectangle g1 #(2 1) 3 3 'east))
+  (check-false (try-add-rectangle g1 #(10 10) 3 3 right)) ; out of bounds
+  (commit-room g1 (try-add-rectangle g1 #(2 1) 3 3 right))
   (check-equal? (show-grid g1)
                 (render-grid '("....."
                                ".XXX."
                                ".X X."
                                ".XXX."
                                ".....")))
-  (check-false (try-add-rectangle g1 #(2 2) 2 2 'north))
-  (commit-room g1 (try-add-rectangle g1 #(3 3) 2 2 'south))
+  (check-false (try-add-rectangle g1 #(2 2) 2 2 up))
+  (commit-room g1 (try-add-rectangle g1 #(3 3) 2 2 down))
   (check-equal? (show-grid g1)
                 (render-grid '("....."
                                ".XXX."
@@ -103,7 +103,7 @@
                                ".XXX."
                                "..XX.")))
   (define g2 (empty-grid))
-  (commit-room g2 (try-add-rectangle g2 #(1 1) 2 4 'east))
+  (commit-room g2 (try-add-rectangle g2 #(1 1) 2 4 right))
   (check-equal? (show-grid g2)
                 (render-grid '(".XXXX"
                                ".XXXX"
@@ -113,9 +113,9 @@
   )
 
 
-(define (random-direction) (random-from '(east west north south)))
-(define (horizontal? dir)  (or (eq? dir 'east)  (eq? dir 'west)))
-(define (vertical? dir)    (or (eq? dir 'north) (eq? dir 'south)))
+(define (random-direction) (random-from (list left right up down)))
+(define (horizontal? dir)  (or (eq? dir right)  (eq? dir left)))
+(define (vertical? dir)    (or (eq? dir up) (eq? dir down)))
 
 (define (new-room grid pos dir)
   (define w (random-between 6 10)) ; higher than that is hard to fit
@@ -178,16 +178,10 @@
                  ;;   putting the room at the far end of the corridor (and
                  ;;   extending from it), then that can't happen. We rely on
                  ;;   that invariant.
-                 (match-define (vector ext-x ext-y) ext)
-                 (define corridor-height (room-height corridor))
-                 (define corridor-width  (room-width  corridor))
                  (define new-ext
-                   (case dir
-                     ;; add1 and sub1 for make corridor and room abut
-                     [(north) (vector (add1 (- ext-x corridor-height)) ext-y)]
-                     [(south) (vector (sub1 (+ ext-x corridor-height)) ext-y)]
-                     [(east)  (vector ext-x (sub1 (+ ext-y corridor-width)))]
-                     [(west)  (vector ext-x (add1 (- ext-y corridor-width)))]))
+                   (dir ext (if (horizontal? dir)
+                                (sub1 (room-width corridor)) ; sub1 to make abut
+                                (sub1 (room-height corridor)))))
                  (cond [(new-room grid new-ext dir) =>
                         (lambda (room) ; worked, commit both an keep going
                           (commit-room grid corridor)
