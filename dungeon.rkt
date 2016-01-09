@@ -118,12 +118,12 @@
 (define (vertical? dir)    (or (eq? dir 'north) (eq? dir 'south)))
 
 (define (new-room grid pos dir)
-  (define w (random-between 5 9)) ; TODO tweak
-  (define h (random-between 5 9))
+  (define w (random-between 6 10)) ; higher than that is hard to fit
+  (define h (random-between 6 10))
   (try-add-rectangle grid pos w h dir))
 (define (new-corridor grid pos dir)
   (define h? (horizontal? dir))
-  (define len (random-between 4 10))
+  (define len (random-between 6 10))
   (define h (if h? 3   len)) ; TODO tweak. and have wider too
   (define w (if h? len 3))
   (try-add-rectangle grid pos h w dir))
@@ -135,7 +135,7 @@
 (define dungeon-width  60)
 (define (generate-dungeon encounters)
   ;; a room for each encounter, and a few empty ones
-  (define n-rooms (+ (length encounters) (random 4)))
+  (define n-rooms (max (length encounters) (random-between 5 8)))
   (define grid
     (array->mutable-array
      (build-array (vector dungeon-height dungeon-width)
@@ -153,56 +153,63 @@
 
   ;; for the rest of the rooms, try sprouting a corridor, with a room at the end
   ;; try until it works
-  (define-values (_1 all-rooms _2)
-    (for/fold ([n-rooms-to-go    (sub1 n-rooms)]
-               [rooms            (list first-room)]
-               [extension-points (room-extension-points first-room)])
-        ([_ (in-naturals)])
-      #:break (= n-rooms-to-go 0)
-      ;; pick an extension point at random
-      (define ext (random-from extension-points))
-      ;; first, try branching a corridor at random
-      (define dir (random-direction))
-      (cond [(new-corridor grid ext dir) =>
-             (lambda (corridor)
-               ;; now try adding a room at the end
-               ;; Note: we don't commit the corridor until we know the room fits
-               ;;   This means that `try-add-rectangle` can't check whether the
-               ;;   two collide. It so happens that, since we're putting the
-               ;;   room at the far end of the corridor (and extending from it),
-               ;;   then that can't happen. We rely on that invariant.
-               (match-define (vector ext-x ext-y) ext)
-               (define corridor-height (room-height corridor))
-               (define corridor-width  (room-width  corridor))
-               (define new-ext
-                 (case dir
-                   ;; add1 and sub1 for make corridor and room abut
-                   [(north) (vector (add1 (- ext-x corridor-height)) ext-y)]
-                   [(south) (vector (sub1 (+ ext-x corridor-height)) ext-y)]
-                   [(east)  (vector ext-x (sub1 (+ ext-y corridor-width)))]
-                   [(west)  (vector ext-x (add1 (- ext-y corridor-width)))]))
-               (cond [(new-room grid new-ext dir) =>
-                      (lambda (room) ; worked, commit both an keep going
-                        (commit-room grid corridor)
-                        (commit-room grid room)
-                        ;; add doors
-                        (define door-kind
-                          (if (horizontal? dir)
-                              vertical-door%
-                              horizontal-door%))
-                        (array-set! grid ext     (new door-kind))
-                        (array-set! grid new-ext (new door-kind))
-                        (when animate-generation? (display (show-grid grid)))
-                        (values (sub1 n-rooms-to-go)
-                                (cons room rooms) ; corridors don't count
-                                (append (room-extension-points corridor)
-                                        (room-extension-points room)
-                                        extension-points)))]
-                     [else ; didn't fit, try again
-                      (values n-rooms-to-go rooms extension-points)]))]
-            [else ; didn't fit, try again
-             (values n-rooms-to-go rooms extension-points)])))
-  grid)
+  (let loop ()
+    (define-values (n all-rooms _2)
+      (for/fold ([n-rooms-to-go    (sub1 n-rooms)]
+                 [rooms            (list first-room)]
+                 [extension-points (room-extension-points first-room)])
+          ([i (in-range 1000)])
+        #:break (= n-rooms-to-go 0)
+        ;; pick an extension point at random
+        (define ext (random-from extension-points))
+        ;; first, try branching a corridor at random
+        (define dir (random-direction))
+        (cond [(new-corridor grid ext dir) =>
+               (lambda (corridor)
+                 ;; now try adding a room at the end
+                 ;; Note: we don't commit the corridor until we know the room
+                 ;;   fits. This means that `try-add-rectangle` can't check
+                 ;;   whether the two collide. It so happens that, since we're
+                 ;;   putting the room at the far end of the corridor (and
+                 ;;   extending from it), then that can't happen. We rely on
+                 ;;   that invariant.
+                 (match-define (vector ext-x ext-y) ext)
+                 (define corridor-height (room-height corridor))
+                 (define corridor-width  (room-width  corridor))
+                 (define new-ext
+                   (case dir
+                     ;; add1 and sub1 for make corridor and room abut
+                     [(north) (vector (add1 (- ext-x corridor-height)) ext-y)]
+                     [(south) (vector (sub1 (+ ext-x corridor-height)) ext-y)]
+                     [(east)  (vector ext-x (sub1 (+ ext-y corridor-width)))]
+                     [(west)  (vector ext-x (add1 (- ext-y corridor-width)))]))
+                 (cond [(new-room grid new-ext dir) =>
+                        (lambda (room) ; worked, commit both an keep going
+                          (commit-room grid corridor)
+                          (commit-room grid room)
+                          ;; add doors
+                          (define door-kind
+                            (if (horizontal? dir)
+                                vertical-door%
+                                horizontal-door%))
+                          (array-set! grid ext     (new door-kind))
+                          (array-set! grid new-ext (new door-kind))
+                          (when animate-generation? (display (show-grid grid)))
+                          (values (sub1 n-rooms-to-go)
+                                  (cons room rooms) ; corridors don't count
+                                  (append (room-extension-points corridor)
+                                          (room-extension-points room)
+                                          extension-points)))]
+                       [else ; didn't fit, try again
+                        (values n-rooms-to-go rooms extension-points)]))]
+              [else ; didn't fit, try again
+               (values n-rooms-to-go rooms extension-points)])))
+    (if (= n 0) ; we did it
+        grid
+        (begin (log-error "generate-dungeon: had to restart")
+               ;; may have gotten too ambitious with n of rooms, back off
+               (set! n-rooms (max (length encounters) (sub1 n-rooms)))
+               (loop))))) ; we got stuck, try again
 
 (module+ main
   (display (show-grid (generate-dungeon (range 3)))))
