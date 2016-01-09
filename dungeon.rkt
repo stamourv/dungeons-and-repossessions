@@ -216,20 +216,33 @@
 
 ;; wall smoothing, for aesthetic reasons
 (define (smooth-walls grid)
-  (for* ([x (in-range (grid-height grid))]
-         [y (in-range (grid-width  grid))])
-    (smooth-single-wall grid (vector x y)))
-  grid)
-(define (smooth-single-wall grid pos)
-  (define (wall? pos) (is-a? (grid-ref grid pos) wall%))
-  (define (wall-or-door? pos)
-    (or (wall? pos)
-        (is-a? (grid-ref grid pos) door%)))
-  (define (counts-as-free? pos) ; i.e., player could be there
-    (define c (grid-ref grid pos))
+  (define (wall-or-door? c)
+    (or (is-a? c wall%)
+        (is-a? c door%)))
+  (define (counts-as-free? c) ; i.e., player could be there
     (or (is-a? c empty-cell%)
         (is-a? c door%)))
-  (when (wall? pos)
+  ;; pre-compute some info
+  (define h (grid-height grid))
+  (define w (grid-width grid))
+  (define walls
+    (for*/array #:shape (vector h w)
+                ([r (in-array-axis grid)]
+                 [p (in-array r)])
+       (wall-or-door? p)))
+  (define frees
+    (for*/array #:shape (vector h w)
+                ([r (in-array-axis grid)]
+                 [p (in-array r)])
+       (counts-as-free? p)))
+  (for* ([x (in-range (grid-height grid))]
+         [y (in-range (grid-width  grid))])
+    (smooth-single-wall grid (vector x y) walls frees))
+  grid)
+(define (smooth-single-wall grid pos walls frees)
+  (define (wall-or-door?   pos) (grid-ref walls pos))
+  (define (counts-as-free? pos) (grid-ref frees pos))
+  (when (is-a? (grid-ref grid pos) wall%)
     (define u   (wall-or-door? (up    pos)))
     (define d   (wall-or-door? (down  pos)))
     (define l   (wall-or-door? (left  pos)))
