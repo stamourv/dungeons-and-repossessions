@@ -227,28 +227,27 @@
     (or (is-a? c empty-cell%)
         (is-a? c door%)))
   (when (wall? pos)
-    (define u  (wall-or-door? (up    pos)))
-    (define d  (wall-or-door? (down  pos)))
-    (define l  (wall-or-door? (left  pos)))
-    (define r  (wall-or-door? (right pos)))
-    (define ul (wall-or-door? (up    (left  pos))))
-    (define ur (wall-or-door? (up    (right pos))))
-    (define dl (wall-or-door? (down  (left  pos))))
-    (define dr (wall-or-door? (down  (right pos))))
-    ;; check diagonals, to make sure we're not just running alongside
-    ;; another wall, in which case we dont' want to connect to it
-    (define connects-up?    (and u (not (and ul ur))))
-    (define connects-down?  (and d (not (and dl dr))))
-    (define connects-left?  (and l (not (and ul dl))))
-    (define connects-right? (and r (not (and ur dr))))
+    (define u   (wall-or-door? (up    pos)))
+    (define d   (wall-or-door? (down  pos)))
+    (define l   (wall-or-door? (left  pos)))
+    (define r   (wall-or-door? (right pos)))
+    (define ul  (wall-or-door? (up    (left  pos))))
+    (define ur  (wall-or-door? (up    (right pos))))
+    (define dl  (wall-or-door? (down  (left  pos))))
+    (define dr  (wall-or-door? (down  (right pos))))
+    (define fu  (counts-as-free? (up    pos)))
+    (define fd  (counts-as-free? (down  pos)))
+    (define fl  (counts-as-free? (left  pos)))
+    (define fr  (counts-as-free? (right pos)))
     (define ful (counts-as-free? (up    (left  pos))))
     (define fur (counts-as-free? (up    (right pos))))
     (define fdl (counts-as-free? (down  (left  pos))))
     (define fdr (counts-as-free? (down  (right pos))))
+    (define (2-of-3? a b c) (or (and a b) (and a c) (and b c)))
     (array-set!
      grid pos
      (new
-      (match* (connects-up? connects-down? connects-left? connects-right?)
+      (match* (u d l r)
         [(#F #F #F #F) pillar%]
         [(#F #F #F #T) horizontal-wall%]
         [(#F #F #T #F) horizontal-wall%]
@@ -256,23 +255,27 @@
         [(#F #T #F #F) vertical-wall%]
         [(#F #T #F #T) north-west-wall%]
         [(#F #T #T #F) north-east-wall%]
-        [(#F #T #T #T) (if (or fdl fdr)
-                           ;; only have tees if enough corners are "inside"
-                           north-tee-wall%
-                           horizontal-wall%)]
+        ;; only have tees if enough corners are "inside"
+        [(#F #T #T #T) (cond [(2-of-3? fu fdl fdr) north-tee-wall%]
+                             [fu                   horizontal-wall%]
+                             [fdl                  north-east-wall%]
+                             [fdr                  north-west-wall%])]
         [(#T #F #F #F) vertical-wall%]
         [(#T #F #F #T) south-west-wall%]
         [(#T #F #T #F) south-east-wall%]
-        [(#T #F #T #T) (if (or ful fur)
-                           south-tee-wall%
-                           horizontal-wall%)]
+        [(#T #F #T #T) (cond [(2-of-3? fd ful fur) south-tee-wall%]
+                             [fd                   horizontal-wall%]
+                             [ful                  south-east-wall%]
+                             [fur                  south-west-wall%])]
         [(#T #T #F #F) vertical-wall%]
-        [(#T #T #F #T) (if (or fur fdr)
-                           west-tee-wall%
-                           vertical-wall%)]
-        [(#T #T #T #F) (if (or ful fdl)
-                           east-tee-wall%
-                           vertical-wall%)]
+        [(#T #T #F #T) (cond [(2-of-3? fl fur fdr) west-tee-wall%]
+                             [fl                   vertical-wall%]
+                             [fur                  south-west-wall%]
+                             [fdr                  north-west-wall%])]
+        [(#T #T #T #F) (cond [(2-of-3? fr ful fdl) east-tee-wall%]
+                             [fr                   vertical-wall%]
+                             [ful                  south-east-wall%]
+                             [fdl                  north-east-wall%])]
         [(#T #T #T #T) (cond ; similar to the tee cases
                         [(or (and ful fdr) (and fur fdl))
                          ;; if diagonals are free, need a four-corner wall
