@@ -210,5 +210,51 @@
                (set! n-rooms (max (length encounters) (sub1 n-rooms)))
                (loop))))) ; we got stuck, try again
 
+
+;; wall smoothing, for aesthetic reasons
+(define (smooth-walls grid)
+  (for* ([x (in-range (grid-height grid))]
+         [y (in-range (grid-width  grid))])
+    (smooth-single-wall grid (vector x y)))
+  grid)
+(define (smooth-single-wall grid pos)
+  (define (wall? pos) (is-a? (grid-ref grid pos) wall%))
+  (define (wall-or-door? pos)
+    (or (wall? pos)
+        (is-a? (grid-ref grid pos) door%)))
+  (when (wall? pos)
+    (define u  (wall-or-door? (up    pos)))
+    (define d  (wall-or-door? (down  pos)))
+    (define l  (wall-or-door? (left  pos)))
+    (define r  (wall-or-door? (right pos)))
+    (array-set!
+     grid pos
+     (match* (u d l r)
+       [(#t #t #t #t)
+        (new four-corner-wall%)]
+       [(#f #t #t #t)
+        (new north-tee-wall%)]
+       [(#t #f #t #t)
+        (new south-tee-wall%)]
+       [(#t #t #f #t)
+        (new west-tee-wall%)]
+       [(#t #t #t #f)
+        (new east-tee-wall%)]
+       [(#f #f #t #t)
+        (new horizontal-wall%)]
+       [(#f #t #f #t)
+        (new north-west-wall%)]
+       [(#f #t #t #f)
+        (new north-east-wall%)]
+       [(#t #f #f #t)
+        (new south-west-wall%)]
+       [(#t #f #t #f)
+        (new south-east-wall%)]
+       [(#t #t #f #f)
+        (new vertical-wall%)]
+       [(_ _ _ _)
+        (new pillar%)]))))
+
+
 (module+ main
-  (display (show-grid (generate-dungeon (range 6)))))
+  (display (show-grid (smooth-walls (generate-dungeon (range 6))))))
