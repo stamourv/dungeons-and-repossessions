@@ -123,8 +123,13 @@
   (try-add-rectangle grid pos w h dir))
 (define (new-corridor grid pos dir)
   (define h? (horizontal? dir))
-  (define len (random-between 6 10))
-  (define h (if h? 3   len)) ; TODO tweak. and have wider too
+  (define len
+    ;; given map proportions (terminal window), horizontal corridors are
+    ;; easier to fit
+    (if h?
+        (random-between 6 10)
+        (random-between 5 8)))
+  (define h (if h? 3   len))
   (define w (if h? len 3))
   (try-add-rectangle grid pos h w dir))
 ;; TODO have bent corridors too
@@ -212,4 +217,4 @@
                (loop))))) ; we got stuck, try again
 
 (module+ main
-  (display (show-grid (generate-dungeon (range 3)))))
+  (display (show-grid (generate-dungeon (range 6)))))
