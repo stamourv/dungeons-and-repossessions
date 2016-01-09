@@ -227,33 +227,36 @@
     (define d  (wall-or-door? (down  pos)))
     (define l  (wall-or-door? (left  pos)))
     (define r  (wall-or-door? (right pos)))
+    (define ul (wall-or-door? (up    (left  pos))))
+    (define ur (wall-or-door? (up    (right pos))))
+    (define dl (wall-or-door? (down  (left  pos))))
+    (define dr (wall-or-door? (down  (right pos))))
+    ;; check diagonals, to make sure we're not just running alongside
+    ;; another wall, in which case we dont' want to connect to it
+    (define connects-up?    (and u (not (and ul ur))))
+    (define connects-down?  (and d (not (and dl dr))))
+    (define connects-left?  (and l (not (and ul dl))))
+    (define connects-right? (and r (not (and ur dr))))
     (array-set!
      grid pos
-     (match* (u d l r)
-       [(#t #t #t #t)
-        (new four-corner-wall%)]
-       [(#f #t #t #t)
-        (new north-tee-wall%)]
-       [(#t #f #t #t)
-        (new south-tee-wall%)]
-       [(#t #t #f #t)
-        (new west-tee-wall%)]
-       [(#t #t #t #f)
-        (new east-tee-wall%)]
-       [(#f #f #t #t)
-        (new horizontal-wall%)]
-       [(#f #t #f #t)
-        (new north-west-wall%)]
-       [(#f #t #t #f)
-        (new north-east-wall%)]
-       [(#t #f #f #t)
-        (new south-west-wall%)]
-       [(#t #f #t #f)
-        (new south-east-wall%)]
-       [(#t #t #f #f)
-        (new vertical-wall%)]
-       [(_ _ _ _)
-        (new pillar%)]))))
+     (new
+      (match* (connects-up? connects-down? connects-left? connects-right?)
+        [(#F #F #F #F) pillar%]
+        [(#F #F #F #T) horizontal-wall%]
+        [(#F #F #T #F) horizontal-wall%]
+        [(#F #F #T #T) horizontal-wall%]
+        [(#F #T #F #F) vertical-wall%]
+        [(#F #T #F #T) north-west-wall%]
+        [(#F #T #T #F) north-east-wall%]
+        [(#F #T #T #T) north-tee-wall%]
+        [(#T #F #F #F) vertical-wall%]
+        [(#T #F #F #T) south-west-wall%]
+        [(#T #F #T #F) south-east-wall%]
+        [(#T #F #T #T) south-tee-wall%]
+        [(#T #T #F #F) vertical-wall%]
+        [(#T #T #F #T) west-tee-wall%]
+        [(#T #T #T #F) east-tee-wall%]
+        [(#T #T #T #T) four-corner-wall%])))))
 
 
 (module+ main
