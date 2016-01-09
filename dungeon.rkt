@@ -76,9 +76,10 @@
 (module+ test
   (require rackunit)
   (define (render-grid g) (string-join g "\n" #:after-last "\n"))
-  (define g1
+  (define (empty-grid)
     (array->mutable-array
      (build-array #(5 5) (lambda _ (new void-cell%)))))
+  (define g1 (empty-grid))
   (check-equal? (show-grid g1)
                 (render-grid '("....."
                                "....."
@@ -101,4 +102,12 @@
                                ".X X."
                                ".XXX."
                                "..XX.")))
+  (define g2 (empty-grid))
+  (commit-room g2 (try-add-rectangle g2 #(1 1) 2 4 'east))
+  (check-equal? (show-grid g2)
+                (render-grid '(".XXXX"
+                               ".XXXX"
+                               "....."
+                               "....."
+                               ".....")))
   )
