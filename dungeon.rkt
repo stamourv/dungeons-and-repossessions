@@ -1,17 +1,19 @@
 #lang racket
 
 (require math/array
-         "cell.rkt" "grid.rkt")
+         "cell.rkt" "grid.rkt" "utils.rkt")
 
 ;; dungeon generation
 
 (struct room
-  (poss->cells ; maps positions to cell constructors
+  (height
+   width
+   poss->cells ; maps positions to cell constructors
    ;;            (so that we can construct the room later when we commit to it)
    free-cells  ; where monsters or treasure could go
    extension-points)) ; where a corridor could sprout
 
-(define (try-add-rectangle level pos height width direction)
+(define (try-add-rectangle grid pos height width direction)
   ;; height and width include a wall of one cell wide on each side
   (match-define (vector x y) pos)
   (define min-x (case direction
@@ -30,8 +32,8 @@
                   [(east) y]
                   [(west) (+ (- y width) 1)]
                   [else   (- y (quotient width 2))]))
-  (define max-x (+ min-x width))
-  (define max-y (+ min-y height))
+  (define max-x (+ min-x height))
+  (define max-y (+ min-y width))
   (define-values (success? poss->cells free-cells extension-points)
     (for*/fold ([success?         #t]
                 [poss->cells      '()]
@@ -41,18 +43,22 @@
          [y (in-range min-y max-y)])
       #:break (not success?)
       (define p (vector x y))
-      (define c (grid-ref level p))
+      (define c (grid-ref grid p))
       (cond [(and c ; not out of bounds
                   (or (is-a? c void-cell%) ; unused yet
                       (is-a? c wall%)))    ; neighboring room, can abut
              ;; tentatively add stuff
-             (if (or (= x min-x) (= x (sub1 max-x))
-                     (= y min-y) (= y (sub1 max-y)))
+             (define x-wall? (or (= x min-x) (= x (sub1 max-x))))
+             (define y-wall? (or (= y min-y) (= y (sub1 max-y))))
+             (if (or x-wall? y-wall?)
                  ;; add a wall
                  (values #t ; still succeeding
                          (dict-set poss->cells p wall%)
                          free-cells
-                         (cons p extension-points))
+                         (if (and x-wall? y-wall?)
+                             ;; don't extend from corners
+                             extension-points
+                             (cons p extension-points)))
                  (values #t
                          (dict-set poss->cells p empty-cell%)
                          (cons p free-cells)
@@ -60,7 +66,7 @@
             [else ; hit something, give up
              (values #f #f #f #f)])))
   (and success?
-       (room poss->cells free-cells extension-points)))
+       (room height width poss->cells free-cells extension-points)))
 
 ;; mutate `grid` to add `room`
 (define (commit-room grid room)
