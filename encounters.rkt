@@ -12,7 +12,7 @@
 (define (encounter-cost encounter)
   (define monsters (cdr encounter))
   (define total-xp
-    (for/sum ([m (in-list monsters)]) (get-field xp-value (new m))))
+    (for/sum ([m (in-list monsters)]) (monster->xp m)))
   (define adjusted-xp
     (* total-xp
        (encounter-multiplier (length monsters))

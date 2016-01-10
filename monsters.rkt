@@ -16,6 +16,8 @@
 (define (add-theme! t)
   (unless (member t all-themes)
     (set! all-themes (cons t all-themes))))
+(define monsters->xp (make-hash))
+(define (monster->xp m) (hash-ref monsters->xp m))
 
 (define-syntax-rule (define-simple-monster def-name char n t hp xp)
   (begin
@@ -26,7 +28,8 @@
         ;; TODO act method
         (super-new [name n] [theme t] [max-hp hp] [xp-value xp])))
     (add-monster! def-name t)
-    (add-theme! t)))
+    (add-theme! t)
+    (hash-set! monsters->xp def-name xp)))
 ;; TODO add ac, damage die, stats, speed, etc.
 
 (define-simple-monster bat% #\b "bat" 'vermin 1 10) ; TODO 1 -> (max 1d4-1 1)
