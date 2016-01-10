@@ -24,17 +24,14 @@
                   ;; expanding north, we have to move the top of the room
                   ;; up so the bottom reaches the starting point
                   [(== up) (+ (- x height) 1)]
-                  ;; expanding east or west, position ourselves so the
-                  ;; middle of the wall of the new room starts here
-                  ;; TODO try not having it in the middle always
-                  ;;   could even try shifting along that axis if we don't fit
-                  ;;   (or maybe better to stick with random)
-                  [else    (- x (quotient height 2))]))
+                  ;; have the entrance be at a random position on the
+                  ;; entrance-side wall
+                  [else    (sub1 (- x (random (- height 2))))]))
   (define min-y (match direction
                   ;; same idea as for x
                   [(== right) y]
                   [(== left)  (+ (- y width) 1)]
-                  [else       (- y (quotient width 2))]))
+                  [else       (sub1 (- y (random (- width 2))))]))
   (define max-x (+ min-x height))
   (define max-y (+ min-y width))
   (define-values (success? poss->cells free-cells extension-points)
