@@ -216,32 +216,29 @@
 
 ;; wall smoothing, for aesthetic reasons
 (define (smooth-walls grid)
-  (define (wall-or-door? c)
-    (or (is-a? c wall%)
-        (is-a? c door%)))
-  (define (counts-as-free? c) ; i.e., player could be there
-    (or (is-a? c empty-cell%)
-        (is-a? c door%)))
-  ;; pre-compute some info
-  (define h (grid-height grid))
-  (define w (grid-width grid))
-  (define walls
-    (for*/array #:shape (vector h w)
-                ([r (in-array-axis grid)]
-                 [p (in-array r)])
-       (wall-or-door? p)))
-  (define frees
-    (for*/array #:shape (vector h w)
-                ([r (in-array-axis grid)]
-                 [p (in-array r)])
-       (counts-as-free? p)))
   (for* ([x (in-range (grid-height grid))]
          [y (in-range (grid-width  grid))])
-    (smooth-single-wall grid (vector x y) walls frees))
+    (smooth-single-wall grid (vector x y)))
+  (set! wall-cache (make-hash)) ; reset caches
+  (set! free-cache (make-hash))
   grid)
-(define (smooth-single-wall grid pos walls frees)
-  (define (wall-or-door?   pos) (grid-ref walls pos))
-  (define (counts-as-free? pos) (grid-ref frees pos))
+(define wall-cache (make-hash))
+(define free-cache (make-hash))
+(define (smooth-single-wall grid pos)
+  (define (wall-or-door? pos)
+    (cond [(hash-ref wall-cache pos #f) => values]
+          [else
+           (define c   (grid-ref grid pos))
+           (define res (or (is-a? c wall%) (is-a? c door%)))
+           (hash-set! wall-cache pos res)
+           res]))
+  (define (counts-as-free? pos) ; i.e., player could be there
+    (cond [(hash-ref free-cache pos #f) => values]
+          [else
+           (define c   (grid-ref grid pos))
+           (define res (or (is-a? c empty-cell%) (is-a? c door%)))
+           (hash-set! free-cache pos res)
+           res]))
   (when (is-a? (grid-ref grid pos) wall%)
     (define u   (wall-or-door? (up    pos)))
     (define d   (wall-or-door? (down  pos)))
