@@ -118,8 +118,8 @@
 (define (vertical? dir)    (or (eq? dir up) (eq? dir down)))
 
 (define (new-room grid pos dir)
-  (define w (random-between 6 10)) ; higher than that is hard to fit
-  (define h (random-between 6 10))
+  (define w (random-between 7 12)) ; higher than that is hard to fit
+  (define h (random-between 7 12))
   (try-add-rectangle grid pos w h dir))
 (define (new-corridor grid pos dir)
   (define h? (horizontal? dir))
