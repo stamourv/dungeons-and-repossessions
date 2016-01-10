@@ -166,11 +166,32 @@
         #:break (and (= n-rooms-to-go 0)
                      (log-error (format "generate-dungeon: success after ~a" i))
                      #t)
+        (define (add-room room ext [corridor #f] [new-ext #f])
+          (when corridor
+            (commit-room grid corridor))
+          (commit-room grid room)
+          ;; add doors
+          (define door-kind
+            (if (horizontal? dir) vertical-door% horizontal-door%))
+          (array-set! grid ext     (new door-kind))
+          (when new-ext
+            (array-set! grid new-ext (new door-kind)))
+          (when animate-generation? (display (show-grid grid)))
+          (values (sub1 n-rooms-to-go)
+                  (cons room rooms) ; corridors don't count
+                  (append (if corridor
+                              (room-extension-points corridor)
+                              '())
+                          (room-extension-points room)
+                          extension-points)))
         ;; pick an extension point at random
         (define ext (random-from extension-points))
         ;; first, try branching a corridor at random
         (define dir (random-direction))
-        (cond [(new-corridor grid ext dir) =>
+        (cond [(and (zero? (random 2)) ; maybe add a room directly, no corridor
+                    (new-room grid ext dir)) =>
+               (lambda (room) (add-room room ext))]
+              [(new-corridor grid ext dir) =>
                (lambda (corridor)
                  ;; now try adding a room at the end
                  ;; Note: we don't commit the corridor until we know the room
@@ -185,21 +206,7 @@
                                 (sub1 (room-height corridor)))))
                  (cond [(new-room grid new-ext dir) =>
                         (lambda (room) ; worked, commit both and keep going
-                          (commit-room grid corridor)
-                          (commit-room grid room)
-                          ;; add doors
-                          (define door-kind
-                            (if (horizontal? dir)
-                                vertical-door%
-                                horizontal-door%))
-                          (array-set! grid ext     (new door-kind))
-                          (array-set! grid new-ext (new door-kind))
-                          (when animate-generation? (display (show-grid grid)))
-                          (values (sub1 n-rooms-to-go)
-                                  (cons room rooms) ; corridors don't count
-                                  (append (room-extension-points corridor)
-                                          (room-extension-points room)
-                                          extension-points)))]
+                          (add-room room ext corridor new-ext))]
                        [else ; didn't fit, try again
                         (values n-rooms-to-go rooms extension-points)]))]
               [else ; didn't fit, try again
