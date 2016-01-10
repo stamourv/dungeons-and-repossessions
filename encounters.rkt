@@ -1,11 +1,9 @@
-#lang 2d racket
+#lang racket
 
-(require 2d/match
-         math/distributions)
+(require math/distributions
+         "encounter-tables.rkt" "monsters.rkt")
 
-(provide make-encounter
-         all-difficulties
-         all-encounters)
+(provide all-encounters)
 
 ;; An Encounter is a (Pair Theme (Listof Monster))
 ;; where a Theme is a symbol (chosen from a small set) that determines
@@ -139,7 +137,6 @@
   (fill-encounter-template (generate-encounter-template level) level))
 
 ;; (module+ main ; to test it out
-;;   (dynamic-require "monsters.rkt" #f)
 ;;   (define level 2)
 ;;   (for ([i 10])
 ;;     (define t (generate-encounter-template level))
@@ -148,73 +145,79 @@
 ;;       (printf "~a ~a\n" (~a d #:min-width 6) e))
 ;;     (newline)))
 
+(make-encounter 1 'easy 'vermin bat%)
+(make-encounter 1 'hard 'vermin bat% bat%)
+(make-encounter 2 'medium 'vermin bat% bat% bat%)
 
-;; from DM Basic Rules, page 57: Adventuring Day XP
-;; these values are after adjusting with the encounter-multiplier
-(define (day-experience-budget level)
-  (case level
-    [( 1)   300] [( 2)   600] [( 3)  1200] [( 4)  1700] [ (5)  3500]
-    [( 6)  4000] [( 7)  5000] [( 8)  6000] [( 9)  7500] [(10)  9000]
-    [(11) 10500] [(12) 11500] [(13) 13500] [(14) 15000] [(15) 18000]
-    [(16) 20000] [(17) 25000] [(18) 27000] [(19) 30000] [(20) 40000]))
+(make-encounter 1 'easy 'vermin rat%)
+(make-encounter 1 'hard 'vermin rat% rat%)
+(make-encounter 1 'deadly 'vermin rat% rat% rat%)
+(make-encounter 2 'medium 'vermin rat% rat% rat%)
 
-;; from DM Basic Rules, page 56: XP Thresholds by Character Level
-;; these values are after adjusting with the encounter-multiplier
-(define (encounter-experience-budget level difficulty)
-  #2dmatch
-  ╔══════════════╦═══════╦══════════╦═══════╦═════════╗
-  ║   difficulty ║ 'easy ║ 'medium  ║ 'hard ║ 'deadly ║
-  ║ level        ║       ║          ║       ║         ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║   1          ║    25 ║     50   ║    75 ║    100  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║   2          ║    50 ║    100   ║   150 ║    200  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║   3          ║    75 ║    150   ║   225 ║    400  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║   4          ║   125 ║    250   ║   375 ║    500  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║   5          ║   250 ║    500   ║   750 ║   1100  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║   6          ║   300 ║    600   ║   900 ║   1400  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║   7          ║   350 ║    750   ║  1100 ║   1700  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║   8          ║   450 ║    900   ║  1400 ║   2100  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║   9          ║   550 ║   1100   ║  1600 ║   2400  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║  10          ║   600 ║   1200   ║  1900 ║   2800  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║  11          ║   800 ║   1600   ║  2400 ║   3600  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║  12          ║  1000 ║   2000   ║  3000 ║   4500  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║  13          ║  1100 ║   2200   ║  3400 ║   5100  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║  14          ║  1250 ║   2500   ║  3800 ║   5700  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║  15          ║  1400 ║   2800   ║  4300 ║   6400  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║  16          ║  1600 ║   3200   ║  4800 ║   7200  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║  17          ║  2000 ║   3900   ║  5900 ║   8800  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║  18          ║  2100 ║   4200   ║  6300 ║   9500  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║  19          ║  2400 ║   4900   ║  7300 ║  10900  ║
-  ╠══════════════╬═══════╬══════════╬═══════╬═════════╣
-  ║  20          ║  2800 ║   5700   ║  8500 ║  12700  ║
-  ╚══════════════╩═══════╩══════════╩═══════╩═════════╝)
+(make-encounter 1 'medium 'vermin giant-rat%)
+(make-encounter 2 'easy 'vermin giant-rat%)
+(make-encounter 1 'deadly 'vermin giant-rat% rat%)
+(make-encounter 2 'medium 'vermin giant-rat% rat%)
+;; (make-encounter 2 'hard 'vermin giant-rat% giant-rat%) ; too many 2 hard
+(make-encounter 2 'hard 'vermin giant-rat% rat% rat%)
+(make-encounter 2 'deadly 'vermin giant-rat% rat% rat% rat%)
 
-;; from DM Basic Rules, page 56: Encounter Multipliers
-;; using next multiplier up, as suggested for parties of less than 3
-;; characters (player is alone in this game)
-(define (encounter-multiplier n-monsters)
-  (case n-monsters
-    [( 1)          1.5]
-    [( 2)          2]
-    [( 3  4  5  6) 2.5]
-    [( 7  8  9 10) 3]
-    [(11 12 13 14) 4]
-    [else          5]))
+(make-encounter 1 'medium 'vermin kobold%)
+(make-encounter 2 'easy 'vermin kobold%)
+(make-encounter 1 'deadly 'vermin kobold% spider%)
+(make-encounter 2 'medium 'vermin kobold% spider%)
+(make-encounter 2 'hard 'vermin kobold% kobold%)
+(make-encounter 2 'deadly 'vermin kobold% spider% spider%)
+(make-encounter 2 'deadly 'vermin kobold% kobold% spider%)
+
+(make-encounter 2 'hard 'vermin goblin%)
+(make-encounter 2 'deadly 'vermin goblin% kobold%)
+
+(make-encounter 2 'hard 'vermin wolf%)
+(make-encounter 2 'deadly 'vermin wolf% rat%)
+
+
+(make-encounter 2 'easy 'cult guard%)
+(make-encounter 2 'medium 'cult guard% commoner%)
+(make-encounter 2 'hard 'cult guard% commoner% commoner%)
+(make-encounter 2 'hard 'cult guard% guard%)
+
+(make-encounter 2 'easy 'cult cultist%)
+(make-encounter 2 'medium 'cult cultist% commoner%)
+(make-encounter 2 'hard 'cult cultist% guard%)
+(make-encounter 2 'hard 'cult cultist% commoner% commoner%)
+(make-encounter 2 'hard 'cult cultist% cultist%)
+
+(make-encounter 2 'hard 'cult acolyte%)
+(make-encounter 2 'deadly 'cult acolyte% guard%)
+(make-encounter 2 'deadly 'cult acolyte% cultist%)
+
+(make-encounter 2 'hard 'cult skeleton%)
+(make-encounter 2 'deadly 'cult skeleton% cultist%)
+
+(make-encounter 2 'hard 'cult zombie%)
+(make-encounter 2 'deadly 'cult zombie% cultist%)
+
+
+(module+ main
+  ;; show how many of each kind of encounter we have, split by theme
+  (for ([t all-themes])
+    (displayln t)
+    (display (~a "" #:min-width 5))
+    (for ([d all-difficulties])
+      (display (~a d #:min-width 10)))
+    (newline)
+    (for ([l (in-range 1 21)])
+      (define counts
+        (for/list ([d all-difficulties])
+          (define encs (dict-ref all-encounters (cons l d) '()))
+          (length (for/list ([e encs]
+                             #:when (equal? (car e) t))
+                    e))))
+      (unless (andmap zero? counts)
+        (display (~a l #:min-width 5))
+        (for ([c counts])
+          (display (~a c #:min-width 10)))
+        (newline)))
+    (newline))
+  )
