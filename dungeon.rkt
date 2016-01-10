@@ -301,7 +301,7 @@
                         [(force ful)                   south-east-wall%]
                         [(force fur)                   south-west-wall%]
                         [(force fdl)                   north-east-wall%]
-                        [(force fdr)                   south-east-wall%])])))))
+                        [(force fdr)                   north-west-wall%])])))))
 
 
 (module+ main
