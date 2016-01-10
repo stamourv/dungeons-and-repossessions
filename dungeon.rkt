@@ -139,7 +139,7 @@
 (define dungeon-width  60)
 (define (generate-dungeon encounters)
   ;; a room for each encounter, and a few empty ones
-  (define n-rooms (max (length encounters) (random-between 5 8)))
+  (define n-rooms (max (length encounters) (random-between 6 9)))
   (define grid
     (array->mutable-array
      (build-array (vector dungeon-height dungeon-width)
@@ -188,7 +188,7 @@
         (define ext (random-from extension-points))
         ;; first, try branching a corridor at random
         (define dir (random-direction))
-        (cond [(and (zero? (random 2)) ; maybe add a room directly, no corridor
+        (cond [(and (zero? (random 4)) ; maybe add a room directly, no corridor
                     (new-room grid ext dir)) =>
                (lambda (room) (add-room room ext))]
               [(new-corridor grid ext dir) =>
