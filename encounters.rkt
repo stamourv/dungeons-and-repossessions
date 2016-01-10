@@ -1,7 +1,7 @@
 #lang racket
 
 (require math/distributions
-         "encounter-tables.rkt" "monsters.rkt")
+         "encounter-tables.rkt" "monsters.rkt" "utils.rkt")
 
 (provide all-encounters)
 
@@ -27,7 +27,7 @@
        (exact->inexact 5/3))) ; float for printing
   adjusted-xp)
 
-;; maps (level . difficulty) pairs to sets of encounters
+;; maps (level difficulty theme) triples to sets of encounters
 (define all-encounters (make-hash))
 
 (define all-difficulties '(easy medium hard deadly))
@@ -51,7 +51,7 @@
                            "budget"    budget
                            "cost"      adjusted-xp))
   (hash-update! all-encounters
-                (cons level difficulty)
+                (list level difficulty theme)
                 (lambda (xs) (cons encounter xs))
                 '()))
 
@@ -119,18 +119,15 @@
 ;; pick concrete encounters given a template and the character level
 (define (fill-encounter-template template level)
   (define possible-themes ; stick to one theme for the dungeon
-    ;; Note: we assume that if one theme exists for a level at one
-    ;;   difficulty, it does for all of them (o/w, bug in encounter list)
-    (remove-duplicates
-     (map first (dict-ref all-encounters
-                          (cons level (first all-difficulties))))))
-  (define theme (sample (discrete-dist possible-themes)))
+    (for/list ([t (in-list all-themes)]
+               ;; can we populate the template with this theme?
+               #:when (for/and ([d (in-list (remove-duplicates template))])
+                        (not (empty? (dict-ref all-encounters
+                                               (list level d t))))))
+      t))
+  (define theme (random-from possible-themes))
   (for/list ([diff (in-list template)])
-    (define possible-encounters (dict-ref all-encounters (cons level diff)))
-    (define in-theme-encounters (for/list ([e (in-list possible-encounters)]
-                                           #:when (equal? (car e) theme))
-                                  e))
-    (sample (discrete-dist in-theme-encounters))))
+    (random-from (dict-ref all-encounters (list level diff theme)))))
 
 ;; generates a list of encounters for a given player level
 (define (generate-encounters level)
@@ -210,10 +207,7 @@
     (for ([l (in-range 1 21)])
       (define counts
         (for/list ([d all-difficulties])
-          (define encs (dict-ref all-encounters (cons l d) '()))
-          (length (for/list ([e encs]
-                             #:when (equal? (car e) t))
-                    e))))
+          (length (dict-ref all-encounters (list l d t) '()))))
       (unless (andmap zero? counts)
         (display (~a l #:min-width 5))
         (for ([c counts])
