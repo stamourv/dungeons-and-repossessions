@@ -184,7 +184,7 @@
                                 (sub1 (room-width corridor)) ; sub1 to make abut
                                 (sub1 (room-height corridor)))))
                  (cond [(new-room grid new-ext dir) =>
-                        (lambda (room) ; worked, commit both an keep going
+                        (lambda (room) ; worked, commit both and keep going
                           (commit-room grid corridor)
                           (commit-room grid room)
                           ;; add doors
