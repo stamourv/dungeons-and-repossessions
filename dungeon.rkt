@@ -244,14 +244,14 @@
     (define d   (wall-or-door? (down  pos)))
     (define l   (wall-or-door? (left  pos)))
     (define r   (wall-or-door? (right pos)))
-    (define fu  (counts-as-free? (up    pos)))
-    (define fd  (counts-as-free? (down  pos)))
-    (define fl  (counts-as-free? (left  pos)))
-    (define fr  (counts-as-free? (right pos)))
-    (define ful (counts-as-free? (up    (left  pos))))
-    (define fur (counts-as-free? (up    (right pos))))
-    (define fdl (counts-as-free? (down  (left  pos))))
-    (define fdr (counts-as-free? (down  (right pos))))
+    (define fu  (delay (counts-as-free? (up    pos))))
+    (define fd  (delay (counts-as-free? (down  pos))))
+    (define fl  (delay (counts-as-free? (left  pos))))
+    (define fr  (delay (counts-as-free? (right pos))))
+    (define ful (delay (counts-as-free? (up    (left  pos)))))
+    (define fur (delay (counts-as-free? (up    (right pos)))))
+    (define fdl (delay (counts-as-free? (down  (left  pos)))))
+    (define fdr (delay (counts-as-free? (down  (right pos)))))
     (define (2-of-3? a b c) (or (and a b) (and a c) (and b c)))
     (array-set!
      grid pos
@@ -265,38 +265,43 @@
         [(#F #T #F #T) north-west-wall%]
         [(#F #T #T #F) north-east-wall%]
         ;; only have tees if enough corners are "inside"
-        [(#F #T #T #T) (cond [(2-of-3? fu fdl fdr) north-tee-wall%]
-                             [fu                   horizontal-wall%]
-                             [fdl                  north-east-wall%]
-                             [fdr                  north-west-wall%])]
+        [(#F #T #T #T) (cond [(2-of-3? (force fu) (force fdl) (force fdr))
+                              north-tee-wall%]
+                             [(force fu)  horizontal-wall%]
+                             [(force fdl) north-east-wall%]
+                             [(force fdr) north-west-wall%])]
         [(#T #F #F #F) vertical-wall%]
         [(#T #F #F #T) south-west-wall%]
         [(#T #F #T #F) south-east-wall%]
-        [(#T #F #T #T) (cond [(2-of-3? fd ful fur) south-tee-wall%]
-                             [fd                   horizontal-wall%]
-                             [ful                  south-east-wall%]
-                             [fur                  south-west-wall%])]
+        [(#T #F #T #T) (cond [(2-of-3? (force fd) (force ful) (force fur))
+                              south-tee-wall%]
+                             [(force fd)  horizontal-wall%]
+                             [(force ful) south-east-wall%]
+                             [(force fur) south-west-wall%])]
         [(#T #T #F #F) vertical-wall%]
-        [(#T #T #F #T) (cond [(2-of-3? fl fur fdr) west-tee-wall%]
-                             [fl                   vertical-wall%]
-                             [fur                  south-west-wall%]
-                             [fdr                  north-west-wall%])]
-        [(#T #T #T #F) (cond [(2-of-3? fr ful fdl) east-tee-wall%]
-                             [fr                   vertical-wall%]
-                             [ful                  south-east-wall%]
-                             [fdl                  north-east-wall%])]
+        [(#T #T #F #T) (cond [(2-of-3? (force fl) (force fur) (force fdr))
+                              west-tee-wall%]
+                             [(force fl)  vertical-wall%]
+                             [(force fur) south-west-wall%]
+                             [(force fdr) north-west-wall%])]
+        [(#T #T #T #F) (cond [(2-of-3? (force fr) (force ful) (force fdl))
+                              east-tee-wall%]
+                             [(force fr)  vertical-wall%]
+                             [(force ful) south-east-wall%]
+                             [(force fdl) north-east-wall%])]
         [(#T #T #T #T) (cond ; similar to the tee cases
-                        [(or (and ful fdr) (and fur fdl))
+                        [(or (and (force ful) (force fdr))
+                             (and (force fur) (force fdl)))
                          ;; if diagonals are free, need a four-corner wall
                          four-corner-wall%]
-                        [(and ful fur) south-tee-wall%]
-                        [(and fdl fdr) north-tee-wall%]
-                        [(and ful fdl) east-tee-wall%]
-                        [(and fur fdr) west-tee-wall%]
-                        [ful           south-east-wall%]
-                        [fur           south-west-wall%]
-                        [fdl           north-east-wall%]
-                        [fdr           south-east-wall%])])))))
+                        [(and (force ful) (force fur)) south-tee-wall%]
+                        [(and (force fdl) (force fdr)) north-tee-wall%]
+                        [(and (force ful) (force fdl)) east-tee-wall%]
+                        [(and (force fur) (force fdr)) west-tee-wall%]
+                        [(force ful)                   south-east-wall%]
+                        [(force fur)                   south-west-wall%]
+                        [(force fdl)                   north-east-wall%]
+                        [(force fdr)                   south-east-wall%])])))))
 
 
 (module+ main
