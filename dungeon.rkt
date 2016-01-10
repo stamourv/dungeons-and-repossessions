@@ -1,6 +1,6 @@
 #lang racket
 
-(require math/array
+(require math/array racket/set
          "cell.rkt" "grid.rkt" "utils.rkt")
 
 (provide generate-dungeon
@@ -154,6 +154,10 @@
       (or first-room (loop)))) ; if it doesn't fit, try again
   (commit-room grid first-room)
   (when animate-generation? (display (show-grid grid)))
+  (define connections '()) ; keep track of pairs of connected rooms
+  (define (extension-points/room room)
+    (for/list ([e (in-list (room-extension-points room))])
+      (cons e room)))
 
   ;; for the rest of the rooms, try sprouting a corridor, with a room at the end
   ;; try until it works
@@ -161,12 +165,12 @@
     (define-values (n all-rooms _2)
       (for/fold ([n-rooms-to-go    (sub1 n-rooms)]
                  [rooms            (list first-room)]
-                 [extension-points (room-extension-points first-room)])
+                 [extension-points (extension-points/room first-room)])
           ([i (in-range 1000)])
         #:break (and (= n-rooms-to-go 0)
                      (log-error (format "generate-dungeon: success after ~a" i))
                      #t)
-        (define (add-room room ext [corridor #f] [new-ext #f])
+        (define (add-room origin-room room ext [corridor #f] [new-ext #f])
           (when corridor
             (commit-room grid corridor))
           (commit-room grid room)
@@ -176,21 +180,22 @@
           (array-set! grid ext     (new door-kind))
           (when new-ext
             (array-set! grid new-ext (new door-kind)))
+          (set! connections (cons (cons origin-room room) connections))
           (when animate-generation? (display (show-grid grid)))
           (values (sub1 n-rooms-to-go)
                   (cons room rooms) ; corridors don't count
                   (append (if corridor
-                              (room-extension-points corridor)
+                              (extension-points/room corridor)
                               '())
-                          (room-extension-points room)
+                          (extension-points/room room)
                           extension-points)))
         ;; pick an extension point at random
-        (define ext (random-from extension-points))
+        (match-define `(,ext . ,origin-room) (random-from extension-points))
         ;; first, try branching a corridor at random
         (define dir (random-direction))
         (cond [(and (zero? (random 4)) ; maybe add a room directly, no corridor
                     (new-room grid ext dir)) =>
-               (lambda (room) (add-room room ext))]
+               (lambda (room) (add-room origin-room room ext))]
               [(new-corridor grid ext dir) =>
                (lambda (corridor)
                  ;; now try adding a room at the end
@@ -206,18 +211,56 @@
                                 (sub1 (room-height corridor)))))
                  (cond [(new-room grid new-ext dir) =>
                         (lambda (room) ; worked, commit both and keep going
-                          (add-room room ext corridor new-ext))]
+                          (add-room origin-room room ext corridor new-ext))]
                        [else ; didn't fit, try again
                         (values n-rooms-to-go rooms extension-points)]))]
               [else ; didn't fit, try again
                (values n-rooms-to-go rooms extension-points)])))
-    (if (= n 0) ; we did it
-        grid
-        (begin (log-error "generate-dungeon: had to restart")
-               ;; may have gotten too ambitious with n of rooms, back off
-               (set! n-rooms (max (length encounters) (sub1 n-rooms)))
-               (loop))))) ; we got stuck, try again
 
+    (cond [(not (= n 0)) ; we got stuck, try again
+           (log-error "generate-dungeon: had to restart")
+           ;; may have gotten too ambitious with n of rooms, back off
+           (set! n-rooms (max (length encounters) (sub1 n-rooms)))
+           (loop)]
+          [else ; we did it
+           ;; try adding more doors
+           (define potential-connections
+             (for*/fold ([potential-connections '()])
+                 ([r1 (in-list all-rooms)]
+                  [r2 (in-list all-rooms)]
+                  #:unless (or (eq? r1 r2)
+                               (member (cons r1 r2) connections)
+                               (member (cons r2 r1) connections)
+                               (member (cons r2 r1) potential-connections)))
+               (cons (cons r1 r2) potential-connections)))
+           ;; if the two in a pair share a wall, put a door through it
+           (for ([(r1 r2) (in-dict potential-connections)])
+             (define common
+               (set-intersect (room-extension-points r1)
+                              (room-extension-points r2)))
+             (define possible-doors
+               (filter values
+                       (for/list ([pos (in-list common)])
+                         (cond [(and (counts-as-free? grid (up   pos))
+                                     (counts-as-free? grid (down pos)))
+                                (cons pos horizontal-door%)]
+                               [(and (counts-as-free? grid (left  pos))
+                                     (counts-as-free? grid (right pos)))
+                                (cons pos vertical-door%)]
+                               [else #f]))))
+             (when (not (empty? possible-doors))
+               (match-define (cons pos door-kind) (random-from possible-doors))
+               (array-set! grid pos (new door-kind))))
+           grid])))
+
+
+(define (counts-as-free? grid pos) ; i.e., player could be there
+  (cond [(hash-ref free-cache pos #f) => values]
+        [else
+         (define c   (grid-ref grid pos))
+         (define res (or (is-a? c empty-cell%) (is-a? c door%)))
+         (hash-set! free-cache pos res)
+         res]))
 
 ;; wall smoothing, for aesthetic reasons
 (define (smooth-walls grid)
@@ -237,26 +280,19 @@
            (define res (or (is-a? c wall%) (is-a? c door%)))
            (hash-set! wall-cache pos res)
            res]))
-  (define (counts-as-free? pos) ; i.e., player could be there
-    (cond [(hash-ref free-cache pos #f) => values]
-          [else
-           (define c   (grid-ref grid pos))
-           (define res (or (is-a? c empty-cell%) (is-a? c door%)))
-           (hash-set! free-cache pos res)
-           res]))
   (when (is-a? (grid-ref grid pos) wall%)
     (define u   (wall-or-door? (up    pos)))
     (define d   (wall-or-door? (down  pos)))
     (define l   (wall-or-door? (left  pos)))
     (define r   (wall-or-door? (right pos)))
-    (define fu  (delay (counts-as-free? (up    pos))))
-    (define fd  (delay (counts-as-free? (down  pos))))
-    (define fl  (delay (counts-as-free? (left  pos))))
-    (define fr  (delay (counts-as-free? (right pos))))
-    (define ful (delay (counts-as-free? (up    (left  pos)))))
-    (define fur (delay (counts-as-free? (up    (right pos)))))
-    (define fdl (delay (counts-as-free? (down  (left  pos)))))
-    (define fdr (delay (counts-as-free? (down  (right pos)))))
+    (define fu  (delay (counts-as-free? grid (up    pos))))
+    (define fd  (delay (counts-as-free? grid (down  pos))))
+    (define fl  (delay (counts-as-free? grid (left  pos))))
+    (define fr  (delay (counts-as-free? grid (right pos))))
+    (define ful (delay (counts-as-free? grid (up    (left  pos)))))
+    (define fur (delay (counts-as-free? grid (up    (right pos)))))
+    (define fdl (delay (counts-as-free? grid (down  (left  pos)))))
+    (define fdr (delay (counts-as-free? grid (down  (right pos)))))
     (define (2-of-3? a b c) (or (and a b) (and a c) (and b c)))
     (array-set!
      grid pos
