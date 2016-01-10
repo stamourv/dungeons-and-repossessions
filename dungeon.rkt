@@ -132,7 +132,6 @@
   (define h (if h? 3   len))
   (define w (if h? len 3))
   (try-add-rectangle grid pos h w dir))
-;; TODO have bent corridors too
 
 (define animate-generation? #f) ; to see intermediate steps
 
