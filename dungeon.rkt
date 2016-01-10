@@ -164,7 +164,9 @@
                  [rooms            (list first-room)]
                  [extension-points (room-extension-points first-room)])
           ([i (in-range 1000)])
-        #:break (= n-rooms-to-go 0)
+        #:break (and (= n-rooms-to-go 0)
+                     (log-error (format "generate-dungeon: success after ~a" i))
+                     #t)
         ;; pick an extension point at random
         (define ext (random-from extension-points))
         ;; first, try branching a corridor at random
