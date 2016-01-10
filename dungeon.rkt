@@ -179,21 +179,36 @@
                  ;;   putting the room at the far end of the corridor (and
                  ;;   extending from it), then that can't happen. We rely on
                  ;;   that invariant.
-                 (define new-ext
-                   (dir ext (if (horizontal? dir)
-                                (sub1 (room-width corridor)) ; sub1 to make abut
-                                (sub1 (room-height corridor)))))
-                 (cond [(new-room grid new-ext dir) =>
+                 (define corridor-end ; last free tile of corridor
+                   (dir ext (- ((if (horizontal? dir) room-width room-height)
+                                corridor)
+                               2))) ; front and back walls
+                 (define new-dir
+                   ;; any direction (except back) from end
+                   ;; but most likely to stay in same direction
+                   (match dir
+                     [(== up)
+                      (random-from (list up    up    up    left right))]
+                     [(== down)
+                      (random-from (list down  down  down  left right))]
+                     [(== left)
+                      (random-from (list left  left  left  up   down))]
+                     [(== right)
+                      (random-from (list right right right up   down))]))
+                 (define new-ext (new-dir corridor-end))
+                 (cond [(new-room grid new-ext new-dir) =>
                         (lambda (room) ; worked, commit both and keep going
                           (commit-room grid corridor)
                           (commit-room grid room)
                           ;; add doors
-                          (define door-kind
-                            (if (horizontal? dir)
-                                vertical-door%
-                                horizontal-door%))
-                          (array-set! grid ext     (new door-kind))
-                          (array-set! grid new-ext (new door-kind))
+                          (array-set! grid ext
+                                      (if (horizontal? dir)
+                                          (new vertical-door%)
+                                          (new horizontal-door%)))
+                          (array-set! grid new-ext
+                                      (if (horizontal? new-dir)
+                                          (new vertical-door%)
+                                          (new horizontal-door%)))
                           (when animate-generation? (display (show-grid grid)))
                           (values (sub1 n-rooms-to-go)
                                   (cons room rooms) ; corridors don't count
