@@ -3,14 +3,11 @@
 (require math/distributions
          "encounter-tables.rkt" "monsters.rkt" "utils.rkt")
 
-(provide all-encounters)
+(provide generate-encounters)
 
-;; An Encounter is a (Pair Theme (Listof Monster))
-;; where a Theme is a symbol (chosen from a small set) that determines
-;; which encounters can go together (i.e., have the same theme)
+;; An Encounter is a (Listof Monster)
 
-(define (encounter-cost encounter)
-  (define monsters (cdr encounter))
+(define (encounter-cost monsters)
   (define total-xp
     (for/sum ([m (in-list monsters)]) (monster->xp m)))
   (define adjusted-xp
@@ -32,8 +29,8 @@
 
 (define all-difficulties '(easy medium hard deadly))
 
-(define (close-enough? x y) ; within 25%
-  (<= (* 0.75 y) x (* 1.25 y)))
+(define (close-enough? cost budget) ; within 25%
+  (<= (* 0.75 budget) cost (* 1.25 budget)))
 
 (define (make-encounter level difficulty theme . monsters)
   (unless (integer? level)
@@ -122,8 +119,11 @@
     (for/list ([t (in-list all-themes)]
                ;; can we populate the template with this theme?
                #:when (for/and ([d (in-list (remove-duplicates template))])
-                        (not (empty? (dict-ref all-encounters
-                                               (list level d t))))))
+                        (not (empty?
+                              (dict-ref all-encounters
+                                        (list level d t)
+                                        (lambda ()
+                                          (enumerate-encounters level d t)))))))
       t))
   (define theme (random-from possible-themes))
   (for/list ([diff (in-list template)])
@@ -142,61 +142,43 @@
 ;;       (printf "~a ~a\n" (~a d #:min-width 6) e))
 ;;     (newline)))
 
-(make-encounter 1 'easy 'vermin bat%)
-(make-encounter 1 'hard 'vermin bat% bat%)
-(make-encounter 2 'medium 'vermin bat% bat% bat%)
 
-(make-encounter 1 'easy 'vermin rat%)
-(make-encounter 1 'hard 'vermin rat% rat%)
-(make-encounter 1 'deadly 'vermin rat% rat% rat%)
-(make-encounter 2 'medium 'vermin rat% rat% rat%)
-
-(make-encounter 1 'medium 'vermin giant-rat%)
-(make-encounter 2 'easy 'vermin giant-rat%)
-(make-encounter 1 'deadly 'vermin giant-rat% rat%)
-(make-encounter 2 'medium 'vermin giant-rat% rat%)
-;; (make-encounter 2 'hard 'vermin giant-rat% giant-rat%) ; too many 2 hard
-(make-encounter 2 'hard 'vermin giant-rat% rat% rat%)
-(make-encounter 2 'deadly 'vermin giant-rat% rat% rat% rat%)
-
-(make-encounter 1 'medium 'vermin kobold%)
-(make-encounter 2 'easy 'vermin kobold%)
-(make-encounter 1 'deadly 'vermin kobold% spider%)
-(make-encounter 2 'medium 'vermin kobold% spider%)
-(make-encounter 2 'hard 'vermin kobold% kobold%)
-(make-encounter 2 'deadly 'vermin kobold% spider% spider%)
-(make-encounter 2 'deadly 'vermin kobold% kobold% spider%)
-
-(make-encounter 2 'hard 'vermin goblin%)
-(make-encounter 2 'deadly 'vermin goblin% kobold%)
-
-(make-encounter 2 'hard 'vermin wolf%)
-(make-encounter 2 'deadly 'vermin wolf% rat%)
-
-
-(make-encounter 2 'easy 'cult guard%)
-(make-encounter 2 'medium 'cult guard% commoner%)
-(make-encounter 2 'hard 'cult guard% commoner% commoner%)
-(make-encounter 2 'hard 'cult guard% guard%)
-
-(make-encounter 2 'easy 'cult cultist%)
-(make-encounter 2 'medium 'cult cultist% commoner%)
-(make-encounter 2 'hard 'cult cultist% guard%)
-(make-encounter 2 'hard 'cult cultist% commoner% commoner%)
-(make-encounter 2 'hard 'cult cultist% cultist%)
-
-(make-encounter 2 'hard 'cult acolyte%)
-(make-encounter 2 'deadly 'cult acolyte% guard%)
-(make-encounter 2 'deadly 'cult acolyte% cultist%)
-
-(make-encounter 2 'hard 'cult skeleton%)
-(make-encounter 2 'deadly 'cult skeleton% cultist%)
-
-(make-encounter 2 'hard 'cult zombie%)
-(make-encounter 2 'deadly 'cult zombie% cultist%)
+;; Limit number of monsters per encounter.
+;; More for efficiency than for balance. Encounter multiplier takes care of
+;; balance already, but since this number is the exponent for encounter
+;; enumeration, want to keep it low. n^6 is already pretty bad. n is the
+;; number of monsters that need to be considered at once (e.g. same theme).
+;; FWIW, with the monsters available as of this writing, a max of 6 has
+;; enumeration of all levels, difficulties and themes take ~30s. A max of 8
+;; for to like level 6 in 10 minutes. Not reasonable.
+(define max-monsters-per-encounter 6)
+(define (enumerate-encounters level difficulty theme)
+  (define budget (encounter-experience-budget level difficulty))
+  (define ms (dict-ref monsters-by-theme theme))
+  ;; enumerate up to max encounter size
+  (define es
+    (set->list
+     (for*/set ([n (in-range 1 (add1 max-monsters-per-encounter))]
+                ;; enumerate all encounters of n monsters (within budget)
+                [e (in-list (apply cartesian-product (make-list n ms)))]
+                #:when (close-enough? (encounter-cost e) budget))
+       ;; order doesn't matter, encounters are bags of monsters
+       ;; canonicalize representation to avoid repeats
+       (sort e < #:key eq-hash-code))))
+  ;; cache the result
+  (hash-set! all-encounters (list level difficulty theme) es)
+  es)
 
 
 (module+ main
+  ;; generate all encounters
+  (for* ([level (in-range 1 21)]
+         [diff  (in-list all-difficulties)]
+         [theme (in-list all-themes)])
+    (printf "generating: ~a ~a ~a\n" level diff theme)
+    (hash-set! all-encounters
+               (list level diff theme)
+               (enumerate-encounters level diff theme)))
   ;; show how many of each kind of encounter we have, split by theme
   (for ([t all-themes])
     (displayln t)
