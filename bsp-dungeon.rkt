@@ -30,7 +30,7 @@
                   [y (in-range w)])
         #f)))
   (define id 0)
-  (define ids (in-string "0123456789abcdefghijklmnopqrstuvwxyz"))
+  (define ids "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
   (let loop ([bsp bsp])
     (define children (bsp-children bsp))
     (cond [(not (empty? children))
@@ -41,7 +41,7 @@
              (define pos (down (right (bsp-start-pos bsp) dy) dx))
              (if (array-ref grid pos) ; already something there, so overlap zone
                  (array-set! grid pos " ")
-                 (array-set! grid pos (sequence-ref ids id))))
+                 (array-set! grid pos (string-ref ids id))))
            (set! id (add1 id))]))
   ;; actual display
   (with-output-to-string
