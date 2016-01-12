@@ -147,10 +147,49 @@
       (for/sum ([c (in-list children)]) (bsp-n-areas c))))
 
 
+(define (generate-dungeon [a-bsp (prune-bsp (make-bsp))])
+  (define grid
+    (array->mutable-array
+     (build-array (vector dungeon-height dungeon-width)
+                  (lambda _ (new void-cell%)))))
+  ;; put a room in each leaf area
+  (let loop ([a-bsp a-bsp])
+    (match-define (bsp height width start-pos children) a-bsp)
+    (cond [(not (empty? children)) ; recur
+           (for-each loop children)]
+          [else ; leaf, add a room
+           (define room-height
+             (if (= height min-room-dimension)
+                 height
+                 (random-between min-room-dimension
+                                 (min max-room-dimension height))))
+           (define room-width
+             (if (= width min-room-dimension)
+                 width
+                 (random-between min-room-dimension
+                                 (min max-room-dimension width))))
+           ;; place at a random starting pos
+           (define room-dx (random (add1 (- height room-height))))
+           (define room-dy (random (add1 (- width  room-width))))
+           (define room-pos (right (down start-pos room-dx) room-dy))
+           ;; TODO construct room data structures
+           ;;   for establishing connections, and for encounter placement
+           (for* ([x (in-range room-height)]
+                  [y (in-range room-width)])
+             (array-set! grid (right (down room-pos x) y)
+                         (if (or (= x 0) (= x (sub1 room-height))
+                                 (= y 0) (= y (sub1 room-width)))
+                             (new wall%)
+                             (new empty-cell%))))]))
+  grid)
+
+
 (module+ main
   ;; generate an example
   (define ex (make-bsp))
+  (displayln (show-bsp ex))
   (displayln (show-bsp (prune-bsp ex)))
+  (displayln (show-grid (smooth-walls (generate-dungeon (prune-bsp ex)))))
 
   ;; make sure that we have "enough" rooms with high-enough probability
   ;; (need enough for all encounters, and 6 is currently the max I've seen)
