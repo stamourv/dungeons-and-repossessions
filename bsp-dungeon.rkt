@@ -196,7 +196,7 @@
   (define n-tests 1000)
   (printf "~a / ~a have at least 6 rooms\n"
           (for/sum ([i 1000]
-                    #:when (>= (bsp-n-areas (make-bsp)) 6))
+                    #:when (>= (bsp-n-areas (prune-bsp (make-bsp))) 6))
             1)
           n-tests)
 )
