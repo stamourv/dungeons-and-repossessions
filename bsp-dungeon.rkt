@@ -140,12 +140,24 @@
   (bsp height width start-pos
        (map prune-bsp (filter (negate too-small?) children))))
 
+(define (bsp-n-areas bsp)
+  (define children (bsp-children bsp))
+  (if (empty? children)
+      1 ; leaf, just the one
+      (for/sum ([c (in-list children)]) (bsp-n-areas c))))
 
-(define ex (make-bsp))
-;; (display (show-bsp ex))
-(display (show-bsp (prune-bsp ex)))
 
-;; TODO for the "enough usable zones" test, try generating 1000 bsps, and seeing how many pass. needs to be high, o/w will keep restarting generation
+(module+ main
+  ;; generate an example
+  (define ex (make-bsp))
+  (displayln (show-bsp (prune-bsp ex)))
 
-
-;; TODO then, for each leaf in the BSP tree, cerate a room of random dimensions (until it fits, or maybe just have the max of random range be the min of the space available and max-room-dimension)
+  ;; make sure that we have "enough" rooms with high-enough probability
+  ;; (need enough for all encounters, and 6 is currently the max I've seen)
+  (define n-tests 1000)
+  (printf "~a / ~a have at least 6 rooms\n"
+          (for/sum ([i 1000]
+                    #:when (>= (bsp-n-areas (make-bsp)) 6))
+            1)
+          n-tests)
+)
