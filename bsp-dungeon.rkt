@@ -109,7 +109,7 @@
   ;; more areas than we want rooms anyway.
   ;; We may end up with fewer rooms than we need for encounters, in which
   ;; case we can just restart. C'est la vie.
-  (define min-can-split           (+ min-room-dimension 5))
+  (define min-can-split           (+ min-room-dimension 3)) ; 3 is arbitrary
   (define can-split-horizontally? (>= width  min-can-split))
   (define can-split-vertically?   (>= height min-can-split))
   ;; prioritize splitting the largest dimension. gives nicer results, IME
@@ -142,7 +142,7 @@
 
 
 (define ex (make-bsp))
-(display (show-bsp ex))
+;; (display (show-bsp ex))
 (display (show-bsp (prune-bsp ex)))
 
 ;; TODO for the "enough usable zones" test, try generating 1000 bsps, and seeing how many pass. needs to be high, o/w will keep restarting generation
