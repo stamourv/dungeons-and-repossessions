@@ -112,13 +112,10 @@
   (define min-can-split           (+ min-room-dimension 5))
   (define can-split-horizontally? (>= width  min-can-split))
   (define can-split-vertically?   (>= height min-can-split))
-  ;; TODO should we always split in the largest dimension?
+  ;; prioritize splitting the largest dimension. gives nicer results, IME
   (define split-horizontally? (and can-split-horizontally?
                                    (or (not can-split-vertically?)
-                                       ;; (zero? (random 2))
-                                       ;; TODO trying always splitting largest
-                                       (>= width height)
-                                       )))
+                                       (>= width height))))
   (match-define (vector start-x start-y) start-pos)
   (bsp height
        width
