@@ -122,7 +122,7 @@
        start-pos
        (cond
         [split-horizontally?
-         (define split-dy (random-between 3 width)) ;; TODO 3 is arbitrary
+         (define split-dy (random-between 3 width)) ; 3 is arbitrary
          (list (make-bsp height (add1 split-dy) start-pos)
                (make-bsp height (- width split-dy) (right start-pos split-dy)))]
         [can-split-vertically?
