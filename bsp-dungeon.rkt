@@ -270,9 +270,12 @@
   ;; make sure that we have "enough" rooms with high-enough probability
   ;; (need enough for all encounters, and 6 is currently the max I've seen)
   (define n-tests 1000)
-  (printf "~a / ~a have at least 6 rooms\n"
-          (for/sum ([i 1000]
-                    #:when (>= (bsp-n-areas (prune-bsp (make-bsp))) 6))
-            1)
-          n-tests)
+  (define histogram
+    (for/fold ([hist '()])
+        ([i n-tests])
+      (define n (bsp-n-areas (prune-bsp (make-bsp))))
+      (dict-update hist n add1 0)))
+  (displayln "# room distribution")
+  (for ([(k v) (in-dict (sort histogram < #:key car))])
+    (printf "  ~a = ~a\n" (~a k #:width 2) v))
 )
