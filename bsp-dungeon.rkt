@@ -149,7 +149,8 @@
 
 
 (struct room
-  (height
+  (pos
+   height
    width
    free-cells  ; where monsters or treasure could go
    extension-points)) ; (listof (cons/c pos direction))
@@ -195,8 +196,40 @@
                   [else ; inside of room
                    (array-set! grid pos (new empty-cell%))
                    (values (cons pos free-cells) extension-points)])))
-        (list (room height width free-cells extension-points))])))
+        (list (room start-pos height width free-cells extension-points))])))
   (values grid rooms))
+
+
+(define (add-corridors grid rooms)
+  (define connected-pairs '()) ; (listof (list/c room? room?))
+
+  ;; first, try opening doors between abutting rooms
+  (for ([p (in-list (cartesian-product rooms rooms))])
+    (match-define (list r1 r2) p)
+    (unless (or (equal? r1 r2)
+                ;; have we seen that pair before (in the other order)
+                (member (cons r2 r1) connected-pairs))
+      (define common ; get the positions first (extension points have dir too)
+        (set-intersect (map car (room-extension-points r1))
+                       (map car (room-extension-points r2))))
+      (define possible-doors
+        (filter values
+                (for/list ([pos (in-list common)])
+                  (cond [(and (counts-as-free? grid (up   pos))
+                              (counts-as-free? grid (down pos)))
+                         (cons pos horizontal-door%)]
+                        [(and (counts-as-free? grid (left  pos))
+                              (counts-as-free? grid (right pos)))
+                         (cons pos vertical-door%)]
+                        [else #f]))))
+      (when (not (empty? possible-doors))
+        (match-define (cons pos door-kind) (random-from possible-doors))
+        (set! connected-pairs (cons (cons r1 r2) connected-pairs))
+        (array-set! grid pos (new door-kind)))))
+
+  ;; TODO dig corridors
+
+  grid)
 
 
 (module+ main
@@ -205,7 +238,7 @@
   (displayln (show-bsp ex))
   (displayln (show-bsp (prune-bsp ex)))
   (define-values (grid rooms) (generate-rooms (prune-bsp ex)))
-  (displayln (show-grid (smooth-walls grid)))
+  (displayln (show-grid (smooth-walls (add-corridors grid rooms))))
 
   ;; make sure that we have "enough" rooms with high-enough probability
   ;; (need enough for all encounters, and 6 is currently the max I've seen)
