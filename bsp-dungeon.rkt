@@ -167,30 +167,15 @@
       (cond [(not (empty? children)) ; recur
              (append-map loop children)]
             [else ; leaf, add a room
-             (define room-height
-               (if (= height min-room-dimension)
-                   height
-                   (random-between min-room-dimension
-                                   (min max-room-dimension height))))
-             (define room-width
-               (if (= width min-room-dimension)
-                   width
-                   (random-between min-room-dimension
-                                   (min max-room-dimension width))))
-             ;; place at a random starting pos
-             (define room-dx (random (add1 (- height room-height))))
-             (define room-dy (random (add1 (- width  room-width))))
-             (define room-pos (right (down start-pos room-dx) room-dy))
              (define-values (free-cells extension-points)
                (for*/fold ([free-cells       '()]
                            [extension-points '()])
-                   ([x (in-range room-height)]
-                    [y (in-range room-width)])
-                 (define pos (right (down room-pos x) y))
+                   ([x (in-range height)]
+                    [y (in-range width)])
+                 (define pos (right (down start-pos x) y))
                  (define (add-wall!) (array-set! grid pos (new wall%)))
                  (cond [(or (and (= x 0) (= y 0)) ; corner wall
-                            (and (= x (sub1 room-height))
-                                 (= y (sub1 room-width))))
+                            (and (= x (sub1 height)) (= y (sub1 width))))
                         (add-wall!)
                         ;; not free, and can't expand from corners
                         (values free-cells extension-points)]
@@ -198,7 +183,7 @@
                         (add-wall!)
                         (values free-cells
                                 (dict-set extension-points pos up))]
-                       [(= x (sub1 room-height)) ; bottom wall
+                       [(= x (sub1 height)) ; bottom wall
                         (add-wall!)
                         (values free-cells
                                 (dict-set extension-points pos down))]
@@ -206,14 +191,14 @@
                         (add-wall!)
                         (values free-cells
                                 (dict-set extension-points pos left))]
-                       [(= y (sub1 room-width)) ; right wall
+                       [(= y (sub1 width)) ; right wall
                         (add-wall!)
                         (values free-cells
                                 (dict-set extension-points pos right))]
                        [else ; inside of room
                         (array-set! grid pos (new empty-cell%))
                         (values (cons pos free-cells) extension-points)])))
-             (list (room room-height room-width free-cells extension-points))])))
+             (list (room height width free-cells extension-points))])))
   (values grid rooms))
 
 
