@@ -203,11 +203,14 @@
 
 ;; union-find data structure (dumb linear version)
 (struct component (elt parent) #:mutable)
-(define (singleton-component x) (component x #f))
+(define (singleton-component x)
+  (define res (component x #f))
+  (set-component-parent! res res)
+  res)
 (define (component-root c)
-  (if (component-parent c)
-      (component-root (component-parent c))
-      c))
+  (if (equal? (component-parent c) c)
+      c
+      (component-root (component-parent c))))
 (define (component-union! x y)
   (set-component-parent! (component-root x) (component-root y)))
 (define (same-component? x y)
