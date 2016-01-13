@@ -147,41 +147,74 @@
       (for/sum ([c (in-list children)]) (bsp-n-areas c))))
 
 
-(define (generate-dungeon [a-bsp (prune-bsp (make-bsp))])
+
+(struct room
+  (height
+   width
+   free-cells  ; where monsters or treasure could go
+   extension-points)) ; (listof (cons/c pos direction))
+
+
+(define (generate-rooms [a-bsp (prune-bsp (make-bsp))])
   (define grid
     (array->mutable-array
      (build-array (vector dungeon-height dungeon-width)
                   (lambda _ (new void-cell%)))))
   ;; put a room in each leaf area
-  (let loop ([a-bsp a-bsp])
-    (match-define (bsp height width start-pos children) a-bsp)
-    (cond [(not (empty? children)) ; recur
-           (for-each loop children)]
-          [else ; leaf, add a room
-           (define room-height
-             (if (= height min-room-dimension)
-                 height
-                 (random-between min-room-dimension
-                                 (min max-room-dimension height))))
-           (define room-width
-             (if (= width min-room-dimension)
-                 width
-                 (random-between min-room-dimension
-                                 (min max-room-dimension width))))
-           ;; place at a random starting pos
-           (define room-dx (random (add1 (- height room-height))))
-           (define room-dy (random (add1 (- width  room-width))))
-           (define room-pos (right (down start-pos room-dx) room-dy))
-           ;; TODO construct room data structures
-           ;;   for establishing connections, and for encounter placement
-           (for* ([x (in-range room-height)]
-                  [y (in-range room-width)])
-             (array-set! grid (right (down room-pos x) y)
-                         (if (or (= x 0) (= x (sub1 room-height))
-                                 (= y 0) (= y (sub1 room-width)))
-                             (new wall%)
-                             (new empty-cell%))))]))
-  grid)
+  (define rooms
+    (let loop ([a-bsp a-bsp])
+      (match-define (bsp height width start-pos children) a-bsp)
+      (cond [(not (empty? children)) ; recur
+             (append-map loop children)]
+            [else ; leaf, add a room
+             (define room-height
+               (if (= height min-room-dimension)
+                   height
+                   (random-between min-room-dimension
+                                   (min max-room-dimension height))))
+             (define room-width
+               (if (= width min-room-dimension)
+                   width
+                   (random-between min-room-dimension
+                                   (min max-room-dimension width))))
+             ;; place at a random starting pos
+             (define room-dx (random (add1 (- height room-height))))
+             (define room-dy (random (add1 (- width  room-width))))
+             (define room-pos (right (down start-pos room-dx) room-dy))
+             (define-values (free-cells extension-points)
+               (for*/fold ([free-cells       '()]
+                           [extension-points '()])
+                   ([x (in-range room-height)]
+                    [y (in-range room-width)])
+                 (define pos (right (down room-pos x) y))
+                 (define (add-wall!) (array-set! grid pos (new wall%)))
+                 (cond [(or (and (= x 0) (= y 0)) ; corner wall
+                            (and (= x (sub1 room-height))
+                                 (= y (sub1 room-width))))
+                        (add-wall!)
+                        ;; not free, and can't expand from corners
+                        (values free-cells extension-points)]
+                       [(= x 0) ; top wall
+                        (add-wall!)
+                        (values free-cells
+                                (dict-set extension-points pos up))]
+                       [(= x (sub1 room-height)) ; bottom wall
+                        (add-wall!)
+                        (values free-cells
+                                (dict-set extension-points pos down))]
+                       [(= y 0) ; left wall
+                        (add-wall!)
+                        (values free-cells
+                                (dict-set extension-points pos left))]
+                       [(= y (sub1 room-width)) ; right wall
+                        (add-wall!)
+                        (values free-cells
+                                (dict-set extension-points pos right))]
+                       [else ; inside of room
+                        (array-set! grid pos (new empty-cell%))
+                        (values (cons pos free-cells) extension-points)])))
+             (list (room height width free-cells extension-points))])))
+  (values grid rooms))
 
 
 (module+ main
@@ -189,7 +222,8 @@
   (define ex (make-bsp))
   (displayln (show-bsp ex))
   (displayln (show-bsp (prune-bsp ex)))
-  (displayln (show-grid (smooth-walls (generate-dungeon (prune-bsp ex)))))
+  (define-values (grid rooms) (generate-rooms (prune-bsp ex)))
+  (displayln (show-grid (smooth-walls grid)))
 
   ;; make sure that we have "enough" rooms with high-enough probability
   ;; (need enough for all encounters, and 6 is currently the max I've seen)
