@@ -200,8 +200,31 @@
   (values grid rooms))
 
 
+;; union-find data structure (dumb linear version)
+(struct component (elt parent) #:mutable)
+(define (singleton-component x) (component x #f))
+(define (component-root c)
+  (if (component-parent c)
+      (component-root (component-parent c))
+      c))
+(define (component-union! x y)
+  (set-component-parent! (component-root x) (component-root y)))
+(define (same-component? x y)
+  (equal? (component-root x) (component-root y)))
+
 (define (add-corridors grid rooms)
   (define connected-pairs '()) ; (listof (list/c room? room?))
+  (define rooms->connected-components
+    (for/list ([r (in-list rooms)]
+               [i (in-naturals)])
+      (cons r (singleton-component i))))
+  (define (connect-rooms! r1 r2)
+    (set! connected-pairs (cons (cons r1 r2) connected-pairs))
+    (component-union! (dict-ref rooms->connected-components r1)
+                      (dict-ref rooms->connected-components r2)))
+  (define (all-connected?)
+    (= 1 (length (remove-duplicates
+                  (map component-root (map cdr rooms->connected-components))))))
 
   ;; first, try opening doors between abutting rooms
   (for ([p (in-list (cartesian-product rooms rooms))])
@@ -224,7 +247,7 @@
                         [else #f]))))
       (when (not (empty? possible-doors))
         (match-define (cons pos door-kind) (random-from possible-doors))
-        (set! connected-pairs (cons (cons r1 r2) connected-pairs))
+        (connect-rooms! r1 r2)
         (array-set! grid pos (new door-kind)))))
 
   ;; TODO dig corridors
