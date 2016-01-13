@@ -164,41 +164,38 @@
   (define rooms
     (let loop ([a-bsp a-bsp])
       (match-define (bsp height width start-pos children) a-bsp)
-      (cond [(not (empty? children)) ; recur
-             (append-map loop children)]
-            [else ; leaf, add a room
-             (define-values (free-cells extension-points)
-               (for*/fold ([free-cells       '()]
-                           [extension-points '()])
-                   ([x (in-range height)]
-                    [y (in-range width)])
-                 (define pos (right (down start-pos x) y))
-                 (define (add-wall!) (array-set! grid pos (new wall%)))
-                 (cond [(or (and (= x 0) (= y 0)) ; corner wall
-                            (and (= x (sub1 height)) (= y (sub1 width))))
-                        (add-wall!)
-                        ;; not free, and can't expand from corners
-                        (values free-cells extension-points)]
-                       [(= x 0) ; top wall
-                        (add-wall!)
-                        (values free-cells
-                                (dict-set extension-points pos up))]
-                       [(= x (sub1 height)) ; bottom wall
-                        (add-wall!)
-                        (values free-cells
-                                (dict-set extension-points pos down))]
-                       [(= y 0) ; left wall
-                        (add-wall!)
-                        (values free-cells
-                                (dict-set extension-points pos left))]
-                       [(= y (sub1 width)) ; right wall
-                        (add-wall!)
-                        (values free-cells
-                                (dict-set extension-points pos right))]
-                       [else ; inside of room
-                        (array-set! grid pos (new empty-cell%))
-                        (values (cons pos free-cells) extension-points)])))
-             (list (room height width free-cells extension-points))])))
+      (cond
+       [(not (empty? children)) ; recur
+        (append-map loop children)]
+       [else ; leaf, add a room
+        (define-values (free-cells extension-points)
+          (for*/fold ([free-cells       '()]
+                      [extension-points '()])
+              ([x (in-range height)]
+               [y (in-range width)])
+            (define pos (right (down start-pos x) y))
+            (define (add-wall!) (array-set! grid pos (new wall%)))
+            (cond [(or (and (= x 0) (= y 0)) ; corner wall
+                       (and (= x (sub1 height)) (= y (sub1 width))))
+                   (add-wall!)
+                   ;; not free, and can't expand from corners
+                   (values free-cells extension-points)]
+                  [(= x 0) ; top wall
+                   (add-wall!)
+                   (values free-cells (dict-set extension-points pos up))]
+                  [(= x (sub1 height)) ; bottom wall
+                   (add-wall!)
+                   (values free-cells (dict-set extension-points pos down))]
+                  [(= y 0) ; left wall
+                   (add-wall!)
+                   (values free-cells (dict-set extension-points pos left))]
+                  [(= y (sub1 width)) ; right wall
+                   (add-wall!)
+                   (values free-cells (dict-set extension-points pos right))]
+                  [else ; inside of room
+                   (array-set! grid pos (new empty-cell%))
+                   (values (cons pos free-cells) extension-points)])))
+        (list (room height width free-cells extension-points))])))
   (values grid rooms))
 
 
