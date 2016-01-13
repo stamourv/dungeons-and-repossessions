@@ -41,7 +41,8 @@
              (define pos (down (right (bsp-start-pos bsp) dy) dx))
              (if (array-ref grid pos) ; already something there, so overlap zone
                  (array-set! grid pos " ")
-                 (array-set! grid pos (string-ref ids id))))
+                 (array-set! grid pos
+                             (string-ref ids (modulo id (string-length ids))))))
            (set! id (add1 id))]))
   ;; actual display
   (with-output-to-string
