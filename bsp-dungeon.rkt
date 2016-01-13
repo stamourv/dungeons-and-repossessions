@@ -213,7 +213,7 @@
                        [else ; inside of room
                         (array-set! grid pos (new empty-cell%))
                         (values (cons pos free-cells) extension-points)])))
-             (list (room height width free-cells extension-points))])))
+             (list (room room-height room-width free-cells extension-points))])))
   (values grid rooms))
 
 
