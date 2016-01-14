@@ -133,6 +133,10 @@
   (define w (if h? len 3))
   (try-add-rectangle grid pos h w dir))
 
+
+(define (empty-cell? grid pos)
+  (is-a? (grid-ref grid pos) empty-cell%))
+
 (define animate-generation? #f) ; to see intermediate steps
 
 (define dungeon-height 18) ; to be easy to display in 80x24, with other stuff
@@ -241,11 +245,11 @@
              (define possible-doors
                (filter values
                        (for/list ([pos (in-list common)])
-                         (cond [(and (counts-as-free? grid (up   pos))
-                                     (counts-as-free? grid (down pos)))
+                         (cond [(and (empty-cell? grid (up   pos))
+                                     (empty-cell? grid (down pos)))
                                 (cons pos horizontal-door%)]
-                               [(and (counts-as-free? grid (left  pos))
-                                     (counts-as-free? grid (right pos)))
+                               [(and (empty-cell? grid (left  pos))
+                                     (empty-cell? grid (right pos)))
                                 (cons pos vertical-door%)]
                                [else #f]))))
              (when (not (empty? possible-doors))
@@ -254,23 +258,6 @@
            grid])))
 
 
-(define free-cache (make-hash))
-(define (counts-as-free? grid pos) ; i.e., player could be there
-  (cond [(hash-ref free-cache pos #f) => values]
-        [else
-         (define c   (grid-ref grid pos))
-         (define res (or (is-a? c empty-cell%) (is-a? c door%)))
-         (hash-set! free-cache pos res)
-         res]))
-
-(define wall-cache (make-hash))
-(define (wall-or-door? grid pos)
-  (cond [(hash-ref wall-cache pos #f) => values]
-        [else
-         (define c   (grid-ref grid pos))
-         (define res (or (is-a? c wall%) (is-a? c door%)))
-         (hash-set! wall-cache pos res)
-         res]))
 
 ;; wall smoothing, for aesthetic reasons
 (define (smooth-walls grid)
@@ -280,7 +267,23 @@
   (set! wall-cache (make-hash)) ; reset caches
   (set! free-cache (make-hash))
   grid)
+(define free-cache (make-hash))
+(define wall-cache (make-hash))
 (define (smooth-single-wall grid pos)
+  (define (counts-as-free? grid pos) ; i.e., player could be there
+    (cond [(hash-ref free-cache pos #f) => values]
+          [else
+           (define c   (grid-ref grid pos))
+           (define res (or (is-a? c empty-cell%) (is-a? c door%)))
+           (hash-set! free-cache pos res)
+           res]))
+  (define (wall-or-door? grid pos)
+    (cond [(hash-ref wall-cache pos #f) => values]
+          [else
+           (define c   (grid-ref grid pos))
+           (define res (or (is-a? c wall%) (is-a? c door%)))
+           (hash-set! wall-cache pos res)
+           res]))
   (when (is-a? (grid-ref grid pos) wall%)
     (define u   (wall-or-door? grid (up    pos)))
     (define d   (wall-or-door? grid (down  pos)))

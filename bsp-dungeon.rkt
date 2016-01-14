@@ -215,6 +215,11 @@
 (define (same-component? x y)
   (equal? (component-root x) (component-root y)))
 
+(define (empty-cell? grid pos)
+  (is-a? (grid-ref grid pos) empty-cell%))
+(define (wall? grid pos)
+  (is-a? (grid-ref grid pos) wall%))
+
 (define (add-corridors grid rooms)
   (define connected-pairs '()) ; (listof (list/c room? room?))
   (define rooms->connected-components
@@ -241,11 +246,11 @@
       (define possible-doors
         (filter values
                 (for/list ([pos (in-list common)])
-                  (cond [(and (counts-as-free? grid (up   pos))
-                              (counts-as-free? grid (down pos)))
+                  (cond [(and (empty-cell? grid (up   pos))
+                              (empty-cell? grid (down pos)))
                          (cons pos horizontal-door%)]
-                        [(and (counts-as-free? grid (left  pos))
-                              (counts-as-free? grid (right pos)))
+                        [(and (empty-cell? grid (left  pos))
+                              (empty-cell? grid (right pos)))
                          (cons pos vertical-door%)]
                         [else #f]))))
       (when (not (empty? possible-doors))
