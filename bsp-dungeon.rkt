@@ -176,7 +176,9 @@
                [y (in-range width)])
             (define pos (right (down start-pos x) y))
             (define (add-wall!) (array-set! grid pos (new wall%)))
-            (cond [(or (and (= x 0) (= y 0)) ; corner wall
+            (cond [(or (and (= x 0)             (= y 0)) ; corner wall cases
+                       (and (= x 0)             (= y (sub1 width)))
+                       (and (= x (sub1 height)) (= y 0))
                        (and (= x (sub1 height)) (= y (sub1 width))))
                    (add-wall!)
                    ;; not free, and can't expand from corners
