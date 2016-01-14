@@ -2,7 +2,6 @@
 
 (provide (all-defined-out))
 
-;; TODO have in some misc utils file
 (define (article capitalize? specific?
                  #:an? [an? #f])
   (if specific?
