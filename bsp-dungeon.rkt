@@ -240,10 +240,8 @@
       (cons r (singleton-component i))))
   (define (connect-rooms! r1 r2)
     (set! connected-pairs (cons (cons r1 r2) connected-pairs))
-    (when (and (room? r1) (room? r2))
-      ;; symbols represent corridors. don't keep track of those
-      (component-union! (dict-ref rooms->connected-components r1)
-                        (dict-ref rooms->connected-components r2))))
+    (component-union! (dict-ref rooms->connected-components r1)
+                      (dict-ref rooms->connected-components r2)))
   (define (all-connected?)
     (= 1 (length (remove-duplicates
                   (map component-root (map cdr rooms->connected-components))))))
@@ -281,7 +279,7 @@
       (list pos dir r)))
   (for ([e (in-list (shuffle all-extension-points))])
     (match-define (list start-pos dir start-room) e)
-    (define end-pos
+    (define end-pos+corridor-id
       (let loop ([pos (dir start-pos)])
         (cond [(not (within-grid? grid pos)) ; out of bounds, give up
                #f]
@@ -295,15 +293,28 @@
                       ;; from the right direction, dig that corridor
                       (lambda (dir+room)
                         (define end-room (second dir+room))
-                        (and (not (directly-connected? start-room end-room))
-                             (opposite-directions? dir (first dir+room))
-                             (connect-rooms! start-room end-room)
-                             pos))] ; return end of corridor
+                        (cond
+                         [(and (not (directly-connected? start-room end-room))
+                               (opposite-directions? dir (first dir+room)))
+                          ;; add the corridor to the room graph
+                          (define corridor-id (gensym))
+                          (set! rooms->connected-components
+                                (dict-set rooms->connected-components
+                                          corridor-id
+                                          (singleton-component corridor-id)))
+                          (connect-rooms! start-room corridor-id)
+                          (connect-rooms! end-room   corridor-id)
+                          ;; count the two rooms as directly connected,
+                          ;; to avoid spawing more corridors between them
+                          (connect-rooms! start-room end-room)
+                          (cons pos corridor-id)]
+                         [else #f]))]
                      [else ; not an extension point (maybe a corner), give up
                       #f])]
               [else
                (loop (dir pos))]))) ; keep digging
-    (when end-pos ; actually dig the corridor
+    (when end-pos+corridor-id ; actually dig the corridor
+      (match-define (cons end-pos corridor-id) end-pos+corridor-id)
       (array-set! grid start-pos (dir->door dir))
       (array-set! grid end-pos   (dir->door dir))
       (match-define (vector start-x start-y) start-pos)
@@ -315,7 +326,6 @@
       ;; connected to that corridor, even though it's not a real room)
       ;; Note: they won't be actually used to start new corridors, since
       ;;   we've already shuffled the original extension points
-      (define corridor-id (gensym))
       (define (add-extension-point! p dir)
         (set! all-extension-points
               (cons (list p dir corridor-id) all-extension-points)))
