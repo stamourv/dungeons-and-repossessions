@@ -355,7 +355,19 @@
   ;; with any other (or if the ones it shares would hit a corner)
   ;; very unlikely
   (and (all-connected?)
-       grid))
+       (cons grid rooms)))
+
+
+(define (generate-dungeon)
+  (define-values (g1 rs1)
+    (generate-rooms (prune-bsp (make-bsp))))
+  (match (add-corridors g1 rs1)
+    [`(,grid . ,rooms)
+     (values (smooth-walls grid)
+             rooms)]
+    [#f ; failed, try again
+     (log-warning "generate-dungeon: had to restart")
+     (generate-dungeon)]))
 
 
 (module+ main
@@ -364,7 +376,7 @@
   (displayln (show-bsp ex))
   (displayln (show-bsp (prune-bsp ex)))
   (define-values (grid rooms) (generate-rooms (prune-bsp ex)))
-  (displayln (show-grid (smooth-walls (add-corridors grid rooms))))
+  (displayln (show-grid (smooth-walls (car (add-corridors grid rooms)))))
 
   ;; make sure that we have "enough" rooms with high-enough probability
   ;; (need enough for all encounters, and 6 is currently the max I've seen)
