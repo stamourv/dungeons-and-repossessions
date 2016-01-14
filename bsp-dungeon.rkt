@@ -289,9 +289,7 @@
                ;; we're digging into an adjacent room, not useful
                #f]
               [(wall? grid pos) ; we hit something
-               (cond [(for/or ([e (in-list all-extension-points)])
-                        (and (equal? (first e) pos)
-                             (cdr e))) =>
+               (cond [(dict-ref all-extension-points pos #f) =>
                       ;; hit another room. if we're not already directly
                       ;; connected to it, and if we're entering that wall
                       ;; from the right direction, dig that corridor
