@@ -55,15 +55,15 @@
   (require rackunit)
   (define (render-grid g) (string-join g "\n" #:after-last "\n"))
 
-  (check-equal? (show-bsp (bsp 5 5 #(0 0) #f))
+  (check-equal? (show-bsp (bsp 5 5 #(0 0) '()))
                 (render-grid '("00000"
                                "00000"
                                "00000"
                                "00000"
                                "00000")))
   (check-equal? (show-bsp (bsp 5 5 #(0 0)
-                               (list (bsp 5 3 #(0 0) #f)
-                                     (bsp 5 3 #(0 2) #f))))
+                               (list (bsp 5 3 #(0 0) '())
+                                     (bsp 5 3 #(0 2) '()))))
                 (render-grid '("00 11"
                                "00 11"
                                "00 11"
@@ -71,9 +71,9 @@
                                "00 11")))
   (check-equal? (show-bsp (bsp 5 5 #(0 0)
                                (list (bsp 5 3 #(0 0)
-                                          (list (bsp 2 3 #(0 0) #f)
-                                                (bsp 4 3 #(1 0) #f)))
-                                     (bsp 5 3 #(0 2) #f))))
+                                          (list (bsp 2 3 #(0 0) '())
+                                                (bsp 4 3 #(1 0) '())))
+                                     (bsp 5 3 #(0 2) '()))))
                 (render-grid '("00 22"
                                "   22"
                                "11 22"
@@ -81,11 +81,11 @@
                                "11 22")))
   (check-equal? (show-bsp (bsp 5 5 #(0 0)
                                (list (bsp 5 3 #(0 0)
-                                          (list (bsp 2 3 #(0 0) #f)
-                                                (bsp 4 3 #(1 0) #f)))
+                                          (list (bsp 2 3 #(0 0) '())
+                                                (bsp 4 3 #(1 0) '())))
                                      (bsp 5 3 #(0 2)
-                                          (list (bsp 3 3 #(0 2) #f)
-                                                (bsp 3 3 #(2 2) #f))))))
+                                          (list (bsp 3 3 #(0 2) '())
+                                                (bsp 3 3 #(2 2) '()))))))
                 (render-grid '("00 22"
                                "   22"
                                "11   "
