@@ -52,6 +52,12 @@
   (vector (+ (vector-ref pos 0) n)
           (vector-ref pos 1)))
 
+(define (opposite-directions? d1 d2)
+  (or (and (eq? d1 up)    (eq? d2 down))
+      (and (eq? d1 down)  (eq? d2 up))
+      (and (eq? d1 left)  (eq? d2 right))
+      (and (eq? d1 right) (eq? d2 left))))
+
 
 (module+ test
   (require rackunit)

@@ -219,19 +219,31 @@
 
 (define (empty-cell? grid pos)
   (is-a? (grid-ref grid pos) empty-cell%))
+(define (door? grid pos)
+  (is-a? (grid-ref grid pos) door%))
 (define (wall? grid pos)
   (is-a? (grid-ref grid pos) wall%))
 
+(define (dir->door dir)
+  (if (member dir (list up down))
+      (new horizontal-door%)
+      (new vertical-door%)))
+
 (define (add-corridors grid rooms)
   (define connected-pairs '()) ; (listof (list/c room? room?))
+  (define (directly-connected? r1 r2)
+    (or (member (cons r1 r2) connected-pairs)
+        (member (cons r2 r1) connected-pairs)))
   (define rooms->connected-components
     (for/list ([r (in-list rooms)]
                [i (in-naturals)])
       (cons r (singleton-component i))))
   (define (connect-rooms! r1 r2)
     (set! connected-pairs (cons (cons r1 r2) connected-pairs))
-    (component-union! (dict-ref rooms->connected-components r1)
-                      (dict-ref rooms->connected-components r2)))
+    (when (and (room? r1) (room? r2))
+      ;; symbols represent corridors. don't keep track of those
+      (component-union! (dict-ref rooms->connected-components r1)
+                        (dict-ref rooms->connected-components r2))))
   (define (all-connected?)
     (= 1 (length (remove-duplicates
                   (map component-root (map cdr rooms->connected-components))))))
@@ -260,7 +272,70 @@
         (connect-rooms! r1 r2)
         (array-set! grid pos (new door-kind)))))
 
-  ;; TODO dig corridors
+  ;; start digging corridors at random, in the hope of connecting everyone
+  ;; (and introducing some cycles)
+  (define all-extension-points ; (listof (list/c pos dir room))
+    (for*/list ([r (in-list rooms)]
+                [e (in-list (room-extension-points r))])
+      (match-define (cons pos dir) e)
+      (list pos dir r)))
+  (for ([e (in-list (shuffle all-extension-points))])
+    (match-define (list start-pos dir start-room) e)
+    (define end-pos
+      (let loop ([pos (dir start-pos)])
+        (cond [(not (within-grid? grid pos)) ; out of bounds, give up
+               #f]
+              [(or (empty-cell? grid pos) (door? grid pos))
+               ;; we're digging into an adjacent room, not useful
+               #f]
+              [(wall? grid pos) ; we hit something
+               (cond [(for/or ([e (in-list all-extension-points)])
+                        (and (equal? (first e) pos)
+                             (cdr e))) =>
+                      ;; hit another room. if we're not already directly
+                      ;; connected to it, and if we're entering that wall
+                      ;; from the right direction, dig that corridor
+                      (lambda (dir+room)
+                        (define end-room (second dir+room))
+                        (and (not (directly-connected? start-room end-room))
+                             (opposite-directions? dir (first dir+room))
+                             (connect-rooms! start-room end-room)
+                             pos))] ; return end of corridor
+                     [else ; not an extension point (maybe a corner), give up
+                      #f])]
+              [else
+               (loop (dir pos))]))) ; keep digging
+    (when end-pos ; actually dig the corridor
+      (array-set! grid start-pos (dir->door dir))
+      (array-set! grid end-pos   (dir->door dir))
+      (match-define (vector start-x start-y) start-pos)
+      (match-define (vector end-x   end-y)   end-pos)
+      ;; to make corridors valid end points for other corridors, need to add
+      ;; them as possible extension points
+      ;; also useful to avoid having one room dig corridors into the same
+      ;; corridor multiple times (rooms recognize that they are already
+      ;; connected to that corridor, even though it's not a real room)
+      ;; Note: they won't be actually used to start new corridors, since
+      ;;   we've already shuffled the original extension points
+      (define corridor-id (gensym))
+      (define (add-extension-point! p dir)
+        (set! all-extension-points
+              (cons (list p dir corridor-id) all-extension-points)))
+      (if (member dir (list up down))
+          (for ([x (in-range (add1 (min start-x end-x)) (max start-x end-x))])
+            (define pos (vector x start-y))
+            (array-set! grid pos         (new empty-cell%))
+            (array-set! grid (left pos)  (new wall%))
+            (add-extension-point! (left pos) left)
+            (array-set! grid (right pos) (new wall%))
+            (add-extension-point! (right pos) right))
+          (for ([y (in-range (add1 (min start-y end-y)) (max start-y end-y))])
+            (define pos (vector start-x y))
+            (array-set! grid pos        (new empty-cell%))
+            (array-set! grid (up pos)   (new wall%))
+            (add-extension-point! (up pos) up)
+            (array-set! grid (down pos) (new wall%))
+            (add-extension-point! (down pos) down)))))
 
   grid)
 
