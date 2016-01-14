@@ -1,7 +1,6 @@
 #lang racket
 
-(require math/array
-         "cell.rkt" "grid.rkt" "utils.rkt"
+(require "cell.rkt" "grid.rkt" "utils.rkt"
          "dungeon.rkt") ;; TODO eventually merge in with that
 
 (define dungeon-height 18) ; to be easy to display in 80x24, with other stuff

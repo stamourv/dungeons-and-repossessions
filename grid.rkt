@@ -1,9 +1,9 @@
 #lang racket
 
-(require math/array
-         "cell.rkt")
+(require "array.rkt" "cell.rkt")
 
-(provide (all-defined-out))
+(provide (all-defined-out)
+         (all-from-out "array.rkt"))
 
 ;; a Grid is a math/array Mutable-Array of cell%
 ;; (mutability is required for dungeon generation)

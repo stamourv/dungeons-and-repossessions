@@ -1,6 +1,6 @@
 #lang racket
 
-(require math/array racket/set
+(require racket/set
          "cell.rkt" "grid.rkt" "utils.rkt")
 
 (provide generate-dungeon

@@ -1,7 +1,6 @@
 #lang racket
 
-(require math/array
-         "grid.rkt"
+(require "grid.rkt"
          "message-queue.rkt"
          "state.rkt"
          "utils.rkt")
