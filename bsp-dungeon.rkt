@@ -349,7 +349,13 @@
             (array-set! grid (down pos) (new wall%))
             (add-extension-point! (down pos) down)))))
 
-  grid)
+  ;; if everyone is not connected, give up on this map
+  ;; will have to restart from scratch (BSP generation)
+  ;; this could happen if, e.g., one room does not share an x or y coordinates
+  ;; with any other (or if the ones it shares would hit a corner)
+  ;; very unlikely
+  (and (all-connected?)
+       grid))
 
 
 (module+ main
