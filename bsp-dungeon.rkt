@@ -277,7 +277,11 @@
                 [e (in-list (room-extension-points r))])
       (match-define (cons pos dir) e)
       (list pos dir r)))
-  (for ([e (in-list (shuffle all-extension-points))])
+  (for ([e (in-list (shuffle all-extension-points))]
+        ;; stop when everyone is connected
+        ;; still likely to have cycles (which we want) because we proceed
+        ;; in random order, but less likely to have way too many corridors
+        #:break (all-connected?))
     (match-define (list start-pos dir start-room) e)
     (define end-pos+corridor-id
       (let loop ([pos (dir start-pos)])
