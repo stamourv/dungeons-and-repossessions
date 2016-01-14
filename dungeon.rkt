@@ -254,12 +254,22 @@
            grid])))
 
 
+(define free-cache (make-hash))
 (define (counts-as-free? grid pos) ; i.e., player could be there
   (cond [(hash-ref free-cache pos #f) => values]
         [else
          (define c   (grid-ref grid pos))
          (define res (or (is-a? c empty-cell%) (is-a? c door%)))
          (hash-set! free-cache pos res)
+         res]))
+
+(define wall-cache (make-hash))
+(define (wall-or-door? grid pos)
+  (cond [(hash-ref wall-cache pos #f) => values]
+        [else
+         (define c   (grid-ref grid pos))
+         (define res (or (is-a? c wall%) (is-a? c door%)))
+         (hash-set! wall-cache pos res)
          res]))
 
 ;; wall smoothing, for aesthetic reasons
@@ -270,21 +280,12 @@
   (set! wall-cache (make-hash)) ; reset caches
   (set! free-cache (make-hash))
   grid)
-(define wall-cache (make-hash))
-(define free-cache (make-hash))
 (define (smooth-single-wall grid pos)
-  (define (wall-or-door? pos)
-    (cond [(hash-ref wall-cache pos #f) => values]
-          [else
-           (define c   (grid-ref grid pos))
-           (define res (or (is-a? c wall%) (is-a? c door%)))
-           (hash-set! wall-cache pos res)
-           res]))
   (when (is-a? (grid-ref grid pos) wall%)
-    (define u   (wall-or-door? (up    pos)))
-    (define d   (wall-or-door? (down  pos)))
-    (define l   (wall-or-door? (left  pos)))
-    (define r   (wall-or-door? (right pos)))
+    (define u   (wall-or-door? grid (up    pos)))
+    (define d   (wall-or-door? grid (down  pos)))
+    (define l   (wall-or-door? grid (left  pos)))
+    (define r   (wall-or-door? grid (right pos)))
     (define fu  (delay (counts-as-free? grid (up    pos))))
     (define fd  (delay (counts-as-free? grid (down  pos))))
     (define fl  (delay (counts-as-free? grid (left  pos))))
