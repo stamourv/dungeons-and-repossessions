@@ -270,14 +270,14 @@
 (define free-cache (make-hash))
 (define wall-cache (make-hash))
 (define (smooth-single-wall grid pos)
-  (define (counts-as-free? grid pos) ; i.e., player could be there
+  (define (counts-as-free? pos) ; i.e., player could be there
     (cond [(hash-ref free-cache pos #f) => values]
           [else
            (define c   (grid-ref grid pos))
            (define res (or (is-a? c empty-cell%) (is-a? c door%)))
            (hash-set! free-cache pos res)
            res]))
-  (define (wall-or-door? grid pos)
+  (define (wall-or-door? pos)
     (cond [(hash-ref wall-cache pos #f) => values]
           [else
            (define c   (grid-ref grid pos))
@@ -285,18 +285,18 @@
            (hash-set! wall-cache pos res)
            res]))
   (when (is-a? (grid-ref grid pos) wall%)
-    (define u   (wall-or-door? grid (up    pos)))
-    (define d   (wall-or-door? grid (down  pos)))
-    (define l   (wall-or-door? grid (left  pos)))
-    (define r   (wall-or-door? grid (right pos)))
-    (define fu  (delay (counts-as-free? grid (up    pos))))
-    (define fd  (delay (counts-as-free? grid (down  pos))))
-    (define fl  (delay (counts-as-free? grid (left  pos))))
-    (define fr  (delay (counts-as-free? grid (right pos))))
-    (define ful (delay (counts-as-free? grid (up    (left  pos)))))
-    (define fur (delay (counts-as-free? grid (up    (right pos)))))
-    (define fdl (delay (counts-as-free? grid (down  (left  pos)))))
-    (define fdr (delay (counts-as-free? grid (down  (right pos)))))
+    (define u   (wall-or-door? (up    pos)))
+    (define d   (wall-or-door? (down  pos)))
+    (define l   (wall-or-door? (left  pos)))
+    (define r   (wall-or-door? (right pos)))
+    (define fu  (delay (counts-as-free? (up    pos))))
+    (define fd  (delay (counts-as-free? (down  pos))))
+    (define fl  (delay (counts-as-free? (left  pos))))
+    (define fr  (delay (counts-as-free? (right pos))))
+    (define ful (delay (counts-as-free? (up    (left  pos)))))
+    (define fur (delay (counts-as-free? (up    (right pos)))))
+    (define fdl (delay (counts-as-free? (down  (left  pos)))))
+    (define fdr (delay (counts-as-free? (down  (right pos)))))
     (define (2-of-3? a b c) (or (and a b) (and a c) (and b c)))
     (array-set!
      grid pos
