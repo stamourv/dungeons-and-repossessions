@@ -1,261 +1,391 @@
 #lang racket
 
-(require racket/set
-         "cell.rkt" "grid.rkt" "utils.rkt" "wall-smoothing.rkt")
+(require "cell.rkt" "grid.rkt" "wall-smoothing.rkt" "utils.rkt")
 
-(provide generate-dungeon)
+(define dungeon-height 18) ; to be easy to display in 80x24, with other stuff
+(define dungeon-width  60)
 
-;; dungeon generation
+(define (empty-grid)
+  (array->mutable-array
+   (build-array (vector dungeon-height dungeon-width)
+                (lambda _ (new void-cell%)))))
 
-(struct room
+
+(struct bsp
   (height
    width
-   poss->cells ; maps positions to cell constructors
-   ;;            (so that we can construct the room later when we commit to it)
-   free-cells  ; where monsters or treasure could go
-   extension-points)) ; where a corridor could sprout
+   start-pos
+   children)) ; (listof bsp?)
+;; Note: children have one row/column of overlap, to have abutting walls
 
-(define (try-add-rectangle grid pos height width direction)
-  ;; height and width include a wall of one cell wide on each side
-  (match-define (vector x y) pos)
-  (define min-x (match direction
-                  [(== down) x]
-                  ;; expanding north, we have to move the top of the room
-                  ;; up so the bottom reaches the starting point
-                  [(== up) (+ (- x height) 1)]
-                  ;; have the entrance be at a random position on the
-                  ;; entrance-side wall
-                  [else    (sub1 (- x (random (- height 2))))]))
-  (define min-y (match direction
-                  ;; same idea as for x
-                  [(== right) y]
-                  [(== left)  (+ (- y width) 1)]
-                  [else       (sub1 (- y (random (- width 2))))]))
-  (define max-x (+ min-x height))
-  (define max-y (+ min-y width))
-  (define-values (success? poss->cells free-cells extension-points)
-    (for*/fold ([success?         #t]
-                [poss->cells      '()]
-                [free-cells       '()]
-                [extension-points '()])
-        ([x (in-range min-x max-x)]
-         [y (in-range min-y max-y)])
-      #:break (not success?)
-      (define p (vector x y))
-      (define c (grid-ref grid p))
-      (cond [(and c ; not out of bounds
-                  (or (is-a? c void-cell%) ; unused yet
-                      (is-a? c wall%)))    ; neighboring room, can abut
-             ;; tentatively add stuff
-             (define x-wall? (or (= x min-x) (= x (sub1 max-x))))
-             (define y-wall? (or (= y min-y) (= y (sub1 max-y))))
-             (if (or x-wall? y-wall?)
-                 ;; add a wall
-                 (values #t ; still succeeding
-                         (dict-set poss->cells p wall%)
-                         free-cells
-                         (if (and x-wall? y-wall?)
-                             ;; don't extend from corners
-                             extension-points
-                             (cons p extension-points)))
-                 (values #t
-                         (dict-set poss->cells p empty-cell%)
-                         (cons p free-cells)
-                         extension-points))]
-            [else ; hit something, give up
-             (values #f #f #f #f)])))
-  (and success?
-       (room height width poss->cells free-cells extension-points)))
-
-;; mutate `grid` to add `room`
-(define (commit-room grid room)
-  (for ([(pos cell) (in-dict (room-poss->cells room))])
-    (array-set! grid pos (new cell))))
+(define (show-bsp bsp)
+  (define h (bsp-height bsp))
+  (define w (bsp-width bsp))
+  (define grid
+    (array->mutable-array
+     (for*/array #:shape (vector h w)
+                 ([x (in-range h)]
+                  [y (in-range w)])
+        #f)))
+  (define id 0)
+  (define ids "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+  (let loop ([bsp bsp])
+    (define children (bsp-children bsp))
+    (cond [(not (empty? children))
+           (for-each loop children)]
+          [else ; leaf, draw
+           (for* ([dx (in-range (bsp-height bsp))]
+                  [dy (in-range (bsp-width  bsp))])
+             (define pos (down (right (bsp-start-pos bsp) dy) dx))
+             (if (array-ref grid pos) ; already something there, so overlap zone
+                 (array-set! grid pos " ")
+                 (array-set! grid pos
+                             (string-ref ids (modulo id (string-length ids))))))
+           (set! id (add1 id))]))
+  ;; actual display
+  (with-output-to-string
+    (lambda ()
+      (for ([row (in-array-axis grid)])
+        (for ([cell (in-array row)])
+          (display (or cell "*")))
+        (newline)))))
 
 (module+ test
   (require rackunit)
   (define (render-grid g) (string-join g "\n" #:after-last "\n"))
-  (define (empty-grid)
-    (array->mutable-array
-     (build-array #(5 5) (lambda _ (new void-cell%)))))
-  (define g1 (empty-grid))
-  (check-equal? (show-grid g1)
-                (render-grid '("....."
-                               "....."
-                               "....."
-                               "....."
-                               ".....")))
-  (check-false (try-add-rectangle g1 #(10 10) 3 3 right)) ; out of bounds
-  (commit-room g1 (try-add-rectangle g1 #(2 1) 3 3 right))
-  (check-equal? (show-grid g1)
-                (render-grid '("....."
-                               ".XXX."
-                               ".X X."
-                               ".XXX."
-                               ".....")))
-  (check-false (try-add-rectangle g1 #(2 2) 2 2 up))
-  (commit-room g1 (try-add-rectangle g1 #(3 3) 2 2 down))
-  (check-equal? (show-grid g1)
-                (render-grid '("....."
-                               ".XXX."
-                               ".X X."
-                               ".XXX."
-                               "..XX.")))
-  (define g2 (empty-grid))
-  (commit-room g2 (try-add-rectangle g2 #(1 1) 2 4 right))
-  (check-equal? (show-grid g2)
-                (render-grid '(".XXXX"
-                               ".XXXX"
-                               "....."
-                               "....."
-                               ".....")))
+
+  (check-equal? (show-bsp (bsp 5 5 #(0 0) '()))
+                (render-grid '("00000"
+                               "00000"
+                               "00000"
+                               "00000"
+                               "00000")))
+  (check-equal? (show-bsp (bsp 5 5 #(0 0)
+                               (list (bsp 5 3 #(0 0) '())
+                                     (bsp 5 3 #(0 2) '()))))
+                (render-grid '("00 11"
+                               "00 11"
+                               "00 11"
+                               "00 11"
+                               "00 11")))
+  (check-equal? (show-bsp (bsp 5 5 #(0 0)
+                               (list (bsp 5 3 #(0 0)
+                                          (list (bsp 2 3 #(0 0) '())
+                                                (bsp 4 3 #(1 0) '())))
+                                     (bsp 5 3 #(0 2) '()))))
+                (render-grid '("00 22"
+                               "   22"
+                               "11 22"
+                               "11 22"
+                               "11 22")))
+  (check-equal? (show-bsp (bsp 5 5 #(0 0)
+                               (list (bsp 5 3 #(0 0)
+                                          (list (bsp 2 3 #(0 0) '())
+                                                (bsp 4 3 #(1 0) '())))
+                                     (bsp 5 3 #(0 2)
+                                          (list (bsp 3 3 #(0 2) '())
+                                                (bsp 3 3 #(2 2) '()))))))
+                (render-grid '("00 22"
+                               "   22"
+                               "11   "
+                               "11 33"
+                               "11 33")))
   )
 
 
-(define (random-direction) (random-from (list left right up down)))
-(define (horizontal? dir)  (or (eq? dir right)  (eq? dir left)))
-(define (vertical? dir)    (or (eq? dir up) (eq? dir down)))
+(define min-room-height 6) ; maps are more height-constrained
+(define min-room-width  9)
 
-(define (new-room grid pos dir)
-  (define w (random-between 7 11)) ; higher than that is hard to fit
-  (define h (random-between 7 11))
-  (try-add-rectangle grid pos w h dir))
-(define (new-corridor grid pos dir)
-  (define h? (horizontal? dir))
-  (define len
-    ;; given map proportions (terminal window), horizontal corridors are
-    ;; easier to fit
-    (if h?
-        (random-between 6 10)
-        (random-between 5 8)))
-  (define h (if h? 3   len))
-  (define w (if h? len 3))
-  (try-add-rectangle grid pos h w dir))
+;; "Partitions" a grid randomly, by repeatedly splitting in two along an axis.
+;; Not exactly a partition becase the two parts generated by a split overlap
+;; by one row/column. That's to allow adjacent rooms to share walls, to save
+;; space, look nicer, and give easy opportunities for connecting rooms.
+(define (make-bsp [height    dungeon-height]
+                  [width     dungeon-width]
+                  [start-pos #(0 0)])
+  ;; This threshold for splitting may result in areas that are too small
+  ;; for rooms. That's ok, we can filter those out later. We'll end up with
+  ;; more areas than we want rooms anyway.
+  ;; We may end up with fewer rooms than we need for encounters, in which
+  ;; case we can just restart. C'est la vie.
+  (define split-slop              3) ; arbitrary
+  (define can-split-horizontally? (>= width  (+ min-room-width  split-slop)))
+  (define can-split-vertically?   (>= height (+ min-room-height split-slop)))
+  ;; prioritize splitting the largest dimension. gives nicer results, IME
+  (define split-horizontally? (and can-split-horizontally?
+                                   (or (not can-split-vertically?)
+                                       (>= width height))))
+  (match-define (vector start-x start-y) start-pos)
+  (bsp height
+       width
+       start-pos
+       (cond
+        [split-horizontally?
+         (define split-dy (random-between 3 width)) ; 3 is arbitrary
+         (list (make-bsp height (add1 split-dy) start-pos)
+               (make-bsp height (- width split-dy) (right start-pos split-dy)))]
+        [can-split-vertically?
+         (define split-dx (random-between 3 height))
+         (list (make-bsp (add1 split-dx) width start-pos)
+               (make-bsp (- height split-dx) width (down start-pos split-dx)))]
+        [else ; leaf, no children
+         '()])))
+
+(define (too-small? bsp)
+  (or (< (bsp-height bsp) min-room-height)
+      (< (bsp-width  bsp) min-room-width)))
+(define (prune-bsp a-bsp)
+  (match-define (bsp height width start-pos children) a-bsp)
+  (bsp height width start-pos
+       (map prune-bsp (filter (negate too-small?) children))))
+
+(define (bsp-n-areas bsp)
+  (define children (bsp-children bsp))
+  (if (empty? children)
+      1 ; leaf, just the one
+      (for/sum ([c (in-list children)]) (bsp-n-areas c))))
 
 
-(define (empty-cell? grid pos)
-  (is-a? (grid-ref grid pos) empty-cell%))
 
-(define animate-generation? #f) ; to see intermediate steps
+(struct room
+  (pos
+   height
+   width
+   free-cells  ; where monsters or treasure could go
+   extension-points)) ; (listof (cons/c pos direction))
 
-(define dungeon-height 18) ; to be easy to display in 80x24, with other stuff
-(define dungeon-width  60)
-(define (generate-dungeon encounters)
-  ;; a room for each encounter, and a few empty ones
-  (define n-rooms (max (length encounters) (random-between 6 9)))
+
+(define (generate-rooms [a-bsp (prune-bsp (make-bsp))])
   (define grid
     (array->mutable-array
      (build-array (vector dungeon-height dungeon-width)
                   (lambda _ (new void-cell%)))))
-  (define first-room
-    (let loop ()
-      (define starting-point
-        (vector (random dungeon-height)
-                (random dungeon-width)))
-      (define first-room
-        (new-room grid starting-point (random-direction)))
-      (or first-room (loop)))) ; if it doesn't fit, try again
-  (commit-room grid first-room)
-  (when animate-generation? (display (show-grid grid)))
-  (define connections '()) ; keep track of pairs of connected rooms
-  (define (extension-points/room room)
-    (for/list ([e (in-list (room-extension-points room))])
-      (cons e room)))
+  ;; put a room in each leaf area
+  (define rooms
+    (let loop ([a-bsp a-bsp])
+      (match-define (bsp height width start-pos children) a-bsp)
+      (cond
+       [(not (empty? children)) ; recur
+        (append-map loop children)]
+       [else ; leaf, add a room
+        (define-values (free-cells extension-points)
+          (for*/fold ([free-cells       '()]
+                      [extension-points '()])
+              ([x (in-range height)]
+               [y (in-range width)])
+            (define pos (right (down start-pos x) y))
+            (define (add-wall!) (array-set! grid pos (new wall%)))
+            (cond [(or (and (= x 0)             (= y 0)) ; corner wall cases
+                       (and (= x 0)             (= y (sub1 width)))
+                       (and (= x (sub1 height)) (= y 0))
+                       (and (= x (sub1 height)) (= y (sub1 width))))
+                   (add-wall!)
+                   ;; not free, and can't expand from corners
+                   (values free-cells extension-points)]
+                  [(= x 0) ; top wall
+                   (add-wall!)
+                   (values free-cells (dict-set extension-points pos up))]
+                  [(= x (sub1 height)) ; bottom wall
+                   (add-wall!)
+                   (values free-cells (dict-set extension-points pos down))]
+                  [(= y 0) ; left wall
+                   (add-wall!)
+                   (values free-cells (dict-set extension-points pos left))]
+                  [(= y (sub1 width)) ; right wall
+                   (add-wall!)
+                   (values free-cells (dict-set extension-points pos right))]
+                  [else ; inside of room
+                   (array-set! grid pos (new empty-cell%))
+                   (values (cons pos free-cells) extension-points)])))
+        (list (room start-pos height width free-cells extension-points))])))
+  (values grid rooms))
 
-  ;; for the rest of the rooms, try sprouting a corridor, with a room at the end
-  ;; try until it works
-  (let loop ()
-    (define-values (n all-rooms _2)
-      (for/fold ([n-rooms-to-go    (sub1 n-rooms)]
-                 [rooms            (list first-room)]
-                 [extension-points (extension-points/room first-room)])
-          ([i (in-range 1000)])
-        #:break (and (= n-rooms-to-go 0)
-                     (log-error (format "generate-dungeon: success after ~a" i))
-                     #t)
-        (define (add-room origin-room room ext [corridor #f] [new-ext #f])
-          (when corridor
-            (commit-room grid corridor))
-          (commit-room grid room)
-          ;; add doors
-          (define door-kind
-            (if (horizontal? dir) vertical-door% horizontal-door%))
-          (array-set! grid ext     (new door-kind))
-          (when new-ext
-            (array-set! grid new-ext (new door-kind)))
-          (set! connections (cons (cons origin-room room) connections))
-          (when animate-generation? (display (show-grid grid)))
-          (values (sub1 n-rooms-to-go)
-                  (cons room rooms) ; corridors don't count
-                  (append (if corridor
-                              (extension-points/room corridor)
-                              '())
-                          (extension-points/room room)
-                          extension-points)))
-        ;; pick an extension point at random
-        (match-define `(,ext . ,origin-room) (random-from extension-points))
-        ;; first, try branching a corridor at random
-        (define dir (random-direction))
-        (cond [(and (zero? (random 4)) ; maybe add a room directly, no corridor
-                    (new-room grid ext dir)) =>
-               (lambda (room) (add-room origin-room room ext))]
-              [(new-corridor grid ext dir) =>
-               (lambda (corridor)
-                 ;; now try adding a room at the end
-                 ;; Note: we don't commit the corridor until we know the room
-                 ;;   fits. This means that `try-add-rectangle` can't check
-                 ;;   whether the two collide. It so happens that, since we're
-                 ;;   putting the room at the far end of the corridor (and
-                 ;;   extending from it), then that can't happen. We rely on
-                 ;;   that invariant.
-                 (define new-ext
-                   (dir ext (if (horizontal? dir)
-                                (sub1 (room-width corridor)) ; sub1 to make abut
-                                (sub1 (room-height corridor)))))
-                 (cond [(new-room grid new-ext dir) =>
-                        (lambda (room) ; worked, commit both and keep going
-                          (add-room origin-room room ext corridor new-ext))]
-                       [else ; didn't fit, try again
-                        (values n-rooms-to-go rooms extension-points)]))]
-              [else ; didn't fit, try again
-               (values n-rooms-to-go rooms extension-points)])))
 
-    (cond [(not (= n 0)) ; we got stuck, try again
-           (log-error "generate-dungeon: had to restart")
-           ;; may have gotten too ambitious with n of rooms, back off
-           (set! n-rooms (max (length encounters) (sub1 n-rooms)))
-           (loop)]
-          [else ; we did it
-           ;; try adding more doors
-           (define potential-connections
-             (for*/fold ([potential-connections '()])
-                 ([r1 (in-list all-rooms)]
-                  [r2 (in-list all-rooms)]
-                  #:unless (or (eq? r1 r2)
-                               (member (cons r1 r2) connections)
-                               (member (cons r2 r1) connections)
-                               (member (cons r2 r1) potential-connections)))
-               (cons (cons r1 r2) potential-connections)))
-           ;; if the two in a pair share a wall, put a door through it
-           (for ([(r1 r2) (in-dict potential-connections)])
-             (define common
-               (set-intersect (room-extension-points r1)
-                              (room-extension-points r2)))
-             (define possible-doors
-               (filter values
-                       (for/list ([pos (in-list common)])
-                         (cond [(and (empty-cell? grid (up   pos))
-                                     (empty-cell? grid (down pos)))
-                                (cons pos horizontal-door%)]
-                               [(and (empty-cell? grid (left  pos))
-                                     (empty-cell? grid (right pos)))
-                                (cons pos vertical-door%)]
-                               [else #f]))))
-             (when (not (empty? possible-doors))
-               (match-define (cons pos door-kind) (random-from possible-doors))
-               (array-set! grid pos (new door-kind))))
-           grid])))
+;; union-find data structure (dumb linear version)
+(struct component (elt parent) #:mutable)
+(define (singleton-component x)
+  (define res (component x #f))
+  (set-component-parent! res res)
+  res)
+(define (component-root c)
+  (if (equal? (component-parent c) c)
+      c
+      (component-root (component-parent c))))
+(define (component-union! x y)
+  (set-component-parent! (component-root x) (component-root y)))
+(define (same-component? x y)
+  (equal? (component-root x) (component-root y)))
+
+(define (empty-cell? grid pos)
+  (is-a? (grid-ref grid pos) empty-cell%))
+(define (door? grid pos)
+  (is-a? (grid-ref grid pos) door%))
+(define (wall? grid pos)
+  (is-a? (grid-ref grid pos) wall%))
+
+(define (dir->door dir)
+  (if (member dir (list up down))
+      (new horizontal-door%)
+      (new vertical-door%)))
+
+(define (add-corridors grid rooms)
+  (define connected-pairs '()) ; (listof (list/c room? room?))
+  (define (directly-connected? r1 r2)
+    (or (member (cons r1 r2) connected-pairs)
+        (member (cons r2 r1) connected-pairs)))
+  (define rooms->connected-components
+    (for/list ([r (in-list rooms)]
+               [i (in-naturals)])
+      (cons r (singleton-component i))))
+  (define (connect-rooms! r1 r2)
+    (set! connected-pairs (cons (cons r1 r2) connected-pairs))
+    (component-union! (dict-ref rooms->connected-components r1)
+                      (dict-ref rooms->connected-components r2)))
+  (define (all-connected?)
+    (= 1 (length (remove-duplicates
+                  (map component-root (map cdr rooms->connected-components))))))
+
+  ;; first, try opening doors between abutting rooms
+  (for ([p (in-list (cartesian-product rooms rooms))])
+    (match-define (list r1 r2) p)
+    (unless (or (equal? r1 r2)
+                ;; have we seen that pair before (in the other order)
+                (member (cons r2 r1) connected-pairs))
+      (define common ; get the positions first (extension points have dir too)
+        (set-intersect (map car (room-extension-points r1))
+                       (map car (room-extension-points r2))))
+      (define possible-doors
+        (filter values
+                (for/list ([pos (in-list common)])
+                  (cond [(and (empty-cell? grid (up   pos))
+                              (empty-cell? grid (down pos)))
+                         (cons pos horizontal-door%)]
+                        [(and (empty-cell? grid (left  pos))
+                              (empty-cell? grid (right pos)))
+                         (cons pos vertical-door%)]
+                        [else #f]))))
+      (when (not (empty? possible-doors))
+        (match-define (cons pos door-kind) (random-from possible-doors))
+        (connect-rooms! r1 r2)
+        (array-set! grid pos (new door-kind)))))
+
+  ;; start digging corridors at random, in the hope of connecting everyone
+  ;; (and introducing some cycles)
+  (define all-extension-points ; (listof (list/c pos dir room))
+    (for*/list ([r (in-list rooms)]
+                [e (in-list (room-extension-points r))])
+      (match-define (cons pos dir) e)
+      (list pos dir r)))
+  (for ([e (in-list (shuffle all-extension-points))]
+        ;; stop when everyone is connected
+        ;; still likely to have cycles (which we want) because we proceed
+        ;; in random order, but less likely to have way too many corridors
+        #:break (all-connected?))
+    (match-define (list start-pos dir start-room) e)
+    (define end-pos+corridor-id
+      (let loop ([pos (dir start-pos)])
+        (cond [(not (within-grid? grid pos)) ; out of bounds, give up
+               #f]
+              [(or (empty-cell? grid pos) (door? grid pos))
+               ;; we're digging into an adjacent room, not useful
+               #f]
+              [(wall? grid pos) ; we hit something
+               (cond [(dict-ref all-extension-points pos #f) =>
+                      ;; hit another room. if we're not already directly
+                      ;; connected to it, and if we're entering that wall
+                      ;; from the right direction, dig that corridor
+                      (lambda (dir+room)
+                        (define end-room (second dir+room))
+                        (cond
+                         [(and (not (directly-connected? start-room end-room))
+                               (opposite-directions? dir (first dir+room)))
+                          ;; add the corridor to the room graph
+                          (define corridor-id (gensym))
+                          (set! rooms->connected-components
+                                (dict-set rooms->connected-components
+                                          corridor-id
+                                          (singleton-component corridor-id)))
+                          (connect-rooms! start-room corridor-id)
+                          (connect-rooms! end-room   corridor-id)
+                          ;; count the two rooms as directly connected,
+                          ;; to avoid spawing more corridors between them
+                          (connect-rooms! start-room end-room)
+                          (cons pos corridor-id)]
+                         [else #f]))]
+                     [else ; not an extension point (maybe a corner), give up
+                      #f])]
+              [else
+               (loop (dir pos))]))) ; keep digging
+    (when end-pos+corridor-id ; actually dig the corridor
+      (match-define (cons end-pos corridor-id) end-pos+corridor-id)
+      (array-set! grid start-pos (dir->door dir))
+      (array-set! grid end-pos   (dir->door dir))
+      (match-define (vector start-x start-y) start-pos)
+      (match-define (vector end-x   end-y)   end-pos)
+      ;; to make corridors valid end points for other corridors, need to add
+      ;; them as possible extension points
+      ;; also useful to avoid having one room dig corridors into the same
+      ;; corridor multiple times (rooms recognize that they are already
+      ;; connected to that corridor, even though it's not a real room)
+      ;; Note: they won't be actually used to start new corridors, since
+      ;;   we've already shuffled the original extension points
+      (define (add-extension-point! p dir)
+        (set! all-extension-points
+              (cons (list p dir corridor-id) all-extension-points)))
+      (if (member dir (list up down))
+          (for ([x (in-range (add1 (min start-x end-x)) (max start-x end-x))])
+            (define pos (vector x start-y))
+            (array-set! grid pos         (new empty-cell%))
+            (array-set! grid (left pos)  (new wall%))
+            (add-extension-point! (left pos) left)
+            (array-set! grid (right pos) (new wall%))
+            (add-extension-point! (right pos) right))
+          (for ([y (in-range (add1 (min start-y end-y)) (max start-y end-y))])
+            (define pos (vector start-x y))
+            (array-set! grid pos        (new empty-cell%))
+            (array-set! grid (up pos)   (new wall%))
+            (add-extension-point! (up pos) up)
+            (array-set! grid (down pos) (new wall%))
+            (add-extension-point! (down pos) down)))))
+
+  ;; if everyone is not connected, give up on this map
+  ;; will have to restart from scratch (BSP generation)
+  ;; this could happen if, e.g., one room does not share an x or y coordinates
+  ;; with any other (or if the ones it shares would hit a corner)
+  ;; very unlikely
+  (and (all-connected?)
+       (cons grid rooms)))
+
+
+(define (generate-dungeon)
+  (define-values (g1 rs1)
+    (generate-rooms (prune-bsp (make-bsp))))
+  (match (add-corridors g1 rs1)
+    [`(,grid . ,rooms)
+     (values (smooth-walls grid)
+             rooms)]
+    [#f ; failed, try again
+     (log-warning "generate-dungeon: had to restart")
+     (generate-dungeon)]))
 
 
 (module+ main
-  (display (show-grid (smooth-walls (generate-dungeon (range 6))))))
+  ;; generate an example
+  (define ex (make-bsp))
+  (displayln (show-bsp ex))
+  (displayln (show-bsp (prune-bsp ex)))
+  (define-values (grid rooms) (generate-rooms (prune-bsp ex)))
+  (displayln (show-grid (smooth-walls (car (add-corridors grid rooms)))))
+
+  ;; make sure that we have "enough" rooms with high-enough probability
+  ;; (need enough for all encounters, and 6 is currently the max I've seen)
+  (define n-tests 1000)
+  (define histogram
+    (for/fold ([hist '()])
+        ([i n-tests])
+      (define n (bsp-n-areas (prune-bsp (make-bsp))))
+      (dict-update hist n add1 0)))
+  (displayln "# room distribution")
+  (for ([(k v) (in-dict (sort histogram < #:key car))])
+    (printf "  ~a = ~a\n" (~a k #:width 2) v))
+)
