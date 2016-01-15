@@ -357,9 +357,15 @@
        (cons grid rooms)))
 
 
-(define (generate-dungeon)
+(define (generate-dungeon min-n-rooms)
+  (define bsp
+    (let loop ()
+      (define bsp (prune-bsp (make-bsp)))
+      (if (< (bsp-n-areas bsp) min-n-rooms)
+          (loop) ; not enough rooms, try again
+          bsp)))
   (define-values (g1 rs1)
-    (generate-rooms (prune-bsp (make-bsp))))
+    (generate-rooms bsp))
   (match (add-corridors g1 rs1)
     [`(,grid . ,rooms)
      (values (smooth-walls grid)
