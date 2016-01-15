@@ -11,13 +11,10 @@
    mode)) ; a mode is either `(move ,n-moves-left) or 'attack
 
 
-(define (new-state p g
-                   #:player-pos player-pos
-                   #:other-characters [other-characters '()]); dictof character%
-  (define initiative-order
-    (cons p (dict-keys other-characters))) ;; TODO roll initiative instead
+(define (new-state p g #:characters [characters '()]) ; dictof character%
+  (define initiative-order (dict-keys characters)) ;; TODO roll initiative
   ;; place characters
-  (for ([(char pos) (in-dict (dict-set other-characters p player-pos))])
+  (for ([(char pos) (in-dict characters)])
     (set-field! grid char g)
     (send char move pos '(move 1))) ; dummy mode, to ensure move validity
   (state p

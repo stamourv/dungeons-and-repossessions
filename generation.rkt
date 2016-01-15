@@ -10,10 +10,12 @@
 (define (generate player)
   (define lvl        (get-field level player))
   (define encounters (generate-encounters lvl))
-  (define-values (grid rooms) (generate-dungeon (length encounters)))
-  (define start-room (random-from rooms))
-  (define encounter-rooms
-    (random-sample rooms (length encounters) #:replacement? #f))
+  ;; need enough rooms for all the encounters, plus a starting room
+  ;; (we don't want monsters in the starting room)
+  (define n-rooms (add1 (length encounters)))
+  (define-values (grid rooms) (generate-dungeon n-rooms))
+  (match-define (cons player-room encounter-rooms)
+    (random-sample rooms n-rooms #:replacement? #f))
   (define (random-room-poss room n)
     (random-sample (room-free-cells room) n #:replacement? #f))
   (define monster-poss
@@ -25,16 +27,9 @@
                [m    (in-list e)]
                [pos  (in-list poss)])
       (cons (new m) pos)))
-  (define player-pos
-    (let loop ()
-      (define pos (first (random-room-poss start-room 1)))
-      (if (for/or ([(m p) (in-dict monster-poss)])
-            (equal? p pos))
-          (loop) ; already a monster there, try again
-          pos)))
+  (define player-pos (first (random-room-poss player-room 1)))
   (new-state player grid
-             #:player-pos       player-pos
-             #:other-characters monster-poss))
+             #:characters (cons (cons player player-pos) monster-poss)))
 
 
 (module+ main
