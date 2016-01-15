@@ -9,8 +9,9 @@
   (define lvl        (get-field level player))
   (define encounters (generate-encounters lvl))
   (define-values (grid rooms) (generate-dungeon (length encounters)))
-  (define start-room      (random-from rooms))
-  (define encounter-rooms (random-sample rooms (length encounters)))
+  (define start-room (random-from rooms))
+  (define encounter-rooms
+    (random-sample rooms (length encounters) #:replacement? #f))
   (define (random-room-poss room n)
     (random-sample (room-free-cells room) n #:replacement? #f))
   (define monster-poss
