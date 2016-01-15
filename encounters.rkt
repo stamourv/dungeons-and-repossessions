@@ -32,27 +32,6 @@
 (define (close-enough? cost budget) ; within 25%
   (<= (* 0.75 budget) cost (* 1.25 budget)))
 
-(define (make-encounter level difficulty theme . monsters)
-  (unless (integer? level)
-    (raise-argument-error 'make-encounter "integer?" level))
-  (unless (member difficulty all-difficulties)
-    (raise-argument-error 'make-encounter "difficulty?" difficulty))
-  (unless (symbol? theme)
-    (raise-argument-error 'make-encounter "symbol?" theme))
-  (define encounter (cons theme monsters))
-  (define adjusted-xp (encounter-cost encounter))
-  (define budget (encounter-experience-budget level difficulty))
-  (unless (close-enough? adjusted-xp budget)
-    (raise-arguments-error 'make-encounter "not within budget"
-                           "encounter" monsters
-                           "budget"    budget
-                           "cost"      adjusted-xp))
-  (hash-update! all-encounters
-                (list level difficulty theme)
-                (lambda (xs) (cons encounter xs))
-                '()))
-
-
 ;; pulled out of thin air, subject to tweaking
 (define encounter-difficulty-probabilities
   '((easy   . 0.3)
