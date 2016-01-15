@@ -3,6 +3,7 @@
 (require "grid.rkt"
          "message-queue.rkt"
          "state.rkt"
+         "ai.rkt"
          "utils.rkt")
 
 (provide player%
@@ -169,12 +170,7 @@
     (define/override (show)
       #\D)
     (define/override (act state) ; the dummy doesn't do anything
-      ;; to avoid printing both when moving and attackin
-      (when (equal? (state-mode state) 'attack)
-        (enqueue-message! (format "~a waits."
-                                  (send this describe
-                                        #:capitalize? #t #:specific? #t))))
-      'wait)
+      (wait-ai this state))
     (super-new [name "training dummy"] [max-hp 10])))
 
 (define brownian-dummy%
@@ -183,11 +179,5 @@
       #\B)
     ;; moves at random, which attacks if it runs into something
     (define/override (act state)
-      (define mode (state-mode state))
-      (case (random 5)
-        [(0) (send this move-left  mode)]
-        [(1) (send this move-right mode)]
-        [(2) (send this move-up    mode)]
-        [(3) (send this move-down  mode)]
-        [(4) 'wait]))
+      (random-move-ai this state))
     (super-new [name "brownian dummy"] [max-hp 10])))
