@@ -151,7 +151,7 @@
 
 (module+ main
   ;; generate all encounters
-  (for* ([level (in-range 1 21)]
+  (for* ([level (in-range 1 6 #|21|#)]
          [diff  (in-list all-difficulties)]
          [theme (in-list all-themes)])
     (printf "generating: ~a ~a ~a\n" level diff theme)
@@ -165,7 +165,7 @@
     (for ([d all-difficulties])
       (display (~a d #:min-width 10)))
     (newline)
-    (for ([l (in-range 1 21)])
+    (for ([l (in-range 1 6 #|21|#)])
       (define counts
         (for/list ([d all-difficulties])
           (length (dict-ref all-encounters (list l d t) '()))))
