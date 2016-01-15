@@ -31,7 +31,7 @@
            (display-state new-s)])))
 
 (module+ main
-  (set-up-ui)
+  (void (set-up-ui))
   (define exn #f)
   ;; whatever we do, always tear down UI
   (with-handlers ([values (lambda (e) (set! exn e))])
