@@ -1,6 +1,7 @@
 #lang racket
 
 (require "character.rkt"
+         "grid.rkt"
          "message-queue.rkt"
          "state.rkt"
          "ui.rkt")
@@ -17,7 +18,7 @@
       "║        ║"
       "╚════════╝"))
   (enqueue-message! "Welcome!")
-  (new-state (new player%) grid
+  (new-state (new player%) (parse-grid grid)
              #:player-pos #(1 1)
              #:other-characters `((,(new brownian-dummy%) . #(1 8))
                                   (,(new training-dummy%) . #(3 8)))))

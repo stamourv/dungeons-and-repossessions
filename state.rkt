@@ -11,10 +11,9 @@
    mode)) ; a mode is either `(move ,n-moves-left) or 'attack
 
 
-(define (new-state p map-los
+(define (new-state p g
                    #:player-pos player-pos
                    #:other-characters [other-characters '()]); dictof character%
-  (define g (parse-grid map-los))
   (define initiative-order
     (cons p (dict-keys other-characters))) ;; TODO roll initiative instead
   ;; place characters
