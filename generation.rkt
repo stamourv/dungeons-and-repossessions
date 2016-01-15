@@ -5,7 +5,9 @@
          "state.rkt"
          "utils.rkt")
 
-(define (generate-floor player)
+(provide generate)
+
+(define (generate player)
   (define lvl        (get-field level player))
   (define encounters (generate-encounters lvl))
   (define-values (grid rooms) (generate-dungeon (length encounters)))
@@ -37,4 +39,4 @@
 
 (module+ main
   (require "grid.rkt" "character.rkt")
-  (display (show-grid (state-grid (generate-floor (new player%))))))
+  (display (show-grid (state-grid (generate (new player%))))))

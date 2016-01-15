@@ -1,7 +1,7 @@
 #lang racket
 
 (require "character.rkt"
-         "grid.rkt"
+         "generation.rkt"
          "message-queue.rkt"
          "state.rkt"
          "ui.rkt")
@@ -9,19 +9,7 @@
 ;; A game state is a Floor
 
 (define (init-game)
-  (define grid
-    '("╔═╦══════╗"
-      "║ ║   |  ║"
-      "║ ║   ═══╣"
-      "║ ║      ║"
-      "║-║  #   ║"
-      "║        ║"
-      "╚════════╝"))
-  (enqueue-message! "Welcome!")
-  (new-state (new player%) (parse-grid grid)
-             #:player-pos #(1 1)
-             #:other-characters `((,(new brownian-dummy%) . #(1 8))
-                                  (,(new training-dummy%) . #(3 8)))))
+  (generate (new player%)))
 
 (define (game-loop s)
   (define active-character (first (state-initiative-order s)))
