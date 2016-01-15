@@ -2,6 +2,9 @@
 
 (require "cell.rkt" "grid.rkt" "wall-smoothing.rkt" "utils.rkt")
 
+(provide generate-dungeon
+         (struct-out room))
+
 (define dungeon-height 18) ; to be easy to display in 80x24, with other stuff
 (define dungeon-width  60)
 

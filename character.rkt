@@ -147,6 +147,7 @@
 
 (define player%
   (class character%
+    (field [level 1])
     (define/override (show)
       #\@) ;; TODO add parsing for player position
     (define/override (describe #:capitalize? [capitalize? #f]
