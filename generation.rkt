@@ -36,5 +36,5 @@
 
 
 (module+ main
-  (require "ui.rkt" "character.rkt")
-  (display-state (generate-floor (new player%))))
+  (require "grid.rkt" "character.rkt")
+  (display (show-grid (state-grid (generate-floor (new player%))))))
