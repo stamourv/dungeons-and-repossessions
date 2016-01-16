@@ -40,7 +40,7 @@
 (define-simple-monster bat% #\b "bat"
   #:theme 'vermin #:max-hp (lambda _ (max (- (d4) 1) 1)) #:speed 6
   #:attack-bonus 0 #:ac 12 #:damage-die (lambda _ 1)
-  #:xp-value 10 #:ai rush-ai)
+  #:xp-value 10 #:ai cower-ai)
 (define-simple-monster rat% #\r "rat"
   #:theme 'vermin #:max-hp (lambda _ (max (- (d4) 1) 1)) #:speed 4
   #:attack-bonus 0 #:ac 10 #:damage-die (lambda _ 1)
@@ -78,7 +78,7 @@
 (define-simple-monster commoner% #\c "commoner"
   #:theme 'cult #:max-hp d8 #:speed 6
   #:attack-bonus 2 #:ac 10 #:damage-die d4
-  #:xp-value 10 #:ai rush-ai)
+  #:xp-value 10 #:ai cower-ai)
 ;; TODO AI that cowers, and only attacks when you're next to them (like bats!)
 
 (define-simple-monster guard% #\u "guard"
