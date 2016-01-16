@@ -1,6 +1,6 @@
 #lang racket
 
-(require "character.rkt" "ai.rkt")
+(require "character.rkt" "ai.rkt" "utils.rkt")
 
 (provide (all-defined-out))
 
@@ -20,75 +20,90 @@
 (define (monster->xp m) (hash-ref monsters->xp m))
 
 (define-syntax-rule (define-simple-monster
-                      def-name char n
-                      #:theme t #:max-hp hp #:xp-value xp #:ai ai)
+                      def-name char n #:theme t
+                      #:max-hp hp #:speed sp
+                      #:attack-bonus ab #:ac ac #:damage-die dmg
+                      #:xp-value xp #:ai ai)
   (begin
     (define def-name
       (class monster%
-        (define/override (show)
-          char)
-        (define/override (act state)
-          (ai this state))
-        (super-new [name n] [theme t] [max-hp hp] [xp-value xp])))
+        (define/override (show)             char)
+        (define/override (act state)        (ai this state))
+        (define/override (get-attack-bonus) ab)
+        (define/override (get-ac)           ac)
+        (define/override (get-damage-die)   dmg)
+        (super-new [name n] [theme t] [max-hp hp] [speed sp] [xp-value xp])))
     (add-monster! def-name t)
     (add-theme! t)
     (hash-set! monsters->xp def-name xp)))
-;; TODO add ac, damage die, stats, speed, etc.
 
 (define-simple-monster bat% #\b "bat"
-  #:theme 'vermin #:max-hp 1 #:xp-value 10
-  #:ai random-move-ai) ; TODO 1 -> (max 1d4-1 1)
+  #:theme 'vermin #:max-hp 1 #:speed 6
+  #:attack-bonus 0 #:ac 12 #:damage-die (lambda _ 1)
+  #:xp-value 10 #:ai random-move-ai) ; TODO 1 -> (max 1d4-1 1)
 (define-simple-monster rat% #\r "rat"
-  #:theme 'vermin #:max-hp 1 #:xp-value 10
-  #:ai random-move-ai) ; TODO 1 -> (max 1d4-1 1)
+  #:theme 'vermin #:max-hp 1 #:speed 4
+  #:attack-bonus 0 #:ac 10 #:damage-die (lambda _ 1)
+  #:xp-value 10 #:ai random-move-ai) ; TODO 1 -> (max 1d4-1 1)
 (define-simple-monster spider% #\s "spider"
-  #:theme 'vermin #:max-hp 1 #:xp-value 10
-  #:ai random-move-ai) ; TODO 1 -> 1d-1
-;; TODO should ignore difficult terrain
+  #:theme 'vermin #:max-hp 1 #:speed 4
+  #:attack-bonus 4 #:ac 12 #:damage-die (lambda _ 1)
+  #:xp-value 10 #:ai random-move-ai) ; TODO 1 -> 1d-1
+;; TODO should ignore difficult terrain. and add poison to attack
 
 (define-simple-monster giant-rat% #\R "giant rat"
-  #:theme 'vermin #:max-hp 7 #:xp-value 25
-  #:ai random-move-ai) ; TODO 7 -> 2d6
+  #:theme 'vermin #:max-hp 7 #:speed 6
+  #:attack-bonus 4 #:ac 12 #:damage-die (lambda _ (+ (d4) 2))
+  #:xp-value 25 #:ai random-move-ai) ; TODO 7 -> 2d6
 ;; TODO pack tactics, once I implement advantage
 (define-simple-monster kobold% #\k "kobold"
-  #:theme 'vermin #:max-hp 5 #:xp-value 25
-  #:ai random-move-ai) ; TODO 5 -> 2d6 - 2
+  #:theme 'vermin #:max-hp 5 #:speed 6
+  #:attack-bonus 4 #:ac 12 #:damage-die (lambda _ (+ (d4) 2))
+  #:xp-value 25 #:ai random-move-ai) ; TODO 5 -> 2d6 - 2
 ;; TODO + slinger variant
 ;; TODO pack tactics, once I implement advantage
 
 (define-simple-monster goblin% #\g "goblin"
-  #:theme 'vermin #:max-hp 7 #:xp-value 50
-  #:ai random-move-ai) ; TODO 7 -> 2d6
+  #:theme 'vermin #:max-hp 7 #:speed 6
+  #:attack-bonus 4 #:ac 15 #:damage-die (lambda _ (+ (d6) 2))
+  #:xp-value 50 #:ai random-move-ai) ; TODO 7 -> 2d6
 ;; TODO + archer variant
 (define-simple-monster wolf% #\w "wolf"
-  #:theme 'vermin #:max-hp 11 #:xp-value 50
-  #:ai random-move-ai) ; TODO 11 -> 2d8+2
-;; TODO pack tactics, once I implement advantage
+  #:theme 'vermin #:max-hp 11 #:speed 8
+  #:attack-bonus 4 #:ac 13 #:damage-die (lambda _ (+ (d4) (d4) 2))
+  #:xp-value 50 #:ai random-move-ai) ; TODO 11 -> 2d8+2
+;; TODO pack tactics, once I implement advantage. + knock prone from attack
 
 
 (define-simple-monster commoner% #\c "commoner"
-  #:theme 'cult #:max-hp 4 #:xp-value 10
-  #:ai random-move-ai) ; TODO 4 -> 1d8
+  #:theme 'cult #:max-hp 4 #:speed 6
+  #:attack-bonus 2 #:ac 10 #:damage-die d4
+  #:xp-value 10 #:ai random-move-ai) ; TODO 4 -> 1d8
 ;; TODO AI that cowers, and only attacks when you're next to them (like bats!)
 
 (define-simple-monster guard% #\u "guard"
-  #:theme 'cult #:max-hp 11 #:xp-value 25
-  #:ai random-move-ai) ; TODO 11 -> 2d8+2
+  #:theme 'cult #:max-hp 11 #:speed 6
+  #:attack-bonus 3 #:ac 16 #:damage-die (lambda _ (+ (d6) 1))
+  #:xp-value 25 #:ai random-move-ai) ; TODO 11 -> 2d8+2
 (define-simple-monster cultist% #\l "cultist"
-  #:theme 'cult #:max-hp 9 #:xp-value 25
-  #:ai random-move-ai) ; TODO 9 -> 2d8
+  #:theme 'cult #:max-hp 9 #:speed 6
+  #:attack-bonus 4 #:ac 12 #:damage-die (lambda _ (+ (d6) 1))
+  #:xp-value 25 #:ai random-move-ai) ; TODO 9 -> 2d8
 
 (define-simple-monster acolyte% #\a "acolyte"
-  #:theme 'cult #:max-hp 9 #:xp-value 50
-  #:ai random-move-ai) ; TODO 9 -> 2d8
+  #:theme 'cult #:max-hp 9 #:speed 6
+  #:attack-bonus 2 #:ac 10 #:damage-die d4
+  #:xp-value 50 #:ai random-move-ai) ; TODO 9 -> 2d8
 ;; TODO has healing spells, plus misc other spells (o/w not worth 50 xp)
 (define-simple-monster skeleton% #\t "skeleton"
-  #:theme 'cult #:max-hp 13 #:xp-value 50
-  #:ai random-move-ai) ; TODO 13 -> 2d8+4
+  #:theme 'cult #:max-hp 13 #:speed 6
+  #:attack-bonus 4 #:ac 13 #:damage-die (lambda _ (+ (d6) 2))
+  #:xp-value 50 #:ai random-move-ai) ; TODO 13 -> 2d8+4
 ;; TODO + archer variant
 (define-simple-monster zombie% #\z "zombie"
-  #:theme 'cult #:max-hp 22 #:xp-value 50
-  #:ai random-move-ai) ; TODO 22 -> 3d8+9
+  #:theme 'cult #:max-hp 22 #:speed 4
+  #:attack-bonus 3 #:ac 8 #:damage-die (lambda _ (+ (d6) 1))
+  #:xp-value 50 #:ai random-move-ai) ; TODO 22 -> 3d8+9
 
 
 ;; TODO bandits (25 xp) could be a good monster. what theme, though?

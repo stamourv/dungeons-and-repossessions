@@ -18,10 +18,10 @@
 ;; will have to do
 (define character%
   (class object%
-    (init-field [max-hp 1])
+    (init-field [max-hp 1]
+                [speed  6]) ; default to human speed (30 ft = 6 squares)
     (field [grid #f] ; grid where the character is active
            [pos  #f] ; 2-vector of integer (what math/array uses as indices)
-           [speed 6] ; default to human speed (30 ft = 6 squares)
            [proficiency-bonus 0]
            [current-hp max-hp])
 
