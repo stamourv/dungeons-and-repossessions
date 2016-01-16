@@ -88,7 +88,9 @@
                                 state)
                      state)]))
 
-;; TODO want an AI that rushes, but once it gets injured, cowers
-;;   for kobolds, goblins?, acolytes?
-
-;; TODO move sure AIs avoid friendly fire
+;; rushes, but once injured, cowers
+;; TODO have it reset to rush after some time (like the fallen in diablo)
+(define (injury-shy-ai this state)
+  (if (= (get-field current-hp this) (get-field max-hp this))
+      (rush-ai  this state)
+      (cower-ai this state)))

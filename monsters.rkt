@@ -59,14 +59,14 @@
 (define-simple-monster kobold% #\k "kobold"
   #:theme 'vermin #:max-hp (lambda _ (max (+ (d6) (d6) -2) 1)) #:speed 6
   #:attack-bonus 4 #:ac 12 #:damage-die (lambda _ (+ (d4) 2))
-  #:xp-value 25 #:ai rush-ai)
+  #:xp-value 25 #:ai injury-shy-ai)
 ;; TODO + slinger variant
 ;; TODO pack tactics, once I implement advantage
 
 (define-simple-monster goblin% #\g "goblin"
   #:theme 'vermin #:max-hp (lambda _ (+ (d6) (d6))) #:speed 6
   #:attack-bonus 4 #:ac 15 #:damage-die (lambda _ (+ (d6) 2))
-  #:xp-value 50 #:ai rush-ai)
+  #:xp-value 50 #:ai injury-shy-ai)
 ;; TODO + archer variant
 (define-simple-monster wolf% #\w "wolf"
   #:theme 'vermin #:max-hp (lambda _ (+ (d8) (d8) 2)) #:speed 8
@@ -93,7 +93,7 @@
 (define-simple-monster acolyte% #\a "acolyte"
   #:theme 'cult #:max-hp (lambda _ (+ (d8) (d8))) #:speed 6
   #:attack-bonus 2 #:ac 10 #:damage-die d4
-  #:xp-value 50 #:ai rush-ai)
+  #:xp-value 50 #:ai injury-shy-ai)
 ;; TODO has healing spells, plus misc other spells (o/w not worth 50 xp)
 (define-simple-monster skeleton% #\t "skeleton"
   #:theme 'cult #:max-hp (lambda _ (+ (d8) (d8) 4)) #:speed 6
