@@ -83,7 +83,8 @@
       "*  *"
       "****"))
   (define s1
-    (new-state p1 g1 #:player-pos #(1 1)))
+    (new-state p1 (parse-grid g1)
+               #:characters (list (cons p1 #(1 1)))))
   (check-equal? (show-grid (state-grid s1))
                 (render-grid '("****"
                                "*@ *"
@@ -135,10 +136,10 @@
               (define p (new player%))
               (define d (new training-dummy%))
               (for ([i 5]) (attack p d))))
-   (string-join '("The player attacks the training dummy and deals 6 damage!"
-                  "The player attacks the training dummy and deals 3 damage!"
-                  "The player attacks the training dummy and misses."
-                  "The player attacks the training dummy and misses."
+   (string-join '("The player attacks the training dummy and deals 7 damage!"
+                  "The player attacks the training dummy and deals 9 damage!"
+                  "The player attacks the training dummy and deals 6 damage!"
+                  "The player attacks the training dummy and deals 4 damage!"
                   "The player attacks the training dummy and misses.")
                 "\n")))
 
@@ -187,6 +188,7 @@
       #\D)
     (define/override (act state) ; the dummy doesn't do anything
       (wait-ai this state))
+    (define/override (get-ac) 10)
     (super-new [name "training dummy"] [max-hp 10])))
 
 (define brownian-dummy%
@@ -196,4 +198,7 @@
     ;; moves at random, which attacks if it runs into something
     (define/override (act state)
       (random-move-ai this state))
+    (define/override (get-ac)           10)
+    (define/override (get-attack-bonus) 0)
+    (define/override (get-damage-die)   d4)
     (super-new [name "brownian dummy"] [max-hp 10])))
