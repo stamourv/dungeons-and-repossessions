@@ -44,11 +44,11 @@
 (define-simple-monster rat% #\r "rat"
   #:theme 'vermin #:max-hp (lambda _ (max (- (d4) 1) 1)) #:speed 4
   #:attack-bonus 0 #:ac 10 #:damage-die (lambda _ 1)
-  #:xp-value 10 #:ai rush-ai)
+  #:xp-value 10 #:ai wander-ai)
 (define-simple-monster spider% #\s "spider"
   #:theme 'vermin #:max-hp (lambda _ (max (- (d4) 1) 1)) #:speed 4
   #:attack-bonus 4 #:ac 12 #:damage-die (lambda _ 1)
-  #:xp-value 10 #:ai rush-ai)
+  #:xp-value 10 #:ai wander-ai)
 ;; TODO should ignore difficult terrain. and add poison to attack
 
 (define-simple-monster giant-rat% #\R "giant rat"
@@ -103,7 +103,7 @@
 (define-simple-monster zombie% #\z "zombie"
   #:theme 'cult #:max-hp (lambda _ (+ (d8) (d8) (d8) 9)) #:speed 4
   #:attack-bonus 3 #:ac 8 #:damage-die (lambda _ (+ (d6) 1))
-  #:xp-value 50 #:ai rush-ai)
+  #:xp-value 50 #:ai wander-ai)
 
 
 ;; TODO bandits (25 xp) could be a good monster. what theme, though?

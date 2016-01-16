@@ -58,6 +58,12 @@
       (and (eq? d1 left)  (eq? d2 right))
       (and (eq? d1 right) (eq? d2 left))))
 
+(define (adjacent? pos1 pos2)
+  (match-define (vector x1 y1) pos1)
+  (match-define (vector x2 y2) pos2)
+    (or (and (= 1 (abs (- x1 x2))) (= y1 y2))
+        (and (= x1 x2) (= 1 (abs (- y1 y2))))))
+
 
 (module+ test
   (require rackunit)
