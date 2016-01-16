@@ -50,7 +50,7 @@
      (define dash? (equal? head 'dash))
      (case action-taken
        [(wait)
-        (if dash? (new-turn) (new-attack-state))]
+        (new-turn)]
        [(move)
         (define new-n (sub1 n-moves-left))
         (if (zero? new-n) ; no more moves
