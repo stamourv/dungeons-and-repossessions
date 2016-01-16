@@ -22,7 +22,6 @@
                 [speed  6]) ; default to human speed (30 ft = 6 squares)
     (field [grid #f] ; grid where the character is active
            [pos  #f] ; 2-vector of integer (what math/array uses as indices)
-           [proficiency-bonus 0]
            [current-hp max-hp])
 
     (define/public (show)
@@ -62,12 +61,11 @@
       (move (down pos) mode))
 
     (define/public (get-attack-bonus)
-      ;; Note: assumes we're proficient with whatever weapon we're using
-      proficiency-bonus) ; TODO add strength
+      (error "no attack bonus specified" this))
     (define/public (get-ac)
-      10) ; TODO add dex, armor, etc.
+      (error "no AC specified" this))
     (define/public (get-damage-die)
-      d6) ; TODO have it based on equipped weapon, and add strength
+      (error "no damage die specified" this))
 
     (define/public (die)
       (enqueue-message!
@@ -147,13 +145,30 @@
 
 (define player%
   (class character%
-    (field [level 1])
-    (define/override (show)
-      #\@) ;; TODO add parsing for player position
+    (field [level             1]
+           [proficiency-bonus 2]
+           [strength     3] ; as a "standard" fighter (based on pre-gens)
+           [dexterity    2] ; Note: monsters don't need stats, as all their
+           [constitution 2] ;   info (e.g., AC, attack bonus) is pre-computed
+           [intelligence 0] ; Note: stored as bonus only, for simplicity
+           [wisdom       -1]
+           [charisma     1])
+
+    (define/override (show) #\@)
     (define/override (describe #:capitalize? [capitalize? #f]
                                #:specific?   [specific? 'n/a]) ; always specific
       (string-append (article capitalize? #t) " player")) ; TODO have a name
-    (super-new [max-hp 10]))) ; as a fighter ;; TODO add constitution
+
+    (define/override (get-attack-bonus)
+      ;; Note: assumes we're proficient with whatever weapon we're using
+      (+ proficiency-bonus strength))
+    (define/override (get-ac)
+      (+ 14 (min dexterity 2) ; scale armor ; TODO have logic in item defn
+         2)) ; shield
+    (define/override (get-damage-die)
+      (lambda _ (+ (d6) strength))) ; hand axe ; TODO have login in item defn
+
+    (super-new [max-hp (+ 10 constitution)]))) ; as a fighter
 
 
 (define npc%
