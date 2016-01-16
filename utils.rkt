@@ -14,6 +14,7 @@
   (+ min (random (- max min))))
 (define (d4)  (random-between 1 5))
 (define (d6)  (random-between 1 7))
+(define (d8)  (random-between 1 9))
 (define (d20) (random-between 1 21))
 
 (define (random-from l) ;; TODO replace with 6.4's `random-ref`
