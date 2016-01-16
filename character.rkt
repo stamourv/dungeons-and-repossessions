@@ -167,7 +167,7 @@
       (+ 14 (min dexterity 2) ; scale armor ; TODO have logic in item defn
          2)) ; shield
     (define/override (get-damage-die)
-      (lambda _ (+ (d6) strength))) ; hand axe ; TODO have login in item defn
+      (lambda _ (+ (d6) strength))) ; hand axe ; TODO have logic in item defn
 
     (super-new [max-hp (+ 10 constitution)]))) ; as a fighter
 
