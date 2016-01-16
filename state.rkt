@@ -8,7 +8,14 @@
   (player
    grid
    initiative-order ; listof character%
-   mode)) ; a mode is either `(move ,n-moves-left) or 'attack
+   mode)) ; a mode is: `(move ,n-moves-left), 'attack, or `(dash ,n-moves-left)
+
+(define (show-mode state)
+  (define mode (state-mode state))
+  (match mode
+    [`(move ,n-moves-left) (format "~a moves left" n-moves-left)]
+    ['attack               (format "attack!")]
+    [`(dash ,n-moves-left) (format "dashing (~a left)" n-moves-left)]))
 
 
 (define (new-state p g #:characters [characters '()]) ; dictof character%

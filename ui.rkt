@@ -19,11 +19,20 @@
   (cursor-on)
   (echo-on))
 
-;; TODO flickers, not sure why. old roguelike does not, see what's different
+(define sidebar-col 63)
+
 (define (display-state s)
   (clear-all)
-  (displayln (state-mode s))
-  (printf "~a HP\n" (get-field current-hp (state-player s)))
+  ;; sidebar
+  (set-cursor-position! 2 sidebar-col)
+  (displayln (show-mode s))
+  (set-cursor-position! 3 sidebar-col)
+  (printf "~a / ~a HP\n"
+          (get-field current-hp (state-player s))
+          (get-field max-hp (state-player s)))
+  ;; main display
+  (cursor-home)
+  (newline) ; top "margin"
   (display (show-grid (state-grid s)))
   (for-each displayln (reverse message-queue))
   (reset-message-queue!))
