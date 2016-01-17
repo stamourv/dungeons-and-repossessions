@@ -47,7 +47,7 @@
   ;; seen so far
   (define smoothing-grid
     (build-array (array-shape grid) (lambda _ (new empty-cell%))))
-  (for ([pos (in-set fov)])
+  (for ([pos (in-set seen)])
     (array-set! smoothing-grid pos (array-ref grid pos)))
   ;; do the actual printing
   (for ([x (in-range (grid-height grid))])
