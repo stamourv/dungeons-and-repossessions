@@ -1,6 +1,7 @@
 #lang racket
 
 (require "grid.rkt"
+         "cell.rkt"
          "message-queue.rkt"
          "state.rkt"
          "terminal.rkt")
@@ -42,10 +43,16 @@
 (define (display-grid/fov grid fov seen)
   (for ([x (in-range (grid-height grid))])
     (for ([y (in-range (grid-width grid))])
-      (define pos (vector x y))
-      (display (if (set-member? seen pos)
-                   (send (grid-ref grid pos) show)
-                   "?"))) ;; TODO for testing
+      (define pos  (vector x y))
+      (define cell (grid-ref grid pos))
+      (define char (send cell show))
+      (cond [(and (set-member? fov pos)
+                  (not (is-a? cell wall%))) ; don't light walls up
+             (terminal-print char #:fg 'black #:bg 'white)]
+            [(set-member? seen pos)
+             (display char)]
+            [else
+             (display " ")]))
     (newline)))
 
 
