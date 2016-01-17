@@ -52,17 +52,16 @@
   ;; do the actual printing
   (for ([x (in-range (grid-height grid))])
     (for ([y (in-range (grid-width grid))])
-      (define pos  (vector x y))
-      (define cell (grid-ref grid pos))
-      (define char (send (if (is-a? cell wall%)
-                             (smooth-single-wall smoothing-grid pos)
-                             cell)
-                         show))
+      (define pos   (vector x y))
+      (define cell* (grid-ref grid pos))
+      (define cell  (if (is-a? cell* wall%)
+                        (smooth-single-wall smoothing-grid pos)
+                        cell*))
       (cond [(and (set-member? fov pos)
                   (not (send cell opaque?))) ; don't light those up
-             (terminal-print char #:fg 'black #:bg 'white)]
+             (terminal-print (send cell show) #:fg 'black #:bg 'white)]
             [(set-member? seen pos)
-             (display char)]
+             (display (send cell show #f))] ; don't show occupant
             [else
              (display " ")]))
     (newline)))

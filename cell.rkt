@@ -20,7 +20,7 @@
       #f)
     (define/public (opaque?)
       #t)
-    (define/public (show)
+    (define/public (show [show-occupant? #t])
       #\*) ; for debugging
     (define/public (open)
       (enqueue-message! "Can't open that."))
@@ -36,8 +36,8 @@
       (not occupant))
     (define/override (opaque?)
       #f)
-    (define/override (show)
-      (if occupant
+    (define/override (show [show-occupant? #t])
+      (if (and show-occupant? occupant)
           (send occupant show)
           #\space))
     (super-new)))
@@ -45,13 +45,13 @@
 
 (define void-cell%
   (class cell%
-    (define/override (show) #\.) ; for testing only
+    (define/override (show [show-occupant? #t]) #\.) ; for testing only
     (super-new)))
 (register-cell-type! void-cell% #\.)
 
 (define wall%
   (class cell%
-    (define/override (show) #\X) ; for testing only
+    (define/override (show [show-occupant? #t]) #\X) ; for testing only
     (super-new)))
 (register-cell-type! wall% #\X)
 
@@ -59,7 +59,8 @@
 (define-syntax-rule (define-wall name single-bar double-bar)
   (begin (define name
            (class wall%
-             (define/override (show) (if double-bar? double-bar single-bar))
+             (define/override (show [show-occupant? #t])
+               (if double-bar? double-bar single-bar))
              (super-new)))
          ;; parse either kind
          (register-cell-type! name single-bar)
@@ -98,9 +99,9 @@
 (define vertical-door%
   (class door%
     (inherit-field open? occupant)
-    (define/override (show)
+    (define/override (show [show-occupant? #t])
       (if open?
-          (if occupant (send occupant show) #\_)
+          (if (and show-occupant? occupant) (send occupant show) #\_)
           #\|))
     (super-new)))
 (register-cell-type! vertical-door% #\|)
@@ -108,9 +109,9 @@
 (define horizontal-door%
   (class door%
     (inherit-field open? occupant)
-    (define/override (show)
+    (define/override (show [show-occupant? #t])
       (if open?
-          (if occupant (send occupant show) #\')
+          (if (and show-occupant? occupant) (send occupant show) #\')
           #\-))
     (super-new)))
 (register-cell-type! horizontal-door% #\-)
