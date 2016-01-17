@@ -49,14 +49,12 @@
     (build-array (array-shape grid) (lambda _ (new empty-cell%))))
   (for ([pos (in-set seen)])
     (array-set! smoothing-grid pos (array-ref grid pos)))
+  (smooth-walls smoothing-grid)
   ;; do the actual printing
   (for ([x (in-range (grid-height grid))])
     (for ([y (in-range (grid-width grid))])
       (define pos   (vector x y))
-      (define cell* (grid-ref grid pos))
-      (define cell  (if (is-a? cell* wall%)
-                        (smooth-single-wall smoothing-grid pos)
-                        cell*))
+      (define cell (grid-ref smoothing-grid pos))
       (cond [(and (set-member? fov pos)
                   (not (send cell opaque?))) ; don't light those up
              (terminal-print (send cell show) #:fg 'black #:bg 'white)]
