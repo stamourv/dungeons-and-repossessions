@@ -2,8 +2,7 @@
 
 (require "grid.rkt" "cell.rkt")
 
-(provide compute-fov
-         show-grid/fov)
+(provide compute-fov)
 
 (define debug-fov #f)
 
@@ -298,15 +297,3 @@
                 "            "))
   (check-fov m6 #(4 2) 4 m6)
   )
-
-(define (show-grid/fov grid fov seen)
-  (with-output-to-string
-    (lambda ()
-      (for ([x (in-range (grid-height grid))])
-        (for ([y (in-range (grid-width grid))])
-          ;; TODO light up FOV more brightly
-          (define pos (vector x y))
-          (display (if (set-member? seen pos)
-                       (send (grid-ref grid pos) show)
-                       "?"))) ;; TODO for testing
-        (newline)))))

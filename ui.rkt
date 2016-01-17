@@ -3,8 +3,7 @@
 (require "grid.rkt"
          "message-queue.rkt"
          "state.rkt"
-         "terminal.rkt"
-         "vision.rkt")
+         "terminal.rkt")
 
 (provide set-up-ui
          tear-down-ui
@@ -34,11 +33,21 @@
   ;; main display
   (cursor-home)
   (newline) ; top "margin"
-  (display (show-grid/fov (state-grid s)
-                          (get-field fov player)
-                          (get-field seen player)))
+  (display-grid/fov (state-grid s)
+                    (get-field fov player)
+                    (get-field seen player))
   (for-each displayln (reverse message-queue))
   (reset-message-queue!))
+
+(define (display-grid/fov grid fov seen)
+  (for ([x (in-range (grid-height grid))])
+    (for ([y (in-range (grid-width grid))])
+      (define pos (vector x y))
+      (display (if (set-member? seen pos)
+                   (send (grid-ref grid pos) show)
+                   "?"))) ;; TODO for testing
+    (newline)))
+
 
 (define (invalid-command)
   (enqueue-message! "Invalid command.")
