@@ -1,6 +1,7 @@
 #lang racket
 
-(require "encounters.rkt"
+(require racket/random
+         "encounters.rkt"
          "dungeon.rkt"
          "state.rkt"
          "utils.rkt")

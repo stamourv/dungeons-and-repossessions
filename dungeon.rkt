@@ -1,6 +1,7 @@
 #lang racket
 
-(require "cell.rkt" "grid.rkt" "wall-smoothing.rkt" "utils.rkt")
+(require racket/random
+         "cell.rkt" "grid.rkt" "wall-smoothing.rkt" "utils.rkt")
 
 (provide generate-dungeon
          (struct-out room))
@@ -124,11 +125,11 @@
        start-pos
        (cond
         [split-horizontally?
-         (define split-dy (random-between 3 width)) ; 3 is arbitrary
+         (define split-dy (random 3 width)) ; 3 is arbitrary
          (list (make-bsp height (add1 split-dy) start-pos)
                (make-bsp height (- width split-dy) (right start-pos split-dy)))]
         [can-split-vertically?
-         (define split-dx (random-between 3 height))
+         (define split-dx (random 3 height))
          (list (make-bsp (add1 split-dx) width start-pos)
                (make-bsp (- height split-dx) width (down start-pos split-dx)))]
         [else ; leaf, no children
@@ -268,7 +269,7 @@
                          (cons pos vertical-door%)]
                         [else #f]))))
       (when (not (empty? possible-doors))
-        (match-define (cons pos door-kind) (random-from possible-doors))
+        (match-define (cons pos door-kind) (random-ref possible-doors))
         (connect-rooms! r1 r2)
         (array-set! grid pos (new door-kind)))))
 

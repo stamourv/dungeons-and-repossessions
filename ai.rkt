@@ -1,6 +1,7 @@
 #lang racket
 
-(require "state.rkt" "message-queue.rkt" "grid.rkt" "utils.rkt")
+(require racket/random
+         "state.rkt" "message-queue.rkt" "grid.rkt" "utils.rkt")
 
 (provide (all-defined-out))
 
@@ -84,7 +85,7 @@
          (go-or-wait this player-pos state)]
         [else ; wander randomly
          (go-or-wait this
-                     (pos-if-ok ((random-from (list up down left right)) pos)
+                     (pos-if-ok ((random-ref (list up down left right)) pos)
                                 state)
                      state)]))
 

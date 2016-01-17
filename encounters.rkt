@@ -1,6 +1,6 @@
 #lang racket
 
-(require math/distributions
+(require racket/random math/distributions
          "encounter-tables.rkt" "monsters.rkt" "utils.rkt")
 
 (provide generate-encounters)
@@ -104,9 +104,9 @@
                                         (lambda ()
                                           (enumerate-encounters level d t)))))))
       t))
-  (define theme (random-from possible-themes))
+  (define theme (random-ref possible-themes))
   (for/list ([diff (in-list template)])
-    (random-from (dict-ref all-encounters (list level diff theme)))))
+    (random-ref (dict-ref all-encounters (list level diff theme)))))
 
 ;; generates a list of encounters for a given player level
 (define (generate-encounters level)
