@@ -172,7 +172,7 @@
       (display-state state)
       (handle-input state))
 
-    (define sight-range 5)
+    (define sight-range 7)
     (define (update-fov)
       (set! fov  (compute-fov grid pos sight-range))
       (set! seen (set-union seen fov)))
