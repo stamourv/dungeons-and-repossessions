@@ -174,8 +174,8 @@
 
     (define sight-range 5)
     (define (update-fov)
-      (set! seen (set-union seen fov))
-      (set! fov  (compute-fov grid pos sight-range)))
+      (set! fov  (compute-fov grid pos sight-range))
+      (set! seen (set-union seen fov)))
 
     (define/override (get-attack-bonus)
       ;; Note: assumes we're proficient with whatever weapon we're using
