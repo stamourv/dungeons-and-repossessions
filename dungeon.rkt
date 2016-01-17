@@ -155,7 +155,7 @@
   (pos
    height
    width
-   free-cells  ; where monsters or treasure could go
+   [free-cells #:mutable] ; where monsters or treasure could go
    extension-points)) ; (listof (cons/c pos direction))
 
 
@@ -191,6 +191,45 @@
              (values (cons pos free-cells) extension-points)])))
   (room start-pos height width free-cells extension-points))
 
+(define pillar-prob 0.6) ; only for large-enough rooms, so not that much, really
+(define (maybe-add-pillars! r grid)
+  (match-define (room start-pos height width free-cells extension-points) r)
+  (define shortest-dim (min height width))
+  (define longest-dim (max height width))
+  (when (and (< (random) pillar-prob)
+             (>= shortest-dim 8)) ; big enough to not be too cramped
+    ;; want 2 rows or cols of pillars in shortest dimension
+    ;; split the 3 aisles evenly, but allow middle to be larger
+    (define pillar-poss/shortest-dim
+      (let* ([adjusted-dim (- shortest-dim 4)] ; 4 = 2 for walls, 2 for pillars
+             [aisle-width  (quotient adjusted-dim 3)]
+             [middle-width (- adjusted-dim (* 2 aisle-width))])
+        (unless (= (+ aisle-width middle-width 2) ; sanity check
+                   (- shortest-dim (+ aisle-width 2)))
+          (error "pillar-poss/shortest-dim: got my math wrong"))
+        (list (+ aisle-width 1) ; first wall, aisle
+              (- shortest-dim (+ aisle-width 2))))) ; from the other end
+    ;; potentially more in longest dimension. hard-coded to look nice
+    (define pillar-poss/longest-dim
+      (case longest-dim ; goes up to 15, with current BSP generation
+        [(8)  '(2 5)] ; | #  # |
+        [(9)  '(2 6)] ; | #   # |
+        [(10) '(3 6)] ; |  #  #  |
+        [(11) (random-ref '((3 7) (2 5 8)))] ; |  #   #  | / | #  #  # |
+        [(12) '(3 8)] ; |  #    #  |
+        [(13) '(3 6 9)] ; |  #  #  #  |
+        [(14) (random-ref '((4 9) (2 5 8 11)))]; |   #    #   | / | #  #  #  # |
+        [(15) '(3 7 11)])) ; |  #   #   #  |
+    (match-define (vector start-x start-y) start-pos)
+    (for* ([pos-short (in-list pillar-poss/shortest-dim)]
+           [pos-long  (in-list pillar-poss/longest-dim)])
+      (define height-shortest? (= height shortest-dim))
+      (define pos (vector (+ start-x (if height-shortest? pos-short pos-long))
+                          (+ start-y (if height-shortest? pos-long pos-short))))
+      (array-set! grid pos (new pillar%))
+      (set-room-free-cells! r (remove pos (room-free-cells r))))))
+
+
 (define (generate-rooms [a-bsp (prune-bsp (make-bsp))])
   (define grid
     (array->mutable-array
@@ -204,7 +243,9 @@
        [(not (empty? children)) ; recur
         (append-map loop children)]
        [else ; leaf, add a room
-        (list (add-room! grid start-pos height width))])))
+        (define r (add-room! grid start-pos height width))
+        (maybe-add-pillars! r grid)
+        (list r)])))
   (values grid rooms))
 
 
@@ -393,12 +434,29 @@
   ;; make sure that we have "enough" rooms with high-enough probability
   ;; (need enough for all encounters, and 6 is currently the max I've seen)
   (define n-tests 1000)
+  (define dungeons
+    (for/list ([i (in-range n-tests)])
+      (prune-bsp (make-bsp))))
   (define histogram
     (for/fold ([hist '()])
-        ([i n-tests])
-      (define n (bsp-n-areas (prune-bsp (make-bsp))))
+        ([d (in-list dungeons)])
+      (define n (bsp-n-areas d))
       (dict-update hist n add1 0)))
   (displayln "# room distribution")
   (for ([(k v) (in-dict (sort histogram < #:key car))])
     (printf "  ~a = ~a\n" (~a k #:width 2) v))
+  (newline)
+  (define-values (min-dim max-dim)
+    (for/fold ([min-dim +inf.0]
+               [max-dim -inf.0])
+        ([d (in-list dungeons)])
+      (let loop ([a-bsp d] [min-dim min-dim] [max-dim max-dim])
+        (match-define (bsp height width start-pos children) a-bsp)
+        (if (empty? children)
+            (values (min min-dim width height) (max max-dim width height))
+            (for/fold ([min-dim min-dim]
+                       [max-dim max-dim])
+                ([c (in-list children)])
+              (loop c min-dim max-dim))))))
+  (printf "room dimensions: min = ~a ; max = ~a\n" min-dim max-dim)
 )
