@@ -159,6 +159,36 @@
    extension-points)) ; (listof (cons/c pos direction))
 
 
+(define (add-room! grid start-pos height width)
+  (for*/fold ([free-cells       '()]
+              [extension-points '()])
+      ([x (in-range height)]
+       [y (in-range width)])
+    (define pos (right (down start-pos x) y))
+    (define (add-wall!) (array-set! grid pos (new wall%)))
+    (cond [(or (and (= x 0)             (= y 0)) ; corner wall cases
+               (and (= x 0)             (= y (sub1 width)))
+               (and (= x (sub1 height)) (= y 0))
+               (and (= x (sub1 height)) (= y (sub1 width))))
+           (add-wall!)
+           ;; not free, and can't expand from corners
+           (values free-cells extension-points)]
+          [(= x 0) ; top wall
+           (add-wall!)
+           (values free-cells (dict-set extension-points pos up))]
+          [(= x (sub1 height)) ; bottom wall
+           (add-wall!)
+           (values free-cells (dict-set extension-points pos down))]
+          [(= y 0) ; left wall
+           (add-wall!)
+           (values free-cells (dict-set extension-points pos left))]
+          [(= y (sub1 width)) ; right wall
+           (add-wall!)
+           (values free-cells (dict-set extension-points pos right))]
+          [else ; inside of room
+           (array-set! grid pos (new empty-cell%))
+           (values (cons pos free-cells) extension-points)])))
+
 (define (generate-rooms [a-bsp (prune-bsp (make-bsp))])
   (define grid
     (array->mutable-array
@@ -173,34 +203,7 @@
         (append-map loop children)]
        [else ; leaf, add a room
         (define-values (free-cells extension-points)
-          (for*/fold ([free-cells       '()]
-                      [extension-points '()])
-              ([x (in-range height)]
-               [y (in-range width)])
-            (define pos (right (down start-pos x) y))
-            (define (add-wall!) (array-set! grid pos (new wall%)))
-            (cond [(or (and (= x 0)             (= y 0)) ; corner wall cases
-                       (and (= x 0)             (= y (sub1 width)))
-                       (and (= x (sub1 height)) (= y 0))
-                       (and (= x (sub1 height)) (= y (sub1 width))))
-                   (add-wall!)
-                   ;; not free, and can't expand from corners
-                   (values free-cells extension-points)]
-                  [(= x 0) ; top wall
-                   (add-wall!)
-                   (values free-cells (dict-set extension-points pos up))]
-                  [(= x (sub1 height)) ; bottom wall
-                   (add-wall!)
-                   (values free-cells (dict-set extension-points pos down))]
-                  [(= y 0) ; left wall
-                   (add-wall!)
-                   (values free-cells (dict-set extension-points pos left))]
-                  [(= y (sub1 width)) ; right wall
-                   (add-wall!)
-                   (values free-cells (dict-set extension-points pos right))]
-                  [else ; inside of room
-                   (array-set! grid pos (new empty-cell%))
-                   (values (cons pos free-cells) extension-points)])))
+          (add-room! grid start-pos height width))
         (list (room start-pos height width free-cells extension-points))])))
   (values grid rooms))
 
