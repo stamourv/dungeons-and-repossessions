@@ -1,8 +1,10 @@
 #lang racket
 
 (require "grid.rkt"
+         "cell.rkt"
          "message-queue.rkt"
          "state.rkt"
+         "wall-smoothing.rkt"
          "terminal.rkt")
 
 (provide set-up-ui
@@ -40,11 +42,22 @@
   (reset-message-queue!))
 
 (define (display-grid/fov grid fov seen)
+  ;; to avoid leaking info about what's on the other side of a wall,
+  ;; only connect walls (into tees or four-corners) based on what we've
+  ;; seen so far
+  (define smoothing-grid
+    (build-array (array-shape grid) (lambda _ (new empty-cell%))))
+  (for ([pos (in-set fov)])
+    (array-set! smoothing-grid pos (array-ref grid pos)))
+  ;; do the actual printing
   (for ([x (in-range (grid-height grid))])
     (for ([y (in-range (grid-width grid))])
       (define pos  (vector x y))
       (define cell (grid-ref grid pos))
-      (define char (send cell show))
+      (define char (send (if (is-a? cell wall%)
+                             (smooth-single-wall smoothing-grid pos)
+                             cell)
+                         show))
       (cond [(and (set-member? fov pos)
                   (not (send cell opaque?))) ; don't light those up
              (terminal-print char #:fg 'black #:bg 'white)]

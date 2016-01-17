@@ -2,7 +2,8 @@
 
 (require "cell.rkt" "grid.rkt")
 
-(provide smooth-walls)
+(provide smooth-walls
+         smooth-single-wall)
 
 ;; wall smoothing, for aesthetic reasons
 (define (smooth-walls grid)
