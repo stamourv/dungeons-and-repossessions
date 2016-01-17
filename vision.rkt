@@ -44,7 +44,7 @@
   (require rackunit
            "cell.rkt")
 
-  (define debug-fov-tests #t) ;; TODO
+  (define debug-fov-tests #f)
 
   (define (render-grid g) (string-join g "\n" #:after-last "\n"))
   (define (check-fov m pos range res)
@@ -295,5 +295,5 @@
                 " X        X "
                 " XXXXXXXXXX "
                 "            "))
-  (check-fov m6 #(4 2) 4 m6)
+  (check-fov m6 #(4 2) 4 r12)
   )
