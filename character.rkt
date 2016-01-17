@@ -4,6 +4,8 @@
          "message-queue.rkt"
          "state.rkt"
          "ai.rkt"
+         "vision.rkt"
+         "ui.rkt"
          "utils.rkt")
 
 (provide player%
@@ -28,6 +30,8 @@
       (error "can't show a character%"))
     (define/public (describe)
       (error "can't describe a character%"))
+    (define/public (act state) ; returns a kind of action
+      (error "can't ask a character% to act"))
 
     (define/public (move new-pos mode)
       (cond
@@ -153,12 +157,25 @@
            [constitution 2] ;   info (e.g., AC, attack bonus) is pre-computed
            [intelligence 0] ; Note: stored as bonus only, for simplicity
            [wisdom       -1]
-           [charisma     1])
+           [charisma     1]
+           [fov  (set)]
+           [seen (set)])
+    (inherit-field pos grid)
 
     (define/override (show) #\@)
     (define/override (describe #:capitalize? [capitalize? #f]
                                #:specific?   [specific? 'n/a]) ; always specific
       (string-append (article capitalize? #t) " player")) ; TODO have a name
+
+    (define/override (act state)
+      (update-fov)
+      (display-state state)
+      (handle-input state))
+
+    (define sight-range 5)
+    (define (update-fov)
+      (set! seen (set-union seen fov))
+      (set! fov  (compute-fov grid pos sight-range)))
 
     (define/override (get-attack-bonus)
       ;; Note: assumes we're proficient with whatever weapon we're using
@@ -178,8 +195,6 @@
     (define/override (describe #:capitalize? [capitalize? #f]
                                #:specific?   [specific?   #f])
       (string-append (article capitalize? specific?) " " name))
-    (define/public (act) ; returns a kind of action
-      (raise-argument-error 'act "this npc% can't act" this))
     (super-new)))
 
 (define training-dummy%

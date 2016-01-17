@@ -12,22 +12,17 @@
   (generate (new player%)))
 
 (define (game-loop s)
+  (define player (state-player s))
   (define active-character (first (state-initiative-order s)))
-  (define action-taken
-    (cond [(equal? active-character (state-player s))
-           (display-state s)
-           (handle-input s)]
-          [else ; npc
-           (send active-character act s)]))
+  (define action-taken     (send active-character act s))
   (unless (equal? action-taken 'quit)
     (define new-s (state-cleanup (next-state s action-taken)))
-    (cond [(positive? (get-field current-hp (state-player new-s)))
+    (cond [(positive? (get-field current-hp player))
            (game-loop new-s)] ; alive, keep going
           [else
            (enqueue-message!
             (format "~a has died.\nGame over.\n"
-                    (send (state-player new-s) describe
-                          #:capitalize? #t)))
+                    (send player describe #:capitalize? #t)))
            (display-state new-s)])))
 
 (module+ main

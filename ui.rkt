@@ -3,7 +3,8 @@
 (require "grid.rkt"
          "message-queue.rkt"
          "state.rkt"
-         "terminal.rkt")
+         "terminal.rkt"
+         "vision.rkt")
 
 (provide set-up-ui
          tear-down-ui
@@ -21,18 +22,21 @@
 (define sidebar-col 63)
 
 (define (display-state s)
+  (define player (state-player s))
   (clear-all)
   ;; sidebar
   (set-cursor-position! 2 sidebar-col)
   (displayln (show-mode s))
   (set-cursor-position! 3 sidebar-col)
   (printf "~a / ~a HP\n"
-          (get-field current-hp (state-player s))
-          (get-field max-hp (state-player s)))
+          (get-field current-hp player)
+          (get-field max-hp player))
   ;; main display
   (cursor-home)
   (newline) ; top "margin"
-  (display (show-grid (state-grid s)))
+  (display (show-grid/fov (state-grid s)
+                          (get-field fov player)
+                          (get-field seen player)))
   (for-each displayln (reverse message-queue))
   (reset-message-queue!))
 
