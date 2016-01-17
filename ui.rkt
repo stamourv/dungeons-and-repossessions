@@ -1,7 +1,6 @@
 #lang racket
 
-(require "character.rkt"
-         "grid.rkt"
+(require "grid.rkt"
          "message-queue.rkt"
          "state.rkt"
          "terminal.rkt")
