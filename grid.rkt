@@ -51,6 +51,17 @@
   (vector (+ (vector-ref pos 0) n)
           (vector-ref pos 1)))
 
+(define (horizontal? dir)
+  (or (equal? dir left) (equal? dir right)))
+(define (vertical? dir)
+  (or (equal? dir up) (equal? dir down)))
+
+(define (opposite dir)
+  (cond [(equal? dir up)    down]
+        [(equal? dir down)  up]
+        [(equal? dir left)  right]
+        [(equal? dir right) left]))
+
 (define (opposite-directions? d1 d2)
   (or (and (eq? d1 up)    (eq? d2 down))
       (and (eq? d1 down)  (eq? d2 up))

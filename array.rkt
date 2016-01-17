@@ -58,3 +58,7 @@
 ;; not true in general, but true because we only ever used `in-array`
 ;; on the result of `in-array-axis`
 (define-syntax-rule (in-array x ...) (in-vector x ...))
+
+(define (mutable-array-copy a)
+  (match-define (array n-rows n-cols cells) a)
+  (array n-rows n-cols (vector-copy cells)))

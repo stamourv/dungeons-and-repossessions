@@ -18,6 +18,8 @@
                 [occupant #f]) ; player, monster, etc.
     (define/public (free?)
       #f)
+    (define/public (opaque?)
+      #t)
     (define/public (show)
       #\*) ; for debugging
     (define/public (open)
@@ -32,6 +34,8 @@
     (inherit-field occupant)
     (define/override (free?)
       (not occupant))
+    (define/override (opaque?)
+      #f)
     (define/override (show)
       (if occupant
           (send occupant show)
@@ -80,6 +84,8 @@
     (inherit-field occupant)
     (define/override (free?)
       (and open? (not occupant)))
+    (define/override (opaque?)
+      (not open?))
     (define/override (open)
       (if open?
           (enqueue-message! "The door is already open.")

@@ -228,7 +228,7 @@
   (is-a? (grid-ref grid pos) wall%))
 
 (define (dir->door dir)
-  (if (member dir (list up down))
+  (if (vertical? dir)
       (new horizontal-door%)
       (new vertical-door%)))
 
