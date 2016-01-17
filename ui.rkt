@@ -1,7 +1,6 @@
 #lang racket
 
 (require "grid.rkt"
-         "cell.rkt"
          "message-queue.rkt"
          "state.rkt"
          "terminal.rkt")
@@ -47,7 +46,7 @@
       (define cell (grid-ref grid pos))
       (define char (send cell show))
       (cond [(and (set-member? fov pos)
-                  (not (is-a? cell wall%))) ; don't light walls up
+                  (not (send cell opaque?))) ; don't light those up
              (terminal-print char #:fg 'black #:bg 'white)]
             [(set-member? seen pos)
              (display char)]
