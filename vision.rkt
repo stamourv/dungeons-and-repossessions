@@ -10,30 +10,28 @@
 ;; based on: http://www.roguebasin.com/index.php?title=Improved_Shadowcasting_in_Java
 (define (compute-fov grid pos radius)
   (match-define (vector start-x start-y) pos)
-  (match-define (vector height width) (array-shape grid))
   (define fov (mutable-set pos))
+  ;; xx, xy and co specify the octant
   (define (cast-light row-no start-slope end-slope xx xy yx yy)
     (define new-start-slope 0.0)
+    (define blocked? #f)
     (unless (< start-slope end-slope) ; ...in which case we're done
-      (define blocked? #f)
-      (for ([distance (in-range row-no (add1 radius))]
+      (for ([row-no (in-range row-no (add1 radius))]
             #:break blocked?)
-        (define dy (- distance))
+        (define dy (- row-no))
         (let/ec break
-          (for ([dx (in-range (- distance) 1)])
+          (for ([dx (in-range (- row-no) 1)])
             (let/ec continue
               (define current-x   (+ start-x (* dx xx) (* dy xy)))
               (define current-y   (+ start-y (* dx yx) (* dy yy)))
+              (define pos         (vector current-x current-y))
               (define left-slope  (/ (- dx 0.5) (+ dy 0.5)))
               (define right-slope (/ (+ dx 0.5) (- dy 0.5)))
-
-              (cond [(or (not (and (>= current-x 0)      (>= current-y 0)
-                                   (<  current-x height) (<  current-y width)))
+              (cond [(or (not (within-grid? grid pos))
                          (< start-slope right-slope))
                      (continue)]
                     [(> end-slope left-slope)
                      (break)])
-              (define pos (vector current-x current-y))
               ;; if within radius, light up
               (when (< (sqrt (+ (sqr dx) (sqr dy))) (add1 radius))
                 (set-add! fov pos))
@@ -46,10 +44,12 @@
                             (set! start-slope new-start-slope)])]
                     [else
                      (when (and (send (grid-ref grid pos) opaque?)
-                                (< distance radius))
+                                (< row-no radius))
                        ;; hit a wall within range
                        (set! blocked? #t)
-                       (cast-light (add1 distance) start-slope left-slope xx xy yx yy)
+                       (cast-light (add1 row-no)
+                                   start-slope left-slope
+                                   xx xy yx yy)
                        (set! new-start-slope right-slope))])))))))
   (for ([d (in-list (cartesian-product '(1 -1) '(1 -1)))])
     (match-define (list dx dy) d)
