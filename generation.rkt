@@ -27,6 +27,7 @@
                #:when #t ; nest iteration
                [m    (in-list e)]
                [pos  (in-list poss)])
+      (set-room-free-cells! r (remove pos (room-free-cells r)))
       (cons (new m) pos)))
   (define player-pos (first (random-room-poss player-room 1)))
   (new-state player grid
