@@ -8,6 +8,7 @@
 
 ;; shadow casting
 ;; based on: http://www.roguebasin.com/index.php?title=Improved_Shadowcasting_in_Java
+;; algorithm: http://www.roguebasin.com/index.php?title=FOV_using_recursive_shadowcasting
 (define (compute-fov grid pos radius)
   (match-define (vector start-x start-y) pos)
   (define fov (mutable-set pos))
