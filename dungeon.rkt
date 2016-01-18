@@ -191,27 +191,30 @@
              (values (cons pos free-cells) extension-points)])))
   (room start-pos height width free-cells extension-points))
 
-(define pillar-prob 0.6) ; only for large-enough rooms, so not that much, really
+(define pillar-prob 0.5)
 (define (maybe-add-pillars! r grid)
   (match-define (room start-pos height width free-cells extension-points) r)
   (define shortest-dim (min height width))
   (define longest-dim (max height width))
   (when (and (< (random) pillar-prob)
-             (>= shortest-dim 8)) ; big enough to not be too cramped
-    ;; want 2 rows or cols of pillars in shortest dimension
-    ;; split the 3 aisles evenly, but allow middle to be larger
+             (>= shortest-dim 7)) ; big enough to not be too cramped
     (define pillar-poss/shortest-dim
-      (let* ([adjusted-dim (- shortest-dim 4)] ; 4 = 2 for walls, 2 for pillars
-             [aisle-width  (quotient adjusted-dim 3)]
-             [middle-width (- adjusted-dim (* 2 aisle-width))])
-        (unless (= (+ aisle-width middle-width 2) ; sanity check
-                   (- shortest-dim (+ aisle-width 2)))
-          (error "pillar-poss/shortest-dim: got my math wrong"))
-        (list (+ aisle-width 1) ; first wall, aisle
-              (- shortest-dim (+ aisle-width 2))))) ; from the other end
+      (cond [(>= shortest-dim 8) ; go with 2 rows/columns of pillars
+             ;; split the 3 aisles evenly, but allow middle to be larger
+             (define adjusted-dim (- shortest-dim 4)) ; 4 = 2 walls, 2 pillars
+             (define aisle-width  (quotient adjusted-dim 3))
+             (define middle-width (- adjusted-dim (* 2 aisle-width)))
+             (unless (= (+ aisle-width middle-width 2) ; sanity check
+                        (- shortest-dim (+ aisle-width 2)))
+               (error "pillar-poss/shortest-dim: got my math wrong"))
+             (list (+ aisle-width 1) ; first wall, aisle
+                   (- shortest-dim (+ aisle-width 2)))] ; from the other end
+            [else ; shortest-dim = 7, just one column
+             '(3)]))
     ;; potentially more in longest dimension. hard-coded to look nice
     (define pillar-poss/longest-dim
       (case longest-dim ; goes up to 15, with current BSP generation
+        [(7)  '(3)] ; |  #  |
         [(8)  '(2 5)] ; | #  # |
         [(9)  '(2 6)] ; | #   # |
         [(10) '(3 6)] ; |  #  #  |
