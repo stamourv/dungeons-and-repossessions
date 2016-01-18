@@ -56,7 +56,8 @@
       (define pos   (vector x y))
       (define cell (grid-ref smoothing-grid pos))
       (cond [(and (set-member? fov pos)
-                  (not (send cell opaque?))) ; don't light those up
+                  (or (is-a? cell pillar%) ; light pillars up
+                      (not (send cell opaque?)))) ; but not other walls
              (terminal-print (send cell show) #:fg 'black #:bg 'white)]
             [(set-member? seen pos)
              (display (send cell show #f))] ; don't show occupant
