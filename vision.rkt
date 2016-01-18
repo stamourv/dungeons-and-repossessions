@@ -21,36 +21,34 @@
         (define dy (- row-no))
         (let/ec break
           (for ([dx (in-range (- row-no) 1)])
-            (let/ec continue
-              (define current-x   (+ start-x (* dx xx) (* dy xy)))
-              (define current-y   (+ start-y (* dx yx) (* dy yy)))
-              (define pos         (vector current-x current-y))
-              (define left-slope  (/ (- dx 0.5) (+ dy 0.5)))
-              (define right-slope (/ (+ dx 0.5) (- dy 0.5)))
-              (cond [(or (not (within-grid? grid pos))
-                         (< start-slope right-slope))
-                     (continue)]
-                    [(> end-slope left-slope)
-                     (break)])
+            (define pos (vector (+ start-x (* dx xx) (* dy xy))
+                                (+ start-y (* dx yx) (* dy yy))))
+            (define left-slope  (/ (- dx 0.5) (+ dy 0.5)))
+            (define right-slope (/ (+ dx 0.5) (- dy 0.5)))
+            (unless (or (not (within-grid? grid pos)) ; out of bounds
+                        (< start-slope right-slope)) ; not yet in octant, skip
+              (when (> end-slope left-slope) ; out of the octant, do next row
+                (break))
               ;; if within radius, light up
               (when (< (sqrt (+ (sqr dx) (sqr dy))) (add1 radius))
                 (set-add! fov pos))
               (cond [blocked? ; previous cell was a blocking one
                      (cond [(send (grid-ref grid pos) opaque?) ; still on a wall
-                            (set! new-start-slope right-slope)
-                            (continue)]
+                            (set! new-start-slope right-slope)] ; keep skipping
                            [else
                             (set! blocked? #f) ; on clear ground again
                             (set! start-slope new-start-slope)])]
                     [else
                      (when (and (send (grid-ref grid pos) opaque?)
                                 (< row-no radius))
-                       ;; hit a wall within range
+                       ;; hit a wall within range, recur on a smaller slice
                        (set! blocked? #t)
                        (cast-light (add1 row-no)
                                    start-slope left-slope
                                    xx xy yx yy)
+                       ;; resume after the obstacle
                        (set! new-start-slope right-slope))])))))))
+  ;; for each octant, do shadow casting
   (for ([d (in-list (cartesian-product '(1 -1) '(1 -1)))])
     (match-define (list dx dy) d)
     (cast-light 1 1.0 0.0 0  dx dy 0)
