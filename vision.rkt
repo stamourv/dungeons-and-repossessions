@@ -6,31 +6,55 @@
 
 (define debug-fov #f)
 
-;; ray casting FOV
-;; based on: https://blog.jverkamp.com/2013/05/17/racket-roguelike-7-into-darkness/
-;; improved to keep track of octants (otherwise, we can end up seeing behind
-;; walls in some cases)
-(define (compute-fov grid pos [range 5])
-  (define fov (mutable-set))
-  (define (spread-light pos dir dir2 ttl) ; dir2 determines octant
-    (set-add! fov pos)
-    (when debug-fov
-      (printf "spreading to ~a ~a ~a\n" pos dir ttl)
-      (define cp (mutable-array-copy grid))
-      (apply-fov! cp fov)
-      (displayln (show-grid cp)))
-    (unless (or (<= ttl 0) ; out of range
-                (send (grid-ref grid pos) opaque?)) ; light can't spread past
-      (spread-light (dir pos)        dir dir2 (- ttl 1))
-      (spread-light (dir2 (dir pos)) dir dir2 (- ttl (sqrt 2)))))
-  (spread-light pos up    left  range)
-  (spread-light pos up    right range)
-  (spread-light pos down  left  range)
-  (spread-light pos down  right range)
-  (spread-light pos left  up    range)
-  (spread-light pos left  down  range)
-  (spread-light pos right up    range)
-  (spread-light pos right down  range)
+;; shadow casting
+;; based on: http://www.roguebasin.com/index.php?title=Improved_Shadowcasting_in_Java
+(define (compute-fov grid pos radius)
+  (match-define (vector start-x start-y) pos)
+  (match-define (vector height width) (array-shape grid))
+  (define fov (mutable-set pos))
+  (define (cast-light row-no start-slope end-slope xx xy yx yy)
+    (define new-start-slope 0.0)
+    (unless (< start-slope end-slope) ; ...in which case we're done
+      (define blocked? #f)
+      (for ([distance (in-range row-no (add1 radius))]
+            #:break blocked?)
+        (define dy (- distance))
+        (let/ec break
+          (for ([dx (in-range (- distance) 1)])
+            (let/ec continue
+              (define current-x   (+ start-x (* dx xx) (* dy xy)))
+              (define current-y   (+ start-y (* dx yx) (* dy yy)))
+              (define left-slope  (/ (- dx 0.5) (+ dy 0.5)))
+              (define right-slope (/ (+ dx 0.5) (- dy 0.5)))
+
+              (cond [(or (not (and (>= current-x 0)      (>= current-y 0)
+                                   (<  current-x height) (<  current-y width)))
+                         (< start-slope right-slope))
+                     (continue)]
+                    [(> end-slope left-slope)
+                     (break)])
+              (define pos (vector current-x current-y))
+              ;; if within radius, light up
+              (when (< (sqrt (+ (sqr dx) (sqr dy))) (add1 radius))
+                (set-add! fov pos))
+              (cond [blocked? ; previous cell was a blocking one
+                     (cond [(send (grid-ref grid pos) opaque?) ; still on a wall
+                            (set! new-start-slope right-slope)
+                            (continue)]
+                           [else
+                            (set! blocked? #f) ; on clear ground again
+                            (set! start-slope new-start-slope)])]
+                    [else
+                     (when (and (send (grid-ref grid pos) opaque?)
+                                (< distance radius))
+                       ;; hit a wall within range
+                       (set! blocked? #t)
+                       (cast-light (add1 distance) start-slope left-slope xx xy yx yy)
+                       (set! new-start-slope right-slope))])))))))
+  (for ([d (in-list (cartesian-product '(1 -1) '(1 -1)))])
+    (match-define (list dx dy) d)
+    (cast-light 1 1.0 0.0 0  dx dy 0)
+    (cast-light 1 1.0 0.0 dx 0  0  dy))
   fov)
 
 
@@ -101,7 +125,7 @@
                " X   ### ## "
                " X   ###### "
                " X   ###### "
-               " X   ###### "
+               " X    ##### "
                " X        X "
                " X        X "
                " X        X "
@@ -122,13 +146,13 @@
                " X        X "
                " XXXXXXXXXX "
                "            "))
-  (define r4 '("            " ;; TODO too much corner peeking
+  (define r4 '("            "
                " ###XXXXXXX "
                " # #      X "
-               " ######   X "
-               " ######   X "
-               " ######   X "
+               " ####     X "
                " #####    X "
+               " #####    X "
+               " ####     X "
                " X        X "
                " X        X "
                " X        X "
@@ -153,8 +177,8 @@
                " # #      X "
                " ###      X "
                " ###      X "
+               " ###      X "
                " ####     X "
-               " #####    X "
                " X        X "
                " X        X "
                " X        X "
@@ -174,13 +198,13 @@
                " X        X "
                " XXXXXXXXXX "
                "            "))
-  (define r6 '("            " ;; TODO not great. would hope to obscure more
+  (define r6 '("            "
                " ######XXXX "
                " # ####   X "
                " ######   X "
-               " ### ##   X "
-               " #### #   X "
-               " #####    X "
+               " ###  #   X "
+               " ###      X "
+               " ####     X "
                " X        X "
                " X        X "
                " X        X "
@@ -188,29 +212,29 @@
                "            "))
   (check-fov m4 #(2 2) 4 r6)
 
-  (define r7 '("            " ;; TODO ditto
-               " ######XXXX "
-               " ######   X "
+  (define r7 '("            "
+               " #####XXXXX "
+               " ####     X "
                " # #      X "
-               " ######   X "
-               " ######   X "
-               " ######   X "
+               " ####     X "
                " #####    X "
+               " #####    X "
+               " ####     X "
                " X        X "
                " X        X "
                " XXXXXXXXXX "
                "            "))
   (check-fov m4 #(3 2) 4 r7)
 
-  (define r8 '("            " ;; TODO ditto
-               " ####X#XXXX "
-               " ### ##   X "
+  (define r8 '("            "
+               " ###XXXXXXX "
+               " ###  #   X "
                " ######   X "
                " # ####   X "
                " ######   X "
                " ######   X "
-               " ######   X "
                " #####    X "
+               " ####     X "
                " X        X "
                " XXXXXXXXXX "
                "            "))
@@ -234,7 +258,7 @@
                " ###      X "
                " ###      X "
                " ###      X "
-               " ####     X "
+               " ###      X "
                " X        X "
                " X        X "
                " X        X "
@@ -255,13 +279,13 @@
                " X        X "
                " XXXXXXXXXX "
                "            "))
-  (define r10 '("            " ; TODO worthless
+  (define r10 '("            " ; not ideal
                 " ######XXXX "
                 " # ####   X "
                 " ######   X "
-                " ######   X "
-                " ######   X "
                 " #####    X "
+                " #####    X "
+                " ####     X "
                 " X        X "
                 " X        X "
                 " X        X "
@@ -269,29 +293,29 @@
                 "            "))
   (check-fov m6 #(2 2) 4 r10)
 
-  (define r11 '("            " ; TODO not great
+  (define r11 '("            "
                 " ######XXXX "
                 " ######   X "
                 " # ##     X "
                 " ######   X "
                 " ######   X "
-                " ######   X "
                 " #####    X "
+                " ####     X "
                 " X        X "
                 " X        X "
                 " XXXXXXXXXX "
                 "            "))
   (check-fov m6 #(3 2) 4 r11)
 
-  (define r12 '("            " ; TODO worthless
-                " ######XXXX "
-                " ######   X "
+  (define r12 '("            " ; not ideal
+                " #####XXXXX "
+                " #####    X "
                 " ######   X "
                 " # ####   X "
                 " ######   X "
                 " ######   X "
-                " ######   X "
                 " #####    X "
+                " ####     X "
                 " X        X "
                 " XXXXXXXXXX "
                 "            "))
