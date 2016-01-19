@@ -46,7 +46,7 @@
   ;; only connect walls (into tees or four-corners) based on what we've
   ;; seen so far
   (define smoothing-grid
-    (build-array (array-shape grid) (lambda _ (new empty-cell%))))
+    (build-array (array-shape grid) (lambda _ (new void-cell%))))
   (for ([pos (in-set seen)])
     (array-set! smoothing-grid pos (array-ref grid pos)))
   (smooth-walls smoothing-grid)

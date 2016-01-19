@@ -49,7 +49,6 @@
   (define (2-of-3? a b c) (or (and a b) (and a c) (and b c)))
   (new
    (match* (u d l r)
-     [(#F #F #F #F) pillar%]
      [(#F #F #F #T) horizontal-wall%]
      [(#F #F #T #F) horizontal-wall%]
      [(#F #F #T #T) horizontal-wall%]
@@ -93,7 +92,16 @@
                      [(force ful)                   south-east-wall%]
                      [(force fur)                   south-west-wall%]
                      [(force fdl)                   north-east-wall%]
-                     [(force fdr)                   north-west-wall%])])))
+                     [(force fdr)                   north-west-wall%])]
+     [(#F #F #F #F) (cond ; free-standing. can't happen except via partial FOV
+                     ;; do the best we can, and pretend it's a straight wall
+                     [(or (force fu) (force fd)) horizontal-wall%]
+                     [(or (force fl) (force fr)) vertical-wall%]
+                     [else ; uh, we got ourselves in a weird case...
+                      ;; not sure how that can happen, but I've seen it once...
+                      ;; just don't crash, and have something that looks
+                      ;; halfway reasonable...
+                      empty-cell%])])))
 
 
 (module+ test
