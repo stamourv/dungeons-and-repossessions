@@ -27,7 +27,7 @@
             (define left-slope  (/ (- dx 0.5) (+ dy 0.5)))
             (define right-slope (/ (+ dx 0.5) (- dy 0.5)))
             (unless (or (not (within-grid? grid pos)) ; out of bounds
-                        (< start-slope right-slope)) ; not yet in octant, skip
+                        (< start-slope right-slope))
               (when (> end-slope left-slope) ; out of the octant, do next row
                 (break))
               ;; if within radius, light up
