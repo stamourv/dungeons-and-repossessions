@@ -64,9 +64,7 @@
              (super-new)))
          ;; parse either kind
          (register-cell-type! name single-bar)
-         (register-cell-type! name double-bar)
-         (provide name)))
-(define-wall pillar%           #\+     #\#)
+         (register-cell-type! name double-bar)))
 (define-wall vertical-wall%    #\u2502 #\u2551)
 (define-wall horizontal-wall%  #\u2500 #\u2550)
 (define-wall four-corner-wall% #\u253c #\u256c)
@@ -78,6 +76,15 @@
 (define-wall south-tee-wall%   #\u2534 #\u2569)
 (define-wall east-tee-wall%    #\u2524 #\u2563)
 (define-wall west-tee-wall%    #\u251c #\u2560)
+
+(define pillar%
+  (class cell%
+    (define/override (show [show-occupant? #t])
+      (if double-bar? #\# #\+))
+    (super-new)))
+(register-cell-type! pillar% #\#)
+(register-cell-type! pillar% #\+)
+
 
 (define door%
   (class cell%
