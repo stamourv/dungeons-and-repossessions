@@ -55,27 +55,32 @@
     (super-new)))
 (register-cell-type! wall% #\X)
 
+;; some walls, e.g., tee walls, can leak information about what's on the
+;; other side, which we don't want if the other side is not explored yet
+;; those are handled specially by FOV display
+(define info-leak-wall% (class wall% (super-new)))
+
 (define double-bar? #t)
-(define-syntax-rule (define-wall name single-bar double-bar)
+(define-syntax-rule (define-wall name single-bar double-bar super-class)
   (begin (define name
-           (class wall%
+           (class super-class
              (define/override (show [show-occupant? #t])
                (if double-bar? double-bar single-bar))
              (super-new)))
          ;; parse either kind
          (register-cell-type! name single-bar)
          (register-cell-type! name double-bar)))
-(define-wall vertical-wall%    #\u2502 #\u2551)
-(define-wall horizontal-wall%  #\u2500 #\u2550)
-(define-wall four-corner-wall% #\u253c #\u256c)
-(define-wall north-east-wall%  #\u2510 #\u2557)
-(define-wall north-west-wall%  #\u250c #\u2554)
-(define-wall south-east-wall%  #\u2518 #\u255d)
-(define-wall south-west-wall%  #\u2514 #\u255a)
-(define-wall north-tee-wall%   #\u252c #\u2566)
-(define-wall south-tee-wall%   #\u2534 #\u2569)
-(define-wall east-tee-wall%    #\u2524 #\u2563)
-(define-wall west-tee-wall%    #\u251c #\u2560)
+(define-wall vertical-wall%    #\u2502 #\u2551 wall%)
+(define-wall horizontal-wall%  #\u2500 #\u2550 wall%)
+(define-wall north-east-wall%  #\u2510 #\u2557 wall%)
+(define-wall north-west-wall%  #\u250c #\u2554 wall%)
+(define-wall south-east-wall%  #\u2518 #\u255d wall%)
+(define-wall south-west-wall%  #\u2514 #\u255a wall%)
+(define-wall north-tee-wall%   #\u252c #\u2566 info-leak-wall%)
+(define-wall south-tee-wall%   #\u2534 #\u2569 info-leak-wall%)
+(define-wall east-tee-wall%    #\u2524 #\u2563 info-leak-wall%)
+(define-wall west-tee-wall%    #\u251c #\u2560 info-leak-wall%)
+(define-wall four-corner-wall% #\u253c #\u256c info-leak-wall%)
 
 (define pillar%
   (class cell%

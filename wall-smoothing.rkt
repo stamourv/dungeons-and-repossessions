@@ -6,11 +6,14 @@
          smooth-single-wall)
 
 ;; wall smoothing, for aesthetic reasons
-(define (smooth-walls grid)
+(define (smooth-walls grid #:only-info-leaks? [only-info-leaks? #f])
   (for* ([x (in-range (grid-height grid))]
          [y (in-range (grid-width  grid))])
-    (define pos (vector x y))
-    (when (is-a? (grid-ref grid pos) wall%)
+    (define pos  (vector x y))
+    (define cell (grid-ref grid pos))
+    (when (if only-info-leaks?
+              (is-a? cell info-leak-wall%)
+              (is-a? cell wall%))
       (array-set! grid pos (smooth-single-wall grid pos))))
   (set! wall-cache (make-hash)) ; reset caches
   (set! free-cache (make-hash))

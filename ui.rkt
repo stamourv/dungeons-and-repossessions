@@ -49,7 +49,7 @@
     (build-array (array-shape grid) (lambda _ (new void-cell%))))
   (for ([pos (in-set seen)])
     (array-set! smoothing-grid pos (array-ref grid pos)))
-  (smooth-walls smoothing-grid)
+  (smooth-walls smoothing-grid #:only-info-leaks? #t)
   ;; do the actual printing
   (for ([x (in-range (grid-height grid))])
     (for ([y (in-range (grid-width grid))])
