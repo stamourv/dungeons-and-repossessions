@@ -319,4 +319,57 @@
                 " XXXXXXXXXX "
                 "            "))
   (check-fov m6 #(4 2) 4 r12)
+
+  (define m7 '("            "
+               " XXXXXXXXXX "
+               " X        X "
+               " X        X "
+               " X        X "
+               " X  X  X  X "
+               " X        X "
+               " X        X "
+               " X        X "
+               " X        X "
+               " XXXXXXXXXX "
+               "            "))
+  (define r13 '("            "
+                " ########## "
+                " ########## "
+                " #### ##### "
+                " ########## "
+                " ########## "
+                " ####### ## "
+                " ## ##### X "
+                " X  ##### X "
+                " X        X "
+                " XXXXXXXXXX "
+                "            "))
+  (check-fov m7 #(3 5) 5 r13)
+
+  (define m8 '("            "
+               " XXXXXXXXXX "
+               " X        X "
+               " X        X "
+               " X        X "
+               " X        X "
+               " X        X "
+               " X X  X   X "
+               " X        X "
+               " X        X "
+               " XXXXXXXXXX "
+               "            "))
+  (define r14 '("            "
+                " XX######## "
+                " X######### "
+                " X######### "
+                " X######### "
+                " X####### # "
+                " X######### "
+                " X######### "
+                " X # ###### "
+                " X  ####### "
+                " XX######## "
+                "            "))
+  (check-fov m8 #(5 9) 7 r14)
+
   )
