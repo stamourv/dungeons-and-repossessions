@@ -1,6 +1,6 @@
 #lang racket
 
-(require "character.rkt"
+(require "player.rkt"
          "generation.rkt"
          "message-queue.rkt"
          "state.rkt"

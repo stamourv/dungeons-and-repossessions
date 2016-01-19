@@ -5,8 +5,11 @@
 (provide (all-defined-out))
 
 (define monster%
-  (class npc%
-    [init-field theme xp-value]
+  (class character%
+    [init-field name theme xp-value]
+    (define/override (describe #:capitalize? [capitalize? #f]
+                               #:specific?   [specific?   #f])
+      (string-append (article capitalize? specific?) " " name))
     (super-new)))
 
 (define monsters-by-theme (make-hash)) ; hash from theme to set of monsters

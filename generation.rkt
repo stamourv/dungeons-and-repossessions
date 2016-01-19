@@ -35,5 +35,5 @@
 
 
 (module+ main
-  (require "grid.rkt" "character.rkt")
+  (require "grid.rkt" "player.rkt")
   (display (show-grid (state-grid (generate (new player%))))))
