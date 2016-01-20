@@ -1,6 +1,6 @@
 #lang racket
 
-(require racket/random
+(require racket/random math/distributions
          "cell.rkt" "grid.rkt" "wall-smoothing.rkt" "utils.rkt")
 
 (provide generate-dungeon
@@ -275,9 +275,13 @@
   (is-a? (grid-ref grid pos) wall%))
 
 (define (dir->door dir)
-  (if (vertical? dir)
-      (new horizontal-door%)
-      (new vertical-door%)))
+  (if (vertical? dir) horizontal-door% vertical-door%))
+
+(define open-doorway-prob 0.4)
+(define (maybe-open-doorway door-kind)
+  (define dist (discrete-dist (list empty-cell% door-kind)
+                              (list open-doorway-prob (- 1 open-doorway-prob))))
+  (new (sample dist)))
 
 (define (add-corridors grid rooms)
   (define connected-pairs '()) ; (listof (list/c room? room?))
@@ -318,7 +322,7 @@
       (when (not (empty? possible-doors))
         (match-define (cons pos door-kind) (random-ref possible-doors))
         (connect-rooms! r1 r2)
-        (array-set! grid pos (new door-kind)))))
+        (array-set! grid pos (maybe-open-doorway door-kind)))))
 
   ;; start digging corridors at random, in the hope of connecting everyone
   ;; (and introducing some cycles)
@@ -369,8 +373,8 @@
                (loop (dir pos))]))) ; keep digging
     (when end-pos+corridor-id ; actually dig the corridor
       (match-define (cons end-pos corridor-id) end-pos+corridor-id)
-      (array-set! grid start-pos (dir->door dir))
-      (array-set! grid end-pos   (dir->door dir))
+      (array-set! grid start-pos (maybe-open-doorway (dir->door dir)))
+      (array-set! grid end-pos   (maybe-open-doorway (dir->door dir)))
       (match-define (vector start-x start-y) start-pos)
       (match-define (vector end-x   end-y)   end-pos)
       ;; to make corridors valid end points for other corridors, need to add
