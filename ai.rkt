@@ -56,22 +56,28 @@
       (and (< player-x pos-x) (pos-if-ok (up pos)    state))
       (and (< player-y pos-y) (pos-if-ok (left pos)  state))))
 
+(define-syntax-rule (with-fov seen-player? state [seen ...] [not-seen ...])
+  (let ()
+    (define pos (get-field pos (first (state-initiative-order state))))
+    (define grid (state-grid state))
+    (define player-pos (get-player-pos state))
+    (cond [(or seen-player?
+               (and (set-member? (compute-fov grid pos 7) ; arbitrary range
+                                 player-pos)
+                    (set! seen-player? #t)))
+           seen ...]
+          [else not-seen ...])))
+
 ;; goes towards the player as directly as possible and attacks
 (define (rush-ai this)
   ;; until we see the player, just wait. once we do, though, pursue
   (define seen-player? #f)
   (define (act state)
-    (define grid       (get-field grid this))
     (define pos        (get-field  pos this))
-    (define player-pos (get-player-pos state))
-    (cond [seen-player?
-           (define new-pos (rush pos state))
-           (go-or-wait this new-pos state)]
-          [(set-member? (compute-fov grid pos 7) player-pos) ; arbitrary range
-           (set! seen-player? #t) ; we've seen the player
-           (act state)] ; now rush
-          [else ; don't see the player, wait
-           'wait]))
+    (with-fov seen-player? state
+              [(define new-pos (rush pos state))
+               (go-or-wait this new-pos state)]
+              ['wait]))
   act)
 
 (define (cower pos state)
@@ -110,10 +116,13 @@
 ;; rushes, but once injured, cowers
 ;; TODO have it reset to rush after some time (like the fallen in diablo)
 (define (injury-shy-ai this)
+  (define seen-player? #f) ; don't rush until we've actually seen the player
   (lambda (state)
     (define pos (get-field pos this))
-    (define new-pos
-      (if (= (get-field current-hp this) (get-field max-hp this))
-          (rush  pos state)
-          (cower pos state)))
-    (go-or-wait this new-pos state)))
+    (with-fov seen-player? state
+              [(define new-pos
+                 (if (= (get-field current-hp this) (get-field max-hp this))
+                     (rush  pos state)
+                     (cower pos state)))
+               (go-or-wait this new-pos state)]
+              ['wait])))
