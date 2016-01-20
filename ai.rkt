@@ -1,7 +1,7 @@
 #lang racket
 
 (require racket/random
-         "state.rkt" "message-queue.rkt" "grid.rkt" "utils.rkt")
+         "state.rkt" "message-queue.rkt" "grid.rkt" "vision.rkt" "utils.rkt")
 
 (provide (all-defined-out))
 
@@ -26,7 +26,6 @@
       [(3) (send this move-down  mode)]
       [(4) 'wait])))
 
-;; TODO once we add visibility, have it not "see" the player through walls
 (define (get-player-pos state)
   (get-field pos (state-player state)))
 
@@ -59,9 +58,21 @@
 
 ;; goes towards the player as directly as possible and attacks
 (define (rush-ai this)
-  (lambda (state)
-    (define new-pos (rush (get-field pos this) state))
-    (go-or-wait this new-pos state)))
+  ;; until we see the player, just wait. once we do, though, pursue
+  (define seen-player? #f)
+  (define (act state)
+    (define grid       (get-field grid this))
+    (define pos        (get-field  pos this))
+    (define player-pos (get-player-pos state))
+    (cond [seen-player?
+           (define new-pos (rush pos state))
+           (go-or-wait this new-pos state)]
+          [(set-member? (compute-fov grid pos 7) player-pos) ; arbitrary range
+           (set! seen-player? #t) ; we've seen the player
+           (act state)] ; now rush
+          [else ; don't see the player, wait
+           'wait]))
+  act)
 
 (define (cower pos state)
   (define player-pos (get-player-pos state))
