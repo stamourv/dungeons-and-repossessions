@@ -5,6 +5,7 @@
          "message-queue.rkt"
          "vision.rkt"
          "ui.rkt"
+         "grid.rkt"
          "utils.rkt")
 
 (provide player%)
@@ -33,9 +34,14 @@
       (display-state state)
       (handle-input state))
 
+    (define debug:reveal-map #f)
     (define sight-range 7)
     (define (update-fov)
       (set! fov  (compute-fov grid pos sight-range))
+      (when debug:reveal-map ; set the FOV to be the whole map
+        (set! fov (for*/set ([x (in-range (grid-height grid))]
+                             [y (in-range (grid-width  grid))])
+                     (vector x y))))
       (set! seen (set-union seen fov)))
 
     (define/override (get-attack-bonus)
