@@ -82,8 +82,9 @@
     (class character%
       (define/override (show)
         #\D)
+      (define ai (wait-ai this))
       (define/override (act state) ; the dummy doesn't do anything
-        (wait-ai this state))
+        (ai state))
       (define/override (get-ac) 10)
       (define/override (describe #:capitalize? [capitalize? #f]
                                  #:specific?   [specific?   #f])

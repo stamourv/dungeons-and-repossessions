@@ -6,23 +6,25 @@
 (provide (all-defined-out))
 
 ;; just sit there doing nothing
-(define (wait-ai this state)
-  ;; to avoid printing both when moving and attacking
-  (when (equal? (state-mode state) 'attack)
-    (enqueue-message! (format "~a waits."
-                              (send this describe
-                                    #:capitalize? #t #:specific? #t))))
-  'wait)
+(define (wait-ai this)
+  (lambda (state)
+    ;; to avoid printing both when moving and attacking
+    (when (equal? (state-mode state) 'attack)
+      (enqueue-message! (format "~a waits."
+                                (send this describe
+                                      #:capitalize? #t #:specific? #t))))
+    'wait))
 
 ;; moves at random, which attacks if it runs into something
-(define (random-move-ai this state)
-  (define mode (state-mode state))
-  (case (random 5)
-    [(0) (send this move-left  mode)]
-    [(1) (send this move-right mode)]
-    [(2) (send this move-up    mode)]
-    [(3) (send this move-down  mode)]
-    [(4) 'wait]))
+(define (random-move-ai this)
+  (lambda (state)
+    (define mode (state-mode state))
+    (case (random 5)
+      [(0) (send this move-left  mode)]
+      [(1) (send this move-right mode)]
+      [(2) (send this move-up    mode)]
+      [(3) (send this move-down  mode)]
+      [(4) 'wait])))
 
 ;; TODO once we add visibility, have it not "see" the player through walls
 (define (get-player-pos state)
@@ -47,51 +49,60 @@
       'wait
       action-type))
 
-;; goes towards the player as directly as possible and attacks
-(define (rush-ai this state)
-  (define pos (get-field pos this))
+(define (rush pos state)
   (match-define (vector player-x player-y) (get-player-pos state))
   (match-define (vector pos-x    pos-y)    pos)
-  (define new-pos
-    (or (and (> player-x pos-x) (pos-if-ok (down pos)  state))
-        (and (> player-y pos-y) (pos-if-ok (right pos) state))
-        (and (< player-x pos-x) (pos-if-ok (up pos)    state))
-        (and (< player-y pos-y) (pos-if-ok (left pos)  state))))
-  (go-or-wait this new-pos state))
+  (or (and (> player-x pos-x) (pos-if-ok (down pos)  state))
+      (and (> player-y pos-y) (pos-if-ok (right pos) state))
+      (and (< player-x pos-x) (pos-if-ok (up pos)    state))
+      (and (< player-y pos-y) (pos-if-ok (left pos)  state))))
 
-;; runs away from the player, but attacks if player is adjacent
-(define (cower-ai this state)
-  (define pos        (get-field pos this))
+;; goes towards the player as directly as possible and attacks
+(define (rush-ai this)
+  (lambda (state)
+    (define new-pos (rush (get-field pos this) state))
+    (go-or-wait this new-pos state)))
+
+(define (cower pos state)
   (define player-pos (get-player-pos state))
   (match-define (vector pos-x    pos-y)    pos)
   (match-define (vector player-x player-y) player-pos)
   (cond
    [(adjacent? pos player-pos) ; attack
-    (go-or-wait this player-pos state)]
+    player-pos]
    [else ; cower. essentially the reverse of rush
-    (define new-pos
-      (or (and (> player-x pos-x) (pos-if-ok (up pos)    state))
-          (and (> player-y pos-y) (pos-if-ok (left pos)  state))
-          (and (< player-x pos-x) (pos-if-ok (down pos)  state))
-          (and (< player-y pos-y) (pos-if-ok (right pos) state))))
-    (go-or-wait this new-pos state)]))
+    (or (and (> player-x pos-x) (pos-if-ok (up pos)    state))
+        (and (> player-y pos-y) (pos-if-ok (left pos)  state))
+        (and (< player-x pos-x) (pos-if-ok (down pos)  state))
+        (and (< player-y pos-y) (pos-if-ok (right pos) state)))]))
+
+;; runs away from the player, but attacks if player is adjacent
+(define (cower-ai this)
+  (lambda (state)
+    (define new-pos (cower (get-field pos this) state))
+    (go-or-wait this new-pos state)))
 
 ;; moves at random, until the player gets close enough (adjacent, currently),
 ;; in which case it attacks
-(define (wander-ai this state)
-  (define pos        (get-field pos this))
-  (define player-pos (get-player-pos state))
-  (cond [(adjacent? pos player-pos)
-         (go-or-wait this player-pos state)]
-        [else ; wander randomly
-         (go-or-wait this
-                     (pos-if-ok ((random-ref (list up down left right)) pos)
-                                state)
-                     state)]))
+(define (wander-ai this)
+  (lambda (state)
+    (define pos        (get-field pos this))
+    (define player-pos (get-player-pos state))
+    (cond [(adjacent? pos player-pos)
+           (go-or-wait this player-pos state)]
+          [else ; wander randomly
+           (go-or-wait this
+                       (pos-if-ok ((random-ref (list up down left right)) pos)
+                                  state)
+                       state)])))
 
 ;; rushes, but once injured, cowers
 ;; TODO have it reset to rush after some time (like the fallen in diablo)
-(define (injury-shy-ai this state)
-  (if (= (get-field current-hp this) (get-field max-hp this))
-      (rush-ai  this state)
-      (cower-ai this state)))
+(define (injury-shy-ai this)
+  (lambda (state)
+    (define pos (get-field pos this))
+    (define new-pos
+      (if (= (get-field current-hp this) (get-field max-hp this))
+          (rush  pos state)
+          (cower pos state)))
+    (go-or-wait this new-pos state)))

@@ -31,7 +31,8 @@
     (define def-name
       (class monster%
         (define/override (show)             char)
-        (define/override (act state)        (ai this state))
+        (define my-ai (ai this))
+        (define/override (act state)        (my-ai state))
         (define/override (get-attack-bonus) ab)
         (define/override (get-ac)           ac)
         (define/override (get-damage-die)   dmg)
