@@ -5,26 +5,45 @@
 
 (provide (all-defined-out))
 
+(define ai%
+  (class object%
+    (init-field monster)
+    (field [seen-player? #f])
+    (define/public (act state)
+      (error "this ai% can't act"))
+    (define/public (wake-up) ; someone saw the player
+      (unless seen-player? ; already woke up. to avoid infinite loops
+        ;; Note: `seen-player?` must not be set directly elsewhere, otherwise
+        ;;   we're not going to wake up the rest of the encounter
+        (set! seen-player? #t)
+        (for ([m (in-list (get-field encounter monster))]) ; wake up others
+          (send m wake-up))))
+    (super-new)))
+
 ;; just sit there doing nothing
-(define (wait-ai this)
-  (lambda (state)
-    ;; to avoid printing both when moving and attacking
-    (when (equal? (state-mode state) 'attack)
+(define wait-ai%
+  (class ai%
+    (inherit-field monster)
+    (define/override (act state)
       (enqueue-message! (format "~a waits."
-                                (send this describe
-                                      #:capitalize? #t #:specific? #t))))
-    'wait))
+                                (send monster describe
+                                      #:capitalize? #t #:specific? #t)))
+      'wait)
+    (super-new)))
 
 ;; moves at random, which attacks if it runs into something
-(define (random-move-ai this)
-  (lambda (state)
-    (define mode (state-mode state))
-    (case (random 5)
-      [(0) (send this move-left  mode)]
-      [(1) (send this move-right mode)]
-      [(2) (send this move-up    mode)]
-      [(3) (send this move-down  mode)]
-      [(4) 'wait])))
+(define random-move-ai%
+  (class ai%
+    (inherit-field monster)
+    (define/override (act state)
+      (define mode (state-mode state))
+      (case (random 5)
+        [(0) (send monster move-left  mode)]
+        [(1) (send monster move-right mode)]
+        [(2) (send monster move-up    mode)]
+        [(3) (send monster move-down  mode)]
+        [(4) 'wait]))
+    (super-new)))
 
 (define (get-player-pos state)
   (get-field pos (state-player state)))
@@ -56,29 +75,30 @@
       (and (< player-x pos-x) (pos-if-ok (up pos)    state))
       (and (< player-y pos-y) (pos-if-ok (left pos)  state))))
 
-(define-syntax-rule (with-fov seen-player? state [seen ...] [not-seen ...])
+(define-syntax-rule (with-fov this state [seen ...] [not-seen ...])
   (let ()
     (define pos (get-field pos (first (state-initiative-order state))))
     (define grid (state-grid state))
     (define player-pos (get-player-pos state))
-    (cond [(or seen-player?
+    (cond [(or (get-field seen-player? this)
                (and (set-member? (compute-fov grid pos 7) ; arbitrary range
                                  player-pos)
-                    (set! seen-player? #t)))
+                    (send this wake-up)))
            seen ...]
           [else not-seen ...])))
 
 ;; goes towards the player as directly as possible and attacks
-(define (rush-ai this)
-  ;; until we see the player, just wait. once we do, though, pursue
-  (define seen-player? #f)
-  (define (act state)
-    (define pos        (get-field  pos this))
-    (with-fov seen-player? state
-              [(define new-pos (rush pos state))
-               (go-or-wait this new-pos state)]
-              ['wait]))
-  act)
+(define rush-ai%
+  (class ai%
+    (inherit-field monster)
+    (define/override (act state)
+      ;; until we see the player, just wait. once we do, though, pursue
+      (define pos        (get-field  pos monster))
+      (with-fov this state
+                [(define new-pos (rush pos state))
+                 (go-or-wait monster new-pos state)]
+                ['wait]))
+    (super-new)))
 
 (define (cower pos state)
   (define player-pos (get-player-pos state))
@@ -94,35 +114,44 @@
         (and (< player-y pos-y) (pos-if-ok (right pos) state)))]))
 
 ;; runs away from the player, but attacks if player is adjacent
-(define (cower-ai this)
-  (lambda (state)
-    (define new-pos (cower (get-field pos this) state))
-    (go-or-wait this new-pos state)))
+(define cower-ai%
+  (class ai%
+    (inherit-field monster)
+    (define/override (act state)
+      (define new-pos (cower (get-field pos monster) state))
+      (go-or-wait monster new-pos state))
+    (super-new)))
 
 ;; moves at random, until the player gets close enough (adjacent, currently),
 ;; in which case it attacks
-(define (wander-ai this)
-  (lambda (state)
-    (define pos        (get-field pos this))
-    (define player-pos (get-player-pos state))
-    (cond [(adjacent? pos player-pos)
-           (go-or-wait this player-pos state)]
-          [else ; wander randomly
-           (go-or-wait this
-                       (pos-if-ok ((random-ref (list up down left right)) pos)
-                                  state)
-                       state)])))
+(define wander-ai%
+  (class ai%
+    (inherit-field monster)
+    (define/override (act state)
+      (define pos        (get-field pos monster))
+      (define player-pos (get-player-pos state))
+      (cond [(adjacent? pos player-pos)
+             (go-or-wait monster player-pos state)]
+            [else ; wander randomly
+             (go-or-wait monster
+                         (pos-if-ok ((random-ref (list up down left right)) pos)
+                                    state)
+                         state)]))
+    (super-new)))
 
 ;; rushes, but once injured, cowers
 ;; TODO have it reset to rush after some time (like the fallen in diablo)
-(define (injury-shy-ai this)
-  (define seen-player? #f) ; don't rush until we've actually seen the player
-  (lambda (state)
-    (define pos (get-field pos this))
-    (with-fov seen-player? state
-              [(define new-pos
-                 (if (= (get-field current-hp this) (get-field max-hp this))
-                     (rush  pos state)
-                     (cower pos state)))
-               (go-or-wait this new-pos state)]
-              ['wait])))
+(define injury-shy-ai%
+  (class ai%
+    (inherit-field monster)
+    (define/override (act state) ; don't rush until we've seen the player
+      (define pos (get-field pos monster))
+      (with-fov this state
+                [(define new-pos
+                   (if (= (get-field current-hp monster)
+                          (get-field max-hp monster))
+                       (rush  pos state)
+                       (cower pos state)))
+                 (go-or-wait monster new-pos state)]
+                ['wait]))
+    (super-new)))

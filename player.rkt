@@ -88,9 +88,9 @@
     (class character%
       (define/override (show)
         #\D)
-      (define ai (wait-ai this))
+      (define ai (new wait-ai% [monster this]))
       (define/override (act state) ; the dummy doesn't do anything
-        (ai state))
+        (send ai act state))
       (define/override (get-ac) 10)
       (define/override (describe #:capitalize? [capitalize? #f]
                                  #:specific?   [specific?   #f])
