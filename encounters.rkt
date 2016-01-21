@@ -3,7 +3,7 @@
 (require racket/random math/distributions 2d/match
          "monsters.rkt" "utils.rkt")
 
-(provide generate-encounters)
+(provide generate-encounters instantiate-encounter)
 
 ;; An Encounter is a (Listof Monster)
 
@@ -105,16 +105,18 @@
                                           (enumerate-encounters level d t)))))))
       t))
   (define theme (random-ref possible-themes))
-  (define encounter
-    (for/list ([diff (in-list template)])
-      (random-ref (dict-ref all-encounters (list level diff theme)))))
-  (for ([m (in-list encounter)]) ; connect monsters to the others
-    (set-field! encounter m encounter))
-  encounter)
+  (for/list ([diff (in-list template)])
+    (random-ref (dict-ref all-encounters (list level diff theme)))))
 
 ;; generates a list of encounters for a given player level
 (define (generate-encounters level)
   (fill-encounter-template (generate-encounter-template level) level))
+
+(define (instantiate-encounter e)
+  (for/list ([m-c (in-list e)])
+    (define m (new m-c))
+    (set-field! encounter m e) ; connect monsters to the others in the room
+    m))
 
 ;; (module+ main ; to test it out
 ;;   (define level 2)

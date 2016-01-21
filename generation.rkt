@@ -25,10 +25,10 @@
                #:when #t ; nest iteration
                [poss (in-value (random-room-poss r (length e)))]
                #:when #t ; nest iteration
-               [m    (in-list e)]
+               [m    (in-list (instantiate-encounter e))]
                [pos  (in-list poss)])
       (set-room-free-cells! r (remove pos (room-free-cells r)))
-      (cons (new m) pos)))
+      (cons m pos)))
   (define player-pos (first (random-room-poss player-room 1)))
   (new-state player grid
              #:characters (cons (cons player player-pos) monster-poss)))
