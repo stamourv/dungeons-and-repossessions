@@ -113,10 +113,10 @@
   (fill-encounter-template (generate-encounter-template level) level))
 
 (define (instantiate-encounter e)
-  (for/list ([m-c (in-list e)])
-    (define m (new m-c))
-    (set-field! encounter m e) ; connect monsters to the others in the room
-    m))
+  (define inst (map new m-c))
+  (for ([m (in-list inst)])
+    (set-field! encounter m inst)) ; connect monsters to the others in the room
+  inst)
 
 ;; (module+ main ; to test it out
 ;;   (define level 2)
