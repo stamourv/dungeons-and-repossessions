@@ -105,8 +105,12 @@
                                           (enumerate-encounters level d t)))))))
       t))
   (define theme (random-ref possible-themes))
-  (for/list ([diff (in-list template)])
-    (random-ref (dict-ref all-encounters (list level diff theme)))))
+  (define encounter
+    (for/list ([diff (in-list template)])
+      (random-ref (dict-ref all-encounters (list level diff theme)))))
+  (for ([m (in-list encounter)]) ; connect monsters to the others
+    (set-field! encounter m encounter))
+  encounter)
 
 ;; generates a list of encounters for a given player level
 (define (generate-encounters level)

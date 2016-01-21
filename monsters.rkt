@@ -6,7 +6,8 @@
 
 (define monster%
   (class character%
-    [init-field name theme xp-value]
+    (init-field name theme xp-value)
+    (field [encounter '()])
     (define/override (describe #:capitalize? [capitalize? #f]
                                #:specific?   [specific?   #f])
       (string-append (article capitalize? specific?) " " name))
