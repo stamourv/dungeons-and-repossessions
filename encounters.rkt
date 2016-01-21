@@ -113,7 +113,7 @@
   (fill-encounter-template (generate-encounter-template level) level))
 
 (define (instantiate-encounter e)
-  (define inst (map new m-c))
+  (define inst (for/list ([m-c (in-list e)]) (new m-c)))
   (for ([m (in-list inst)])
     (set-field! encounter m inst)) ; connect monsters to the others in the room
   inst)
