@@ -9,8 +9,21 @@
   (class object%
     (init-field monster)
     (field [seen-player? #f])
+
     (define/public (act state)
       (error "this ai% can't act"))
+
+    (define/public (update-fov state)
+      ;; if we already saw the player, then just use its position direcly
+      ;; we're not operating by sight anymore
+      (unless seen-player?
+        (define pos        (get-field pos monster))
+        (define player-pos (get-player-pos state))
+        (define grid       (get-field grid monster))
+        (when (set-member? (compute-fov grid pos 7) ; arbitrary range
+                           player-pos)
+          (wake-up))))
+
     (define/public (wake-up) ; someone saw the player
       (unless seen-player? ; already woke up. to avoid infinite loops
         ;; Note: `seen-player?` must not be set directly elsewhere, otherwise
@@ -18,7 +31,9 @@
         (set! seen-player? #t)
         (for ([m (in-list (get-field encounter monster))]) ; wake up others
           (send m wake-up))))
+
     (super-new)))
+
 
 ;; just sit there doing nothing
 (define wait-ai%
@@ -75,29 +90,18 @@
       (and (< player-x pos-x) (pos-if-ok (up pos)    state))
       (and (< player-y pos-y) (pos-if-ok (left pos)  state))))
 
-(define-syntax-rule (with-fov this state [seen ...] [not-seen ...])
-  (let ()
-    (define pos (get-field pos (first (state-initiative-order state))))
-    (define grid (state-grid state))
-    (define player-pos (get-player-pos state))
-    (cond [(or (get-field seen-player? this)
-               (and (set-member? (compute-fov grid pos 7) ; arbitrary range
-                                 player-pos)
-                    (send this wake-up)))
-           seen ...]
-          [else not-seen ...])))
-
 ;; goes towards the player as directly as possible and attacks
 (define rush-ai%
   (class ai%
-    (inherit-field monster)
+    (inherit update-fov)
+    (inherit-field monster seen-player?)
     (define/override (act state)
       ;; until we see the player, just wait. once we do, though, pursue
-      (define pos        (get-field  pos monster))
-      (with-fov this state
-                [(define new-pos (rush pos state))
-                 (go-or-wait monster new-pos state)]
-                ['wait]))
+      (define pos (get-field pos monster))
+      (update-fov state)
+      (if seen-player?
+          (go-or-wait monster (rush pos state) state)
+          'wait))
     (super-new)))
 
 (define (cower pos state)
@@ -143,15 +147,18 @@
 ;; TODO have it reset to rush after some time (like the fallen in diablo)
 (define injury-shy-ai%
   (class ai%
-    (inherit-field monster)
+    (inherit update-fov)
+    (inherit-field monster seen-player?)
     (define/override (act state) ; don't rush until we've seen the player
       (define pos (get-field pos monster))
-      (with-fov this state
-                [(define new-pos
-                   (if (= (get-field current-hp monster)
-                          (get-field max-hp monster))
-                       (rush  pos state)
-                       (cower pos state)))
-                 (go-or-wait monster new-pos state)]
-                ['wait]))
+      (update-fov state)
+      (cond [seen-player?
+             (define new-pos
+               (if (= (get-field current-hp monster)
+                      (get-field max-hp monster))
+                   (rush  pos state)
+                   (cower pos state)))
+             (go-or-wait monster new-pos state)]
+            [else
+             'wait]))
     (super-new)))
