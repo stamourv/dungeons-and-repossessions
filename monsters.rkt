@@ -85,7 +85,6 @@
   #:theme 'cult #:max-hp d8 #:speed 6
   #:attack-bonus 2 #:ac 10 #:damage-die d4
   #:xp-value 10 #:ai cower-ai%)
-;; TODO AI that cowers, and only attacks when you're next to them (like bats!)
 
 (define-simple-monster guard% #\u "guard"
   #:theme 'cult #:max-hp (lambda _ (+ (d8) (d8) 2)) #:speed 6
