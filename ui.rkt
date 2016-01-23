@@ -117,10 +117,10 @@
            [(right) (send player move-right mode)]
            [(left)  (send player move-left  mode)]
            [else 'invalid])]
-        [#\o ; open
-         (direction-command s "Open" (lambda (x) (send x open) 'move))]
-        [#\c ; close
-         (direction-command s "Close" (lambda (x) (send x close) 'move))]
+        [#\o (direction-command s "Open" (lambda (x) (send x open) 'move))]
+        [#\c (direction-command s "Close" (lambda (x) (send x close) 'move))]
+        [#\p (send player pick-up)]
+        [#\i (send player show-inventory)]
         [#\s ; suicide
          (set-field! current-hp player 0)
          'invalid]

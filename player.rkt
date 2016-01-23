@@ -20,8 +20,9 @@
            [intelligence 0] ; Note: stored as bonus only, for simplicity
            [wisdom       -1]
            [charisma     1]
-           [fov  (set)]
-           [seen (set)])
+           [fov          (set)]
+           [seen         (set)]
+           [inventory    '()])
     (inherit-field pos grid name)
 
     (define/override (show) #\@)
@@ -52,6 +53,30 @@
          2)) ; shield
     (define/override (get-damage-die)
       (lambda _ (+ (d6) strength))) ; hand axe ; TODO have logic in item defn
+
+    (define/public (pick-up) ; TODO bring up a dialog to ask what to pick up
+      (define cell  (grid-ref grid pos))
+      (define items (get-field items cell))
+      (cond [(empty? items)
+             (enqueue-message! "There is nothing to pick up.")
+             'invalid]
+            [else
+             (set! inventory (append inventory items))
+             (set-field! items cell '())
+             (enqueue-message!
+              (format "Picked up ~a."
+                      (string-join (for/list ([i (in-list items)])
+                                     (send i describe))
+                                   ", ")))
+             'wait])) ; ends turn
+    (define/public (show-inventory) ; TODO have it be a separate dialog
+      (cond [(empty? inventory)
+             (enqueue-message! "You have nothing in your inventory.")]
+            [else
+             (enqueue-message! "Inventory:")
+             (for ([item (in-list inventory)])
+               (enqueue-message! (format "  ~a" (send item describe))))])
+      'invalid) ; doesn't consume an action
 
     (super-new [name "player"] ; TODO have a name
                [max-hp (+ 10 constitution)]))) ; as a fighter
