@@ -4,6 +4,9 @@
          "encounters.rkt"
          "dungeon.rkt"
          "state.rkt"
+         "grid.rkt"
+         "cell.rkt"
+         "items.rkt"
          "utils.rkt")
 
 (provide generate)
@@ -61,7 +64,9 @@
           (values player-room goal-room max-distance))))
   (define player-pos (first (random-room-poss player-room 1)))
   (claim-room-cell! player-room player-pos)
-  ;; TODO place goal
+  (define goal-pos (first (random-room-poss goal-room 1)))
+  (claim-room-cell! goal-room goal-pos)
+  (add-item! (grid-ref grid goal-pos) (new macguffin%))
 
   ;; place encounters
   (define encounter-rooms ; excludes player's room. don't start with monsters

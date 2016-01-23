@@ -39,6 +39,9 @@
         [else
          char]))
 
+(define (add-item! cell item)
+  (set-field! items cell (append (get-field items cell) (list item))))
+
 (define empty-cell%
   (class cell%
     (inherit-field occupant)
