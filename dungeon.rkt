@@ -4,7 +4,8 @@
          "cell.rkt" "grid.rkt" "wall-smoothing.rkt" "utils.rkt")
 
 (provide generate-dungeon
-         (struct-out room))
+         (struct-out room)
+         (struct-out dungeon))
 
 (define dungeon-height 18) ; to be easy to display in 80x24, with other stuff
 (define dungeon-width  60)
@@ -252,6 +253,13 @@
   (values grid rooms))
 
 
+;; grid: grid?
+;; rooms: listof room?
+;; connections: listof (list room? room?)
+;;   (including corridors, which are not in `rooms`)
+(struct dungeon (grid rooms connections))
+
+
 ;; union-find data structure (dumb linear version)
 (struct component (elt parent) #:mutable)
 (define (singleton-component x)
@@ -409,7 +417,7 @@
   ;; with any other (or if the ones it shares would hit a corner)
   ;; very unlikely
   (and (all-connected?)
-       (cons grid rooms)))
+       (dungeon grid rooms connected-pairs)))
 
 
 (define (generate-dungeon min-n-rooms)
@@ -422,9 +430,10 @@
   (define-values (g1 rs1)
     (generate-rooms bsp))
   (match (add-corridors g1 rs1)
-    [`(,grid . ,rooms)
-     (values (smooth-walls grid)
-             rooms)]
+    [(dungeon grid rooms connections)
+     (dungeon (smooth-walls grid)
+              rooms
+              connections)]
     [#f ; failed, try again
      (log-warning "generate-dungeon: had to restart")
      (generate-dungeon)]))
@@ -436,7 +445,10 @@
   (displayln (show-bsp ex))
   (displayln (show-bsp (prune-bsp ex)))
   (define-values (grid rooms) (generate-rooms (prune-bsp ex)))
-  (displayln (show-grid (smooth-walls (car (add-corridors grid rooms)))))
+  (displayln
+   (show-grid
+    (smooth-walls
+     (dungeon-grid (add-corridors grid rooms)))))
 
   ;; make sure that we have "enough" rooms with high-enough probability
   ;; (need enough for all encounters, and 6 is currently the max I've seen)

@@ -14,7 +14,7 @@
   ;; need enough rooms for all the encounters, plus a starting room
   ;; (we don't want monsters in the starting room)
   (define n-rooms (add1 (length encounters)))
-  (define-values (grid rooms) (generate-dungeon n-rooms))
+  (match-define (dungeon grid rooms connections) (generate-dungeon n-rooms))
   (match-define (cons player-room encounter-rooms)
     (random-sample rooms n-rooms #:replacement? #f))
   (define (random-room-poss room n)
