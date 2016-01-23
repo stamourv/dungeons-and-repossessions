@@ -23,9 +23,6 @@
 (define (random-room-poss room n)
   (random-sample (room-free-cells room) n #:replacement? #f))
 
-(define (claim-room-cell! room pos)
-  (set-room-free-cells! room (remove pos (room-free-cells room))))
-
 
 (define (generate player)
   (define lvl        (get-field level player))

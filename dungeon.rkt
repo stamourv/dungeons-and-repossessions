@@ -5,7 +5,8 @@
 
 (provide generate-dungeon
          (struct-out room)
-         (struct-out dungeon))
+         (struct-out dungeon)
+         claim-room-cell!)
 
 (define dungeon-height 18) ; to be easy to display in 80x24, with other stuff
 (define dungeon-width  60)
@@ -282,14 +283,34 @@
 (define (wall? grid pos)
   (is-a? (grid-ref grid pos) wall%))
 
-(define (dir->door dir)
-  (if (vertical? dir) horizontal-door% vertical-door%))
+(define (claim-room-cell! room pos)
+  (when (room? room) ; ignore corridors
+    (set-room-free-cells! room (remove pos (room-free-cells room)))))
 
 (define open-doorway-prob 0.4)
 (define (maybe-open-doorway door-kind)
   (define dist (discrete-dist (list empty-cell% door-kind)
                               (list open-doorway-prob (- 1 open-doorway-prob))))
   (new (sample dist)))
+
+(define (add-door! grid pos r1 r2)
+  (define (try-one-way dir1 dir2 door-kind)
+    ;; want an `or` there, to allow back-to-back doors, for length 2 corridors
+    ;; (one of the doors will have to be added first, and will see a wall where
+    ;; the second door will be, but that's ok)
+    (cond [(or (empty-cell? grid (dir1 pos))
+               (empty-cell? grid (dir2 pos)))
+           ;; don't want to put things right in front of the door
+           (claim-room-cell! r1 (dir1 pos)) ; only one of the two is actually
+           (claim-room-cell! r1 (dir2 pos)) ; in there, but it doesn't matter
+           (claim-room-cell! r2 (dir1 pos))
+           (claim-room-cell! r2 (dir2 pos))
+           (array-set! grid pos (maybe-open-doorway door-kind))]
+          [else #f]))
+  (or (try-one-way left right vertical-door%)
+      (try-one-way up   down  horizontal-door%)
+      (error "add-door!: can't add door"))) ; shouldn't happen
+
 
 (define (add-corridors grid rooms)
   (define connected-pairs '()) ; (listof (list/c room? room?))
@@ -318,19 +339,15 @@
         (set-intersect (map car (room-extension-points r1))
                        (map car (room-extension-points r2))))
       (define possible-doors
-        (filter values
-                (for/list ([pos (in-list common)])
-                  (cond [(and (empty-cell? grid (up   pos))
-                              (empty-cell? grid (down pos)))
-                         (cons pos horizontal-door%)]
-                        [(and (empty-cell? grid (left  pos))
-                              (empty-cell? grid (right pos)))
-                         (cons pos vertical-door%)]
-                        [else #f]))))
+        (for/list ([pos (in-list common)]
+                   #:when (or (and (empty-cell? grid (up    pos))
+                                   (empty-cell? grid (down  pos)))
+                              (and (empty-cell? grid (left  pos))
+                                   (empty-cell? grid (right pos)))))
+          pos))
       (when (not (empty? possible-doors))
-        (match-define (cons pos door-kind) (random-ref possible-doors))
         (connect-rooms! r1 r2)
-        (array-set! grid pos (maybe-open-doorway door-kind)))))
+        (add-door! grid (random-ref possible-doors) r1 r2))))
 
   ;; start digging corridors at random, in the hope of connecting everyone
   ;; (and introducing some cycles)
@@ -345,7 +362,7 @@
         ;; in random order, but less likely to have way too many corridors
         #:break (all-connected?))
     (match-define (list start-pos dir start-room) e)
-    (define end-pos+corridor-id
+    (define end-pos+end-room+corridor-id
       (let loop ([pos (dir start-pos)])
         (cond [(not (within-grid? grid pos)) ; out of bounds, give up
                #f]
@@ -373,16 +390,15 @@
                           ;; count the two rooms as directly connected,
                           ;; to avoid spawing more corridors between them
                           (connect-rooms! start-room end-room)
-                          (cons pos corridor-id)]
+                          (list pos end-room corridor-id)]
                          [else #f]))]
                      [else ; not an extension point (maybe a corner), give up
                       #f])]
               [else
                (loop (dir pos))]))) ; keep digging
-    (when end-pos+corridor-id ; actually dig the corridor
-      (match-define (cons end-pos corridor-id) end-pos+corridor-id)
-      (array-set! grid start-pos (maybe-open-doorway (dir->door dir)))
-      (array-set! grid end-pos   (maybe-open-doorway (dir->door dir)))
+    (when end-pos+end-room+corridor-id ; actually dig the corridor
+      (match-define (list end-pos end-room corridor-id)
+        end-pos+end-room+corridor-id)
       (match-define (vector start-x start-y) start-pos)
       (match-define (vector end-x   end-y)   end-pos)
       ;; to make corridors valid end points for other corridors, need to add
@@ -409,7 +425,9 @@
             (array-set! grid (up pos)   (new wall%))
             (add-extension-point! (up pos) up)
             (array-set! grid (down pos) (new wall%))
-            (add-extension-point! (down pos) down)))))
+            (add-extension-point! (down pos) down)))
+      (add-door! grid start-pos start-room  corridor-id)
+      (add-door! grid end-pos   corridor-id end-room)))
 
   ;; if everyone is not connected, give up on this map
   ;; will have to restart from scratch (BSP generation)
