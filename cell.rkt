@@ -26,6 +26,8 @@
       (enqueue-message! "Can't open that."))
     (define/public (close)
       (enqueue-message! "Can't close that."))
+    (define/public (enter char) ; called when a character enters the cell
+      (void))
     (super-new)))
 (register-cell-type! cell% #\*)
 
@@ -154,6 +156,8 @@
 
 (define entrance%
   (class empty-cell%
+    (define/override (enter char)
+      (send char check-win-condition))
     (define/override (show [show-occupant? #t])
       (free-cell-show this #\⋂ show-occupant?)) ; doorway
     (super-new)))

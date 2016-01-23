@@ -32,6 +32,7 @@
               (set-field! occupant (array-ref grid pos) #f))
             (set! pos new-pos)
             (set-field! occupant new-cell this)
+            (send new-cell enter this) ; entry effects
             'move] ; return the action we took
            [(get-field occupant new-cell) => ; occupied, try to attack
             (lambda (occ)
@@ -82,6 +83,9 @@
       (enqueue-message!
        (format "~a dies." (send this describe #:capitalize? #t #:specific? #t)))
       (set-field! occupant (array-ref grid pos) #f))
+
+    (define/public (check-win-condition)
+      (void)) ; only relevant for player%, but may be called on others
 
     (super-new)))
 

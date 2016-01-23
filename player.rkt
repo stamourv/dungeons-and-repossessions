@@ -4,6 +4,7 @@
          "state.rkt"
          "message-queue.rkt"
          "vision.rkt"
+         "items.rkt"
          "ui.rkt"
          "grid.rkt"
          "utils.rkt")
@@ -22,7 +23,8 @@
            [charisma     1]
            [fov          (set)]
            [seen         (set)]
-           [inventory    '()])
+           [inventory    '()]
+           [has-won?     #f])
     (inherit-field pos grid name)
 
     (define/override (show) #\@)
@@ -77,6 +79,13 @@
              (for ([item (in-list inventory)])
                (enqueue-message! (format "  ~a" (send item describe))))])
       'invalid) ; doesn't consume an action
+
+    (define/override (check-win-condition)
+      ;; TODO eventually check if it's the *right* macguffin, or maybe just
+      ;;   clear it from inventory after each dungeon
+      (for/first ([item (in-list inventory)]
+                  #:when (is-a? item macguffin%))
+        (set! has-won? item)))
 
     (super-new [name "player"] ; TODO have a name
                [max-hp (+ 10 constitution)]))) ; as a fighter

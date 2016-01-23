@@ -17,7 +17,14 @@
   (define action-taken     (send active-character act s))
   (unless (equal? action-taken 'quit)
     (define new-s (state-cleanup (next-state s action-taken)))
-    (cond [(positive? (get-field current-hp player))
+    (cond [(get-field has-won? player)
+           => (lambda (item)
+                (enqueue-message!
+                 (format "~a has retrieved the ~a.\nYou win!\n"
+                         (send player describe #:capitalize? #t)
+                         (send item   describe #:specific?   #t)))
+                (display-state new-s))]
+          [(positive? (get-field current-hp player))
            (game-loop new-s)] ; alive, keep going
           [else
            (enqueue-message!
