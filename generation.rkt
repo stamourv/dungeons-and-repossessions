@@ -66,7 +66,7 @@
   (claim-room-cell! player-room player-pos)
   (define goal-pos (first (random-room-poss goal-room 1)))
   (claim-room-cell! goal-room goal-pos)
-  (add-item! (grid-ref grid goal-pos) (new macguffin%))
+  (array-set! grid goal-pos (new chest% [items (list (new macguffin%))]))
 
   ;; place encounters
   (define encounter-rooms ; excludes player's room. don't start with monsters

@@ -140,4 +140,16 @@
 (register-cell-type! horizontal-door% #\-)
 (register-cell-type! (class horizontal-door% (super-new [open? #t])) #\')
 
-;; TODO chests, entry/exit
+(define chest%
+  (class door% ; behaves almost the same
+    (inherit-field open?)
+    (define/override (show [show-occupant? #t])
+      (if open?
+          (free-cell-show this #\= show-occupant?)
+          #\≘))
+    (define/override (opaque?) #f) ; unlike doors
+    (super-new)))
+(register-cell-type! chest% #\≘)
+(register-cell-type! chest% #\=)
+
+;; TODO entry/exit
