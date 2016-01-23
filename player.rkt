@@ -13,8 +13,8 @@
 
 (define player%
   (class character%
-    (field [level             1]
-           [proficiency-bonus 2]
+    (field [level             0] ; we call `level-up` on construction
+           [proficiency-bonus #f]
            [strength     3] ; as a "standard" fighter (based on pre-gens)
            [dexterity    2] ; Note: monsters don't need stats, as all their
            [constitution 2] ;   info (e.g., AC, attack bonus) is pre-computed
@@ -25,7 +25,7 @@
            [seen         (set)]
            [inventory    '()]
            [has-won?     #f])
-    (inherit-field pos grid name)
+    (inherit-field pos grid name max-hp current-hp)
 
     (define/override (describe #:capitalize? [capitalize? #f]
                                #:specific?   [specific? 'n/a]) ; always specific
@@ -54,6 +54,14 @@
          2)) ; shield
     (define/override (get-damage-die)
       (lambda _ (+ (d6) strength))) ; hand axe ; TODO have logic in item defn
+
+    (define/public (level-up)
+      ;; TODO increase stats at the right levels, etc.
+      ;;   also other level benefits, like fighting styles, etc.
+      (set! level             (add1 level))
+      (set! max-hp            (* level (+ 10 constitution))) ; as a fighter
+      (set! current-hp        max-hp)
+      (set! proficiency-bonus (+ (quotient (sub1 level) 4) 2)))
 
     (define/public (pick-up) ; TODO bring up a dialog to ask what to pick up
       (define cell  (grid-ref grid pos))
@@ -86,9 +94,8 @@
         ;; and remove it from inventory, to not carry it across dungeons
         (set! inventory (remove item inventory))))
 
-    (super-new [name "player"] ; TODO have a name
-               [char #\@]
-               [max-hp (+ 10 constitution)]))) ; as a fighter
+    (super-new [char #\@] [name "player"]) ; TODO have a name
+    (level-up)))
 
 
 (module+ test
