@@ -118,11 +118,13 @@
           (enqueue-message!
            (format "~a is already closed."
                    (send this describe #:capitalize? #t #:specific? #t)))))
-    (super-new [name "door"])))
-(define vertical-door%   (class door% (super-new [char '(#\_ #\|)])))
+    (super-new)))
+(define vertical-door%
+  (class door% (super-new [char '(#\_ #\|)] [name "door"])))
 (register-cell-type! vertical-door% #\|)
 (register-cell-type! (class vertical-door% (super-new [open? #t])) #\_)
-(define horizontal-door% (class door% (super-new [char '(#\' #\-)])))
+(define horizontal-door%
+  (class door% (super-new [char '(#\' #\-)] [name "door"])))
 (register-cell-type! horizontal-door% #\-)
 (register-cell-type! (class horizontal-door% (super-new [open? #t])) #\')
 
@@ -130,7 +132,7 @@
   (class door% ; behaves almost the same
     (inherit-field open?)
     (define/override (opaque?) #f) ; unlike doors
-    (super-new [char '(#\= #\≘)])))
+    (super-new [char '(#\= #\≘)] [name "chest"])))
 (register-cell-type! chest% #\≘)
 (register-cell-type! chest% #\=)
 
@@ -139,6 +141,6 @@
     (define/override (enter char)
       (send char check-win-condition))
     (super-new [char #\⋂] ; doorway
-               [name "chest"])))
+               [name "entrance"])))
 (register-cell-type! entrance% #\⋂)
 ;; other candidates: ≣∬⪋⬆∆ (i.e., stairs, arrows)
