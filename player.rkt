@@ -118,10 +118,7 @@
       (define/override (act state) ; the dummy doesn't do anything
         (send ai act state))
       (define/override (get-ac) 10)
-      (define/override (describe #:capitalize? [capitalize? #f]
-                                 #:specific?   [specific?   #f])
-        (string-append (article capitalize? specific?) " training dummy"))
-      (super-new [max-hp 10])))
+      (super-new [name "training dummy"] [max-hp 10])))
 
   (define (get-log thunk)
     (thunk)
