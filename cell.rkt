@@ -161,5 +161,5 @@
     (define/override (show [show-occupant? #t])
       (free-cell-show this #\⋂ show-occupant?)) ; doorway
     (super-new)))
-(register-cell-type! chest% #\⋂)
+(register-cell-type! entrance% #\⋂)
 ;; other candidates: ≣∬⪋⬆∆ (i.e., stairs, arrows)
