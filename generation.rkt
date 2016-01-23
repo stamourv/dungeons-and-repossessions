@@ -63,8 +63,8 @@
   (claim-room-cell! player-room player-pos)
   ;; TODO place goal
 
-  ;; place player and encounters
-  (define encounter-rooms
+  ;; place encounters
+  (define encounter-rooms ; excludes player's room. don't start with monsters
     (random-sample (remove player-room rooms) n-encounters #:replacement? #f))
   (define monster-poss
     (for/list ([e    (in-list encounters)]
