@@ -21,21 +21,21 @@
 (define (monster->xp m) (hash-ref monsters->xp m))
 
 (define-syntax-rule (define-simple-monster
-                      def-name char n #:theme t
+                      def-name ch n #:theme t
                       #:max-hp hp #:speed sp
                       #:attack-bonus ab #:ac ac #:damage-die dmg
                       #:xp-value xp #:ai ai)
   (begin
     (define def-name
       (class monster%
-        (define/override (show)             char)
         (define my-ai (new ai [monster this]))
         (define/override (act state)        (send my-ai act state))
         (define/public   (wake-up)          (send my-ai wake-up))
         (define/override (get-attack-bonus) ab)
         (define/override (get-ac)           ac)
         (define/override (get-damage-die)   dmg)
-        (super-new [name n] [theme t] [max-hp (hp)] [speed sp] [xp-value xp])))
+        (super-new [name n] [char ch] [theme t]
+                   [max-hp (hp)] [speed sp] [xp-value xp])))
     (add-monster! def-name t)
     (add-theme! t)
     (hash-set! monsters->xp def-name xp)))

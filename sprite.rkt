@@ -4,15 +4,11 @@
 
 (provide (all-defined-out))
 
-;; currently, items and characters are sprite%s
-;; eventually, will want to include cell%s too, probably
-;; should probably also include the (a? all?) display character, if only
-;; for the (eventual) help system
 (define sprite%
   (class object%
-    (init-field name)
+    (init-field name char)
     (define/public (show)
-      (error "can't show this sprite%"))
+      char)
     (define/public (describe #:capitalize? [capitalize? #f]
                              #:specific?   [specific?   #f])
       (string-append (article capitalize? specific?) " " name))

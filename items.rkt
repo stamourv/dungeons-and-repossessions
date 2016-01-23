@@ -6,8 +6,6 @@
 
 (define item%
   (class sprite%
-    (init-field char)
-    (define/override (show) char)
     (super-new)))
 
 (define macguffin%

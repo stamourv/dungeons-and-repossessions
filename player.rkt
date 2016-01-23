@@ -27,7 +27,6 @@
            [has-won?     #f])
     (inherit-field pos grid name)
 
-    (define/override (show) #\@)
     (define/override (describe #:capitalize? [capitalize? #f]
                                #:specific?   [specific? 'n/a]) ; always specific
       (super describe #:capitalize? capitalize? #:specific? #t))
@@ -88,6 +87,7 @@
         (set! has-won? item)))
 
     (super-new [name "player"] ; TODO have a name
+               [char #\@]
                [max-hp (+ 10 constitution)]))) ; as a fighter
 
 
@@ -121,13 +121,11 @@
 
   (define training-dummy%
     (class character%
-      (define/override (show)
-        #\D)
       (define ai (new wait-ai% [monster this]))
       (define/override (act state) ; the dummy doesn't do anything
         (send ai act state))
       (define/override (get-ac) 10)
-      (super-new [name "training dummy"] [max-hp 10])))
+      (super-new [name "training dummy"] [char #\D] [max-hp 10])))
 
   (define (get-log thunk)
     (thunk)
