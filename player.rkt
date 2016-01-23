@@ -80,11 +80,11 @@
       'invalid) ; doesn't consume an action
 
     (define/override (check-win-condition)
-      ;; TODO eventually check if it's the *right* macguffin, or maybe just
-      ;;   clear it from inventory after each dungeon
       (for/first ([item (in-list inventory)]
                   #:when (is-a? item macguffin%))
-        (set! has-won? item)))
+        (set! has-won? item)
+        ;; and remove it from inventory, to not carry it across dungeons
+        (set! inventory (remove item inventory))))
 
     (super-new [name "player"] ; TODO have a name
                [char #\@]
