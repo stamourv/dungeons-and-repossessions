@@ -253,11 +253,11 @@
   (values grid rooms))
 
 
-;; grid: grid?
-;; rooms: listof room?
-;; connections: listof (list room? room?)
-;;   (including corridors, which are not in `rooms`)
-(struct dungeon (grid rooms connections))
+(struct dungeon
+  (grid
+   rooms         ; (listof room?)
+   connections)) ; (listof (list room? room?))
+;;                   (including corridors, which are not in `rooms`)
 
 
 ;; union-find data structure (dumb linear version)
