@@ -29,6 +29,12 @@
     (super-new)))
 (register-cell-type! cell% #\*)
 
+(define (free-cell-show this char [show-occupant? #t])
+  (define occupant (get-field occupant this))
+  (if (and show-occupant? occupant)
+      (send occupant show)
+      char))
+
 (define empty-cell%
   (class cell%
     (inherit-field occupant)
@@ -37,9 +43,7 @@
     (define/override (opaque?)
       #f)
     (define/override (show [show-occupant? #t])
-      (if (and show-occupant? occupant)
-          (send occupant show)
-          #\space))
+      (free-cell-show this #\space show-occupant?))
     (super-new)))
 (register-cell-type! empty-cell% #\space)
 
@@ -113,7 +117,7 @@
     (inherit-field open? occupant)
     (define/override (show [show-occupant? #t])
       (if open?
-          (if (and show-occupant? occupant) (send occupant show) #\_)
+          (free-cell-show this #\_ show-occupant?)
           #\|))
     (super-new)))
 (register-cell-type! vertical-door% #\|)
@@ -123,7 +127,7 @@
     (inherit-field open? occupant)
     (define/override (show [show-occupant? #t])
       (if open?
-          (if (and show-occupant? occupant) (send occupant show) #\')
+          (free-cell-show this #\' show-occupant?)
           #\-))
     (super-new)))
 (register-cell-type! horizontal-door% #\-)
