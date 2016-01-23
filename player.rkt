@@ -22,12 +22,12 @@
            [charisma     1]
            [fov  (set)]
            [seen (set)])
-    (inherit-field pos grid)
+    (inherit-field pos grid name)
 
     (define/override (show) #\@)
     (define/override (describe #:capitalize? [capitalize? #f]
                                #:specific?   [specific? 'n/a]) ; always specific
-      (string-append (article capitalize? #t) " player")) ; TODO have a name
+      (super describe #:capitalize? capitalize? #:specific? #t))
 
     (define/override (act state)
       (update-fov)
@@ -53,7 +53,8 @@
     (define/override (get-damage-die)
       (lambda _ (+ (d6) strength))) ; hand axe ; TODO have logic in item defn
 
-    (super-new [max-hp (+ 10 constitution)]))) ; as a fighter
+    (super-new [name "player"] ; TODO have a name
+               [max-hp (+ 10 constitution)]))) ; as a fighter
 
 
 (module+ test

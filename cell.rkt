@@ -31,9 +31,13 @@
 
 (define (free-cell-show this char [show-occupant? #t])
   (define occupant (get-field occupant this))
-  (if (and show-occupant? occupant)
-      (send occupant show)
-      char))
+  (define items    (get-field items    this))
+  (cond [(and show-occupant? occupant)
+         (send occupant show)]
+        [(not (empty? items))
+         (send (first items) show)]
+        [else
+         char]))
 
 (define empty-cell%
   (class cell%
