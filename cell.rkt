@@ -1,6 +1,6 @@
 #lang racket
 
-(require "message-queue.rkt")
+(require "sprite.rkt" "message-queue.rkt")
 
 (provide (all-defined-out))
 
@@ -13,60 +13,50 @@
   (dict-ref chars->cell%s char))
 
 (define cell% ; some kind of obstacle by default
-  (class object%
+  (class sprite%
     (init-field [items    '()]
                 [occupant #f]) ; player, monster, etc.
-    (define/public (free?)
-      #f)
-    (define/public (opaque?)
-      #t)
-    (define/public (show [show-occupant? #t])
-      #\*) ; for debugging
-    (define/public (open)
-      (enqueue-message! "Can't open that."))
-    (define/public (close)
-      (enqueue-message! "Can't close that."))
+    (define/public (free?)    #f)
+    (define/public (opaque?)  #t)
+    (define/public (show/fog) (send this show))
+    (define/public (open)     (enqueue-message! "Can't open that."))
+    (define/public (close)    (enqueue-message! "Can't close that."))
     (define/public (enter char) ; called when a character enters the cell
       (void))
     (super-new)))
-(register-cell-type! cell% #\*)
 
-(define (free-cell-show this char [show-occupant? #t])
+(define (free-cell-show this char show-occupant?)
   (define occupant (get-field occupant this))
   (define items    (get-field items    this))
-  (cond [(and show-occupant? occupant)
-         (send occupant show)]
-        [(not (empty? items))
-         (send (first items) show)]
-        [else
-         char]))
+  (cond [(and show-occupant? occupant) (send occupant show)]
+        [(not (empty? items))          (send (first items) show)]
+        [else                          char]))
 
 (define (add-item! cell item)
   (set-field! items cell (append (get-field items cell) (list item))))
 
-(define empty-cell%
+(define free-cell%
   (class cell%
-    (inherit-field occupant)
-    (define/override (free?)
-      (not occupant))
-    (define/override (opaque?)
-      #f)
-    (define/override (show [show-occupant? #t])
-      (free-cell-show this #\space show-occupant?))
+    (inherit-field occupant char)
+    (define/override (free?)    (not occupant))
+    (define/override (opaque?)  #f)
+    (define/override (show)     (free-cell-show this char #t))
+    (define/override (show/fog) (free-cell-show this char #f))
     (super-new)))
+
+(define empty-cell%
+  (class free-cell%
+    (super-new [char #\space] [name "empty cell"])))
 (register-cell-type! empty-cell% #\space)
 
-(define void-cell%
-  (class cell%
-    (define/override (show [show-occupant? #t]) #\.) ; for testing only
-    (super-new)))
+(define void-cell% (class cell% (super-new [char #\.] [name "void cell"])))
 (register-cell-type! void-cell% #\.)
 
-(define wall%
-  (class cell%
-    (define/override (show [show-occupant? #t]) #\X) ; for testing only
-    (super-new)))
-(register-cell-type! wall% #\X)
+(define wall% (class cell% (super-new [name "wall"])))
+
+;; during gameplay, the nicer walls below are used instead
+(define raw-wall% (class wall% (super-new [char #\X])))
+(register-cell-type! raw-wall% #\X)
 
 ;; some walls, e.g., tee walls, can leak information about what's on the
 ;; other side, which we don't want if the other side is not explored yet
@@ -77,9 +67,7 @@
 (define-syntax-rule (define-wall name single-bar double-bar super-class)
   (begin (define name
            (class super-class
-             (define/override (show [show-occupant? #t])
-               (if double-bar? double-bar single-bar))
-             (super-new)))
+             (super-new [char (if double-bar? double-bar single-bar)])))
          ;; parse either kind
          (register-cell-type! name single-bar)
          (register-cell-type! name double-bar)))
@@ -97,9 +85,8 @@
 
 (define pillar%
   (class cell%
-    (define/override (show [show-occupant? #t])
-      (if double-bar? #\# #\+))
-    (super-new)))
+    (super-new [char (if double-bar? #\# #\+)]
+               [name "pillar"])))
 (register-cell-type! pillar% #\#)
 (register-cell-type! pillar% #\+)
 
@@ -107,59 +94,51 @@
 (define door%
   (class cell%
     (init-field [open? #f])
-    (inherit-field occupant)
+    (inherit-field occupant char)
     (define/override (free?)
       (and open? (not occupant)))
     (define/override (opaque?)
       (not open?))
+    (define (-show show-occupant?)
+      (define chars (get-field char this))
+      (if open?
+          (free-cell-show this (first char) show-occupant?)
+          (second char)))
+    (define/override (show)     (-show #t))
+    (define/override (show/fog) (-show #f))
     (define/override (open)
       (if open?
-          (enqueue-message! "The door is already open.")
+          (enqueue-message!
+           (format "~a is already open."
+                   (send this describe #:capitalize? #t #:specific? #t)))
           (set! open? #t)))
     (define/override (close)
       (if open?
           (set! open? #f)
-          (enqueue-message! "The door is already closed.")))
-    (super-new)))
-(define vertical-door%
-  (class door%
-    (inherit-field open? occupant)
-    (define/override (show [show-occupant? #t])
-      (if open?
-          (free-cell-show this #\_ show-occupant?)
-          #\|))
-    (super-new)))
+          (enqueue-message!
+           (format "~a is already closed."
+                   (send this describe #:capitalize? #t #:specific? #t)))))
+    (super-new [name "door"])))
+(define vertical-door%   (class door% (super-new [char '(#\_ #\|)])))
 (register-cell-type! vertical-door% #\|)
 (register-cell-type! (class vertical-door% (super-new [open? #t])) #\_)
-(define horizontal-door%
-  (class door%
-    (inherit-field open? occupant)
-    (define/override (show [show-occupant? #t])
-      (if open?
-          (free-cell-show this #\' show-occupant?)
-          #\-))
-    (super-new)))
+(define horizontal-door% (class door% (super-new [char '(#\' #\-)])))
 (register-cell-type! horizontal-door% #\-)
 (register-cell-type! (class horizontal-door% (super-new [open? #t])) #\')
 
 (define chest%
   (class door% ; behaves almost the same
     (inherit-field open?)
-    (define/override (show [show-occupant? #t])
-      (if open?
-          (free-cell-show this #\= show-occupant?)
-          #\≘))
     (define/override (opaque?) #f) ; unlike doors
-    (super-new)))
+    (super-new [char '(#\= #\≘)])))
 (register-cell-type! chest% #\≘)
 (register-cell-type! chest% #\=)
 
 (define entrance%
-  (class empty-cell%
+  (class free-cell%
     (define/override (enter char)
       (send char check-win-condition))
-    (define/override (show [show-occupant? #t])
-      (free-cell-show this #\⋂ show-occupant?)) ; doorway
-    (super-new)))
+    (super-new [char #\⋂] ; doorway
+               [name "chest"])))
 (register-cell-type! entrance% #\⋂)
 ;; other candidates: ≣∬⪋⬆∆ (i.e., stairs, arrows)

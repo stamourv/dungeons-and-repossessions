@@ -98,26 +98,26 @@
   (define (render-grid g) (string-join g "\n" #:after-last "\n"))
   (define p1 (new player%))
   (define g1
-    '("****"
-      "*  *"
-      "****"))
+    '("XXXX"
+      "X  X"
+      "XXXX"))
   (define s1
     (new-state p1 (parse-grid g1)
                #:characters (list (cons p1 #(1 1)))))
   (check-equal? (show-grid (state-grid s1))
-                (render-grid '("****"
-                               "*@ *"
-                               "****")))
+                (render-grid '("XXXX"
+                               "X@ X"
+                               "XXXX")))
   (void (send p1 move-right '(move 1)))
   (check-equal? (show-grid (state-grid s1))
-                (render-grid '("****"
-                               "* @*"
-                               "****")))
+                (render-grid '("XXXX"
+                               "X @X"
+                               "XXXX")))
   (void (send p1 move-up '(move 1))) ; can't move into a wall
   (check-equal? (show-grid (state-grid s1))
-                (render-grid '("****"
-                               "* @*"
-                               "****")))
+                (render-grid '("XXXX"
+                               "X @X"
+                               "XXXX")))
 
   (define training-dummy%
     (class character%

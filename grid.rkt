@@ -86,11 +86,11 @@
   (check-equal? (parse-and-show g1) " \n")
 
   (define g2
-    '("**********"
-      "*        *"
-      "*        *"
-      "*        *"
-      "**********"))
+    '(".........."
+      ".        ."
+      ".        ."
+      ".        ."
+      ".........."))
   (check-equal? (parse-and-show g2) (render-grid g2))
 
   (define g2* (parse-grid g2))

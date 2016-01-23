@@ -60,7 +60,7 @@
                       (not (send cell opaque?)))) ; but not other walls
              (terminal-print (send cell show) #:fg 'black #:bg 'white)]
             [(set-member? seen pos)
-             (display (send cell show #f))] ; don't show occupant
+             (display (send cell show/fog))] ; don't show occupant
             [else
              (display " ")]))
     (newline)))
