@@ -152,4 +152,10 @@
 (register-cell-type! chest% #\≘)
 (register-cell-type! chest% #\=)
 
-;; TODO entry/exit
+(define entrance%
+  (class empty-cell%
+    (define/override (show [show-occupant? #t])
+      (free-cell-show this #\⋂ show-occupant?)) ; doorway
+    (super-new)))
+(register-cell-type! chest% #\⋂)
+;; other candidates: ≣∬⪋⬆∆ (i.e., stairs, arrows)

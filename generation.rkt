@@ -64,6 +64,7 @@
           (values player-room goal-room max-distance))))
   (define player-pos (first (random-room-poss player-room 1)))
   (claim-room-cell! player-room player-pos)
+  (array-set! grid player-pos (new entrance%))
   (define goal-pos (first (random-room-poss goal-room 1)))
   (claim-room-cell! goal-room goal-pos)
   (array-set! grid goal-pos (new chest% [items (list (new macguffin%))]))
