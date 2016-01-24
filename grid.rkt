@@ -38,6 +38,36 @@
   (and (within-grid? g pos)
        (array-ref g pos)))
 
+
+(module+ test
+  (require rackunit)
+
+  (define (parse-and-show los) (show-grid (parse-grid los)))
+  (define (render-grid g) (string-join g "\n" #:after-last "\n"))
+
+  (define g1
+    '(" "))
+  (check-equal? (parse-and-show g1) " \n")
+
+  (define g2
+    '(".........."
+      ".        ."
+      ".        ."
+      ".        ."
+      ".........."))
+  (check-equal? (parse-and-show g2) (render-grid g2))
+
+  (define g2* (parse-grid g2))
+  (check-true (within-grid? g2* '#(0 0)))
+  (check-true (within-grid? g2* '#(0 1)))
+  (check-true (within-grid? g2* '#(1 0)))
+  (check-true (within-grid? g2* '#(4 4)))
+  (check-false (within-grid? g2* '#(0 10)))
+  (check-false (within-grid? g2* '#(5 0)))
+  (check-false (within-grid? g2* '#(5 10)))
+  )
+
+
 (define (left pos [n 1])
   (vector (vector-ref pos 0)
           (- (vector-ref pos 1) n)))
@@ -78,32 +108,3 @@
   (match-define (vector x1 y1) p1)
   (match-define (vector x2 y2) p2)
   (+ (abs (- x1 x2)) (abs (- y1 y2))))
-
-
-(module+ test
-  (require rackunit)
-
-  (define (parse-and-show los) (show-grid (parse-grid los)))
-  (define (render-grid g) (string-join g "\n" #:after-last "\n"))
-
-  (define g1
-    '(" "))
-  (check-equal? (parse-and-show g1) " \n")
-
-  (define g2
-    '(".........."
-      ".        ."
-      ".        ."
-      ".        ."
-      ".........."))
-  (check-equal? (parse-and-show g2) (render-grid g2))
-
-  (define g2* (parse-grid g2))
-  (check-true (within-grid? g2* '#(0 0)))
-  (check-true (within-grid? g2* '#(0 1)))
-  (check-true (within-grid? g2* '#(1 0)))
-  (check-true (within-grid? g2* '#(4 4)))
-  (check-false (within-grid? g2* '#(0 10)))
-  (check-false (within-grid? g2* '#(5 0)))
-  (check-false (within-grid? g2* '#(5 10)))
-  )
