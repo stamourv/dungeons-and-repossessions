@@ -108,3 +108,59 @@
   (match-define (vector x1 y1) p1)
   (match-define (vector x2 y2) p2)
   (+ (abs (- x1 x2)) (abs (- y1 y2))))
+
+
+;; simple pathfinding using A*
+(define (find-path g a b #:extra-heuristic [extra-heuristic (lambda (g pos) 0)])
+  (define height  (grid-height g))
+  (define width   (grid-width g))
+  ;; grid of pairs (cost . previous-pos)
+  (define costs
+    (for*/array #:shape (vector height width)
+                ([x (in-range height)]
+                 [y (in-range width)])
+       (cons (if (send (grid-ref g (vector x y)) free?)
+                 +inf.0 ; arbitrarily far
+                 #f) ; we can't even get there
+             #f))) ; no previous
+  (array-set! costs a (cons 0 #f)) ; initialize origin point
+  (let loop ([queue (list a)]) ; list of positions
+    (cond [(null? queue)
+           ;; found a path, return its first step (or #f if we failed)
+           (let loop ([pos b] [prev #f])
+             (define parent (cdr (grid-ref costs pos)))
+             (if parent (loop parent pos) prev))]
+          [else
+           ;; least expensive neighbor
+           (define next (argmin (lambda (x) (car (grid-ref costs x))) queue))
+           (define neighbors
+             (for*/list ([dir       (in-list  (list up down left right))]
+                         [pos       (in-value (dir next))]
+                         [cost+prev (in-value (grid-ref costs pos))]
+                         #:when cost+prev ; within bounds
+                         [cost      (in-value (car cost+prev))]
+                         [prev      (in-value (cdr cost+prev))]
+                         #:when cost ; not a wall or other obstacle
+                         [new-cost  (in-value
+                                     (+ (car (grid-ref costs next))
+                                        ;; heuristic cost
+                                        (manhattan-distance pos b)
+                                        (extra-heuristic g pos)))]
+                         #:when (< new-cost cost))
+               (array-set! costs pos (cons new-cost next))
+               pos))
+           (loop (append neighbors (remove next queue)))])))
+
+(module+ test
+  (define g3
+    (parse-grid '("XXXXXXXX"
+                  "X      X"
+                  "X X  XXX"
+                  "X X    X"
+                  "XXXXXXXX")))
+  (check-equal? (find-path g3 #(1 1) #(1 6)) #(1 2))
+  (check-equal? (find-path g3 #(1 1) #(3 1)) #(2 1))
+  (check-equal? (find-path g3 #(3 1) #(1 6)) #(2 1))
+  (check-equal? (find-path g3 #(3 1) #(3 6)) #(2 1))
+  (check-equal? (find-path g3 #(3 3) #(3 6)) #(3 4))
+  )
