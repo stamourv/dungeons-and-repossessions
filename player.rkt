@@ -66,6 +66,8 @@
     (define/public (next-dungeon)
       (set! fov  (set))
       (set! seen (set))
+      ;; level up for each new dungeon
+      ;; not enough xp in each to level up naturally
       (level-up))
 
     (define/public (pick-up) ; TODO bring up a dialog to ask what to pick up
