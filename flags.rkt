@@ -1,9 +1,15 @@
 #lang racket/base
 
+(require (for-syntax racket/base racket/syntax))
+
 (provide (all-defined-out))
 
-(define debug:reveal-map #f)
-(define (set-debug:reveal-map!) (set! debug:reveal-map #t))
+(define-syntax (define-flag stx)
+  (syntax-case stx ()
+    [(_ name)
+     #`(begin (define name #f)
+              (define (#,(format-id #'name "set-~a!" #'name))
+                (set! name #t)))]))
 
-(define debug:god-mode #f)
-(define (set-debug:god-mode!) (set! debug:god-mode #t))
+(define-flag debug:reveal-map)
+(define-flag debug:god-mode)
