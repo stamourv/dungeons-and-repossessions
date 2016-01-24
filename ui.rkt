@@ -11,6 +11,7 @@
          tear-down-ui
          state
          display-state
+         await-any-key
          handle-input)
 
 (define (set-up-ui)
@@ -68,6 +69,11 @@
     (newline)))
 
 
+(define (await-any-key)
+  (intercept-tty)
+  (choose-direction) ; for proper handling of arrow keys
+  (restore-tty))
+
 (define (invalid-command)
   (enqueue-message! "Invalid command.")
   'invalid)
@@ -78,19 +84,20 @@
                  (eq? char #\O))) ; emacs's ansi-term uses this
     (invalid-command))
   (case (read-char)
-    ((#\A) 'up)
-    ((#\B) 'down)
-    ((#\C) 'right)
-    ((#\D) 'left)
-    (else  (invalid-command))))
+    [(#\A) 'up]
+    [(#\B) 'down]
+    [(#\C) 'right]
+    [(#\D) 'left]
+    [else  #f]))
 
 (define (choose-direction)
   (if (= (char->integer (read-char)) 27) ; escape
       (case (which-direction?)
-        ((up)    up)
-        ((down)  down)
-        ((left)  left)
-        ((right) right))
+        [(up)    up]
+        [(down)  down]
+        [(left)  left]
+        [(right) right]
+        [else    #f])
       #f))
 
 (define (direction-command s name f)
@@ -118,7 +125,7 @@
            [(down)  (send player move-down  mode)]
            [(right) (send player move-right mode)]
            [(left)  (send player move-left  mode)]
-           [else 'invalid])]
+           [else    (invalid-command)])]
         [#\o (direction-command s "Open" (lambda (x) (send x open) 'move))]
         [#\c (direction-command s "Close" (lambda (x) (send x close) 'move))]
         [#\p (send player pick-up)]

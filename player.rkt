@@ -21,8 +21,8 @@
            [intelligence 0] ; Note: stored as bonus only, for simplicity
            [wisdom       -1]
            [charisma     1]
-           [fov          (set)]
-           [seen         (set)]
+           [fov          #f]
+           [seen         #f]
            [inventory    '()]
            [has-won?     #f])
     (inherit-field pos grid name max-hp current-hp)
@@ -63,6 +63,12 @@
       (set! current-hp        max-hp)
       (set! proficiency-bonus (+ (quotient (sub1 level) 4) 2)))
 
+    (define/public (next-dungeon)
+      (set! has-won? #f)
+      (set! fov      (set))
+      (set! seen     (set))
+      (level-up))
+
     (define/public (pick-up) ; TODO bring up a dialog to ask what to pick up
       (define cell  (grid-ref grid pos))
       (define items (get-field items cell))
@@ -95,7 +101,7 @@
         (set! inventory (remove item inventory))))
 
     (super-new [char #\@] [name "player"]) ; TODO have a name
-    (level-up)))
+    (next-dungeon)))
 
 
 (module+ test

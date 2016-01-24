@@ -8,8 +8,8 @@
 
 ;; A game state is a Floor
 
-(define (init-game)
-  (generate (new player%)))
+(define (init-game [player (new player%)])
+  (generate player))
 
 (define (game-loop s)
   (define player (state-player s))
@@ -20,10 +20,14 @@
     (cond [(get-field has-won? player)
            => (lambda (item)
                 (enqueue-message!
-                 (format "~a has retrieved the ~a.\nYou win!\n"
+                 (format "~a has retrieved the ~a."
                          (send player describe #:capitalize? #t)
                          (send item   describe #:specific?   #t)))
-                (display-state new-s))]
+                (enqueue-message! "Press any key for the next dungeon")
+                (display-state new-s)
+                (await-any-key)
+                (send player next-dungeon)
+                (game-loop (init-game player)))]
           [(positive? (get-field current-hp player))
            (game-loop new-s)] ; alive, keep going
           [else
