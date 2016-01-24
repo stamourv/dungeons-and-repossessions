@@ -126,10 +126,13 @@
   (array-set! costs a (cons 0 #f)) ; initialize origin point
   (let loop ([queue (list a)]) ; list of positions
     (cond [(null? queue)
-           ;; found a path, trace it back
-           (let loop ([pos b] [acc '()])
-             (define parent (cdr (grid-ref costs pos)))
-             (if parent (loop parent (cons pos acc)) acc))]
+           ;; found a path (or failed), trace it back (or return #f)
+           (define path
+             (let loop ([pos b] [acc '()])
+               (define parent (cdr (grid-ref costs pos)))
+               (if parent (loop parent (cons pos acc)) acc)))
+           (and (not (empty? path))
+                path)]
           [else
            ;; least expensive neighbor
            (define next (argmin (lambda (x) (car (grid-ref costs x))) queue))
@@ -153,11 +156,11 @@
 
 (module+ test
   (define g3
-    (parse-grid '("XXXXXXXX"
-                  "X      X"
-                  "X X  XXX"
-                  "X X    X"
-                  "XXXXXXXX")))
+    (parse-grid '("XXXXXXXXXX"
+                  "X      X X"
+                  "X X  XXX X"
+                  "X X    X X"
+                  "XXXXXXXXXX")))
   (check-equal?
    (find-path g3 #(1 1) #(1 6))
    '(#(1 2) #(1 3) #(1 4) #(1 5) #(1 6)))
@@ -170,4 +173,7 @@
   (check-equal?
    (find-path g3 #(3 1) #(3 6))
    '(#(2 1) #(1 1) #(1 2) #(1 3) #(2 3) #(3 3) #(3 4) #(3 5) #(3 6)))
+  (check-equal?
+   (find-path g3 #(1 1) #(1 8))
+   #f)
   )
