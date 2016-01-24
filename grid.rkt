@@ -125,34 +125,31 @@
              #f))) ; no previous
   (array-set! costs a (cons 0 #f)) ; initialize origin point
   (let loop ([queue (list a)]) ; list of positions
-    (cond [(null? queue)
-           ;; found a path (or failed), trace it back (or return #f)
-           (define path
-             (let loop ([pos b] [acc '()])
-               (define parent (cdr (grid-ref costs pos)))
-               (if parent (loop parent (cons pos acc)) acc)))
-           (and (not (empty? path))
-                path)]
-          [else
-           ;; least expensive neighbor
-           (define next (argmin (lambda (x) (car (grid-ref costs x))) queue))
-           (define neighbors
-             (for*/list ([dir       (in-list  (list up down left right))]
-                         [pos       (in-value (dir next))]
-                         [cost+prev (in-value (grid-ref costs pos))]
-                         #:when cost+prev ; within bounds
-                         [cost      (in-value (car cost+prev))]
-                         [prev      (in-value (cdr cost+prev))]
-                         #:when cost ; not a wall or other obstacle
-                         [new-cost  (in-value
-                                     (+ (car (grid-ref costs next))
-                                        ;; heuristic cost
-                                        (manhattan-distance pos b)
-                                        (extra-heuristic g pos)))]
-                         #:when (< new-cost cost))
-               (array-set! costs pos (cons new-cost next))
-               pos))
-           (loop (append neighbors (remove next queue)))])))
+    (unless (null? queue)
+      (define next (argmin (lambda (x) (car (grid-ref costs x))) queue))
+      (define neighbors
+        (for*/list ([dir       (in-list  (list up down left right))]
+                    [pos       (in-value (dir next))]
+                    [cost+prev (in-value (grid-ref costs pos))]
+                    #:when cost+prev ; within bounds
+                    [cost      (in-value (car cost+prev))]
+                    #:when cost ; not a wall or other obstacle
+                    [new-cost  (in-value
+                                (+ (car (grid-ref costs next))
+                                   ;; heuristic cost
+                                   (manhattan-distance pos b)
+                                   (extra-heuristic g pos)))]
+                    #:when (< new-cost cost)) ; is it better?
+          (array-set! costs pos (cons new-cost next))
+          pos))
+      (loop (append neighbors (remove next queue)))))
+  ;; found a path (or failed), trace it back (or return #f)
+  (define path
+    (let loop ([pos b] [acc '()])
+      (define parent (cdr (grid-ref costs pos)))
+      (if parent (loop parent (cons pos acc)) acc)))
+  (and (not (empty? path))
+       path))
 
 (module+ test
   (define g3
