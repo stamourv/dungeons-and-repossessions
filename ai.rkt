@@ -83,12 +83,10 @@
       action-type))
 
 (define (rush pos state)
-  (match-define (vector player-x player-y) (get-player-pos state))
-  (match-define (vector pos-x    pos-y)    pos)
-  (or (and (> player-x pos-x) (pos-if-ok (down pos)  state))
-      (and (> player-y pos-y) (pos-if-ok (right pos) state))
-      (and (< player-x pos-x) (pos-if-ok (up pos)    state))
-      (and (< player-y pos-y) (pos-if-ok (left pos)  state))))
+  (define player-pos (get-player-pos state))
+  (define grid       (state-grid     state))
+  (define path       (find-path grid pos player-pos))
+  (and path (pos-if-ok (first path) state)))
 
 ;; goes towards the player as directly as possible and attacks
 (define rush-ai%
@@ -111,7 +109,7 @@
   (cond
    [(adjacent? pos player-pos) ; attack
     player-pos]
-   [else ; cower. essentially the reverse of rush
+   [else ; get away from the player
     (or (and (> player-x pos-x) (pos-if-ok (up pos)    state))
         (and (> player-y pos-y) (pos-if-ok (left pos)  state))
         (and (< player-x pos-x) (pos-if-ok (down pos)  state))

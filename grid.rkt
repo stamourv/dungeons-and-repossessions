@@ -119,7 +119,9 @@
     (for*/array #:shape (vector height width)
                 ([x (in-range height)]
                  [y (in-range width)])
-       (cons (if (send (grid-ref g (vector x y)) free?)
+       ;; pathfinding can have us go through occupants. this is necessary
+       ;; if the destination is occupied (e.g. monster going to player)
+       (cons (if (send (grid-ref g (vector x y)) free? #:occupant-ok? #t)
                  +inf.0 ; arbitrarily far
                  #f) ; we can't even get there
              #f))) ; no previous

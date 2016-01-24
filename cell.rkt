@@ -16,7 +16,7 @@
   (class sprite%
     (init-field [items    '()]
                 [occupant #f]) ; player, monster, etc.
-    (define/public (free?)    #f)
+    (define/public (free? #:occupant-ok? [_ #f]) #f)
     (define/public (opaque?)  #t)
     (define/public (show/fog) (send this show))
     (define/public (open)     (enqueue-message! "Can't open that."))
@@ -38,7 +38,7 @@
 (define free-cell%
   (class cell%
     (inherit-field occupant char)
-    (define/override (free?)    (not occupant))
+    (define/override (free? #:occupant-ok? [ok? #f]) (or ok? (not occupant)))
     (define/override (opaque?)  #f)
     (define/override (show)     (free-cell-show this char #t))
     (define/override (show/fog) (free-cell-show this char #f))
@@ -95,8 +95,8 @@
   (class cell%
     (init-field [open? #f])
     (inherit-field occupant char)
-    (define/override (free?)
-      (and open? (not occupant)))
+    (define/override (free? #:occupant-ok? [ok? #f])
+      (and open? (or ok? (not occupant))))
     (define/override (opaque?)
       (not open?))
     (define (-show show-occupant?)
