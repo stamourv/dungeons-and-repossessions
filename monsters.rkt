@@ -6,7 +6,7 @@
 
 (define monster%
   (class character%
-    (init-field theme xp-value)
+    (init-field xp-value)
     (field [encounter '()])
     (super-new)))
 
@@ -34,8 +34,7 @@
         (define/override (get-attack-bonus) ab)
         (define/override (get-ac)           ac)
         (define/override (get-damage-die)   dmg)
-        (super-new [name n] [char ch] [theme t]
-                   [max-hp (hp)] [speed sp] [xp-value xp])))
+        (super-new [name n] [char ch] [max-hp (hp)] [speed sp] [xp-value xp])))
     (add-monster! def-name t)
     (add-theme! t)
     (hash-set! monsters->xp def-name xp)))
