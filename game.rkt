@@ -40,7 +40,7 @@
                          (send item   describe #:specific?   #t)))
                 (enqueue-message! "Press any key for the next dungeon")
                 (display-state new-s)
-                (await-any-key)
+                (read-key)
                 (send player next-dungeon)
                 (game-loop (init-dungeon player)))]
           [(or (positive? (get-field current-hp player))

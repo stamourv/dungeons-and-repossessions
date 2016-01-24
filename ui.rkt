@@ -11,7 +11,7 @@
          tear-down-ui
          state
          display-state
-         await-any-key
+         read-key
          handle-input)
 
 (define (set-up-ui)
@@ -69,10 +69,16 @@
     (newline)))
 
 
-(define (await-any-key)
+(define (read-key)
   (intercept-tty)
-  (choose-direction) ; for proper handling of arrow keys
-  (restore-tty))
+  (begin0 (-read-key)
+    (restore-tty)))
+
+(define (-read-key) ; reads a "whole" key (incl. escape sequences)
+  (define char (read-char))
+  (if (= (char->integer char) 27) ; escape
+      (which-direction?)
+      char))
 
 (define (invalid-command)
   (enqueue-message! "Invalid command.")
@@ -91,14 +97,12 @@
     [else  #f]))
 
 (define (choose-direction)
-  (if (= (char->integer (read-char)) 27) ; escape
-      (case (which-direction?)
-        [(up)    up]
-        [(down)  down]
-        [(left)  left]
-        [(right) right]
-        [else    #f])
-      #f))
+  (case (-read-key)
+    [(up)    up]
+    [(down)  down]
+    [(left)  left]
+    [(right) right]
+    [else    #f]))
 
 (define (direction-command s name f)
   (printf "~a in which direction?\n" name)
@@ -133,8 +137,14 @@
         [#\s ; suicide
          (set-field! current-hp player 0)
          'invalid]
-        [#\q
-         'quit]
+        [#\q ; quit
+         (printf "Do you really want to quit? (y/n)\n")
+         (define key (-read-key))
+         (cond [(equal? key #\y)
+                'quit]
+               [else
+                (enqueue-message! "Alright then.")
+                'invalid])]
         [#\space
          'wait]
         [_
