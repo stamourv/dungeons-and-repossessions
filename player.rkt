@@ -55,10 +55,10 @@
     (define/override (get-damage-die)
       (lambda _ (+ (d6) strength))) ; hand axe ; TODO have logic in item defn
 
-    (define/public (level-up)
+    (define/public (level-up [new-level (add1 level)])
       ;; TODO increase stats at the right levels, etc.
       ;;   also other level benefits, like fighting styles, etc.
-      (set! level             (add1 level))
+      (set! level             new-level)
       (set! max-hp            (* level (+ 10 constitution))) ; as a fighter
       (set! current-hp        max-hp)
       (set! proficiency-bonus (+ (quotient (sub1 level) 4) 2)))

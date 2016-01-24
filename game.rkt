@@ -8,7 +8,15 @@
 
 ;; A game state is a Floor
 
-(define (init-game [player (new player%)])
+(define (init-game [-player #f])
+  (define init-level
+    (match (current-command-line-arguments)
+      [(vector level) (string->number level)]
+      [else           1]))
+  (define player
+    (or -player (let ([p (new player%)])
+                  (send p level-up init-level)
+                  p)))
   (generate player))
 
 (define (game-loop s)
