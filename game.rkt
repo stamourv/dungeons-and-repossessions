@@ -8,15 +8,16 @@
 
 ;; A game state is a Floor
 
-(define (init-game [-player #f])
+(define (init-player)
   (define init-level
     (match (current-command-line-arguments)
       [(vector level) (string->number level)]
       [else           1]))
-  (define player
-    (or -player (let ([p (new player%)])
-                  (send p level-up init-level)
-                  p)))
+  (define p (new player%))
+  (send p level-up init-level)
+  p)
+
+(define (init-dungeon player)
   (generate player))
 
 (define (game-loop s)
@@ -35,7 +36,7 @@
                 (display-state new-s)
                 (await-any-key)
                 (send player next-dungeon)
-                (game-loop (init-game player)))]
+                (game-loop (init-dungeon player)))]
           [(positive? (get-field current-hp player))
            (game-loop new-s)] ; alive, keep going
           [else
@@ -49,6 +50,6 @@
   (define exn #f)
   ;; whatever we do, always tear down UI
   (with-handlers ([values (lambda (e) (set! exn e))])
-    (game-loop (init-game)))
+    (game-loop (init-dungeon (init-player))))
   (void (tear-down-ui))
   (when exn (raise exn)))
