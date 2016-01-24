@@ -138,8 +138,6 @@
 
 (define entrance%
   (class free-cell%
-    (define/override (enter char)
-      (send char check-win-condition))
     (super-new [char #\⋂] ; doorway
                [name "entrance"])))
 (register-cell-type! entrance% #\⋂)

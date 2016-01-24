@@ -26,7 +26,7 @@
   (define action-taken     (send active-character act s))
   (unless (equal? action-taken 'quit)
     (define new-s (state-cleanup (next-state s action-taken)))
-    (cond [(get-field has-won? player)
+    (cond [(send player check-win-condition)
            => (lambda (item)
                 (enqueue-message!
                  (format "~a has retrieved the ~a."

@@ -6,6 +6,7 @@
          "vision.rkt"
          "items.rkt"
          "ui.rkt"
+         "cell.rkt"
          "grid.rkt"
          "utils.rkt")
 
@@ -23,8 +24,7 @@
            [charisma     1]
            [fov          #f]
            [seen         #f]
-           [inventory    '()]
-           [has-won?     #f])
+           [inventory    '()])
     (inherit-field pos grid name max-hp current-hp)
 
     (define/override (describe #:capitalize? [capitalize? #f]
@@ -64,9 +64,8 @@
       (set! proficiency-bonus (+ (quotient (sub1 level) 4) 2)))
 
     (define/public (next-dungeon)
-      (set! has-won? #f)
-      (set! fov      (set))
-      (set! seen     (set))
+      (set! fov  (set))
+      (set! seen (set))
       (level-up))
 
     (define/public (pick-up) ; TODO bring up a dialog to ask what to pick up
@@ -94,11 +93,12 @@
       'invalid) ; doesn't consume an action
 
     (define/override (check-win-condition)
-      (for/first ([item (in-list inventory)]
-                  #:when (is-a? item macguffin%))
-        (set! has-won? item)
-        ;; and remove it from inventory, to not carry it across dungeons
-        (set! inventory (remove item inventory))))
+      (and (is-a? (grid-ref grid pos) entrance%)
+           (for/first ([item (in-list inventory)]
+                       #:when (is-a? item macguffin%))
+             ;; and remove it from inventory, to not carry it across dungeons
+             (set! inventory (remove item inventory))
+             item)))
 
     (super-new [char #\@] [name "player"]) ; TODO have a name
     (next-dungeon)))
