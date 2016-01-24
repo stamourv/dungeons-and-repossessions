@@ -41,11 +41,11 @@
     (hash-set! monsters->xp def-name xp)))
 
 (define-simple-monster bat% #\b "bat"
-  #:themes '(vermin) #:max-hp (lambda _ (max (- (d4) 1) 1)) #:speed 6
+  #:themes '(vermin tomb) #:max-hp (lambda _ (max (- (d4) 1) 1)) #:speed 6
   #:attack-bonus 0 #:ac 12 #:damage-die (lambda _ 1)
   #:xp-value 10 #:ai cower-ai%)
 (define-simple-monster rat% #\r "rat"
-  #:themes '(vermin) #:max-hp (lambda _ (max (- (d4) 1) 1)) #:speed 4
+  #:themes '(vermin tomb) #:max-hp (lambda _ (max (- (d4) 1) 1)) #:speed 4
   #:attack-bonus 0 #:ac 10 #:damage-die (lambda _ 1)
   #:xp-value 10 #:ai wander-ai%)
 (define-simple-monster spider% #\s "spider"
@@ -97,19 +97,20 @@
   #:attack-bonus 2 #:ac 10 #:damage-die d4
   #:xp-value 50 #:ai injury-shy-ai%)
 ;; TODO has healing spells, plus misc other spells (o/w not worth 50 xp)
+
+
 (define-simple-monster skeleton% #\t "skeleton"
-  #:themes '(cult) #:max-hp (lambda _ (+ (d8) (d8) 4)) #:speed 6
+  #:themes '(tomb) #:max-hp (lambda _ (+ (d8) (d8) 4)) #:speed 6
   #:attack-bonus 4 #:ac 13 #:damage-die (lambda _ (+ (d6) 2))
   #:xp-value 50 #:ai rush-ai%)
 ;; TODO + archer variant
 (define-simple-monster zombie% #\z "zombie"
-  #:themes '(cult) #:max-hp (lambda _ (+ (d8) (d8) (d8) 9)) #:speed 4
+  #:themes '(tomb) #:max-hp (lambda _ (+ (d8) (d8) (d8) 9)) #:speed 4
   #:attack-bonus 3 #:ac 8 #:damage-die (lambda _ (+ (d6) 1))
   #:xp-value 50 #:ai wander-ai%)
 
 
 ;; TODO bandits (25 xp) could be a good monster. what theme, though?
-;;   doesn't fit with either vermin or cult
 
 
 ;; TODO already a lot of collisions for display characters
