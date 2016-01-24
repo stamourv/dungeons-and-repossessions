@@ -85,7 +85,11 @@
 (define (rush pos state)
   (define player-pos (get-player-pos state))
   (define grid       (state-grid     state))
-  (define path       (find-path grid pos player-pos))
+  (define path
+    (find-path grid pos player-pos
+               ;; penalize occupied tiles to avoid pileups and go around
+               #:extra-heuristic (lambda (g pos)
+                                   (if (send (grid-ref g pos) free?) 0 10))))
   (and path (pos-if-ok (first path) state)))
 
 ;; goes towards the player as directly as possible and attacks
