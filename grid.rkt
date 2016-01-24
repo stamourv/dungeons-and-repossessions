@@ -74,6 +74,11 @@
     (or (and (= 1 (abs (- x1 x2))) (= y1 y2))
         (and (= x1 x2) (= 1 (abs (- y1 y2))))))
 
+(define (manhattan-distance p1 p2)
+  (match-define (vector x1 y1) p1)
+  (match-define (vector x2 y2) p2)
+  (+ (abs (- x1 x2)) (abs (- y1 y2))))
+
 
 (module+ test
   (require rackunit)

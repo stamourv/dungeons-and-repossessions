@@ -15,11 +15,6 @@
   (match-define (room (vector x y) height width _1 _2) r)
   (vector (+ x (/ height 2.0)) (+ y (/ width 2.0))))
 
-(define (manhattan-distance p1 p2)
-  (match-define (vector x1 y1) p1)
-  (match-define (vector x2 y2) p2)
-  (+ (abs (- x1 x2)) (abs (- y1 y2))))
-
 (define (random-room-poss room n)
   (random-sample (room-free-cells room) n #:replacement? #f))
 
