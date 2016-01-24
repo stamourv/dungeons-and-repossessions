@@ -1,18 +1,24 @@
 #lang racket
 
-(require "player.rkt"
+(require racket/cmdline
+         "player.rkt"
          "generation.rkt"
          "message-queue.rkt"
          "state.rkt"
-         "ui.rkt")
+         "ui.rkt"
+         "flags.rkt")
 
-;; A game state is a Floor
+(define init-level
+  (command-line
+   #:once-each
+   [("--reveal-map") "Show entire map (for debugging)."
+    (set-debug:reveal-map!)]
+   [("--god-mode")   "Make player invincible (for debugging)."
+    (set-debug:god-mode!)]
+   #:args ([init-level "1"])
+   (string->number init-level)))
 
 (define (init-player)
-  (define init-level
-    (match (current-command-line-arguments)
-      [(vector level) (string->number level)]
-      [else           1]))
   (define p (new player%))
   (send p level-up init-level)
   p)
@@ -37,7 +43,8 @@
                 (await-any-key)
                 (send player next-dungeon)
                 (game-loop (init-dungeon player)))]
-          [(positive? (get-field current-hp player))
+          [(or (positive? (get-field current-hp player))
+               debug:god-mode)
            (game-loop new-s)] ; alive, keep going
           [else
            (enqueue-message!

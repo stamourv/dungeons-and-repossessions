@@ -8,7 +8,8 @@
          "ui.rkt"
          "cell.rkt"
          "grid.rkt"
-         "utils.rkt")
+         "utils.rkt"
+         "flags.rkt")
 
 (provide player%)
 
@@ -36,7 +37,6 @@
       (display-state state)
       (handle-input state))
 
-    (define debug:reveal-map #f)
     (define sight-range 7)
     (define (update-fov)
       (set! fov  (compute-fov grid pos sight-range))
