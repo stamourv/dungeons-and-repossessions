@@ -10,5 +10,4 @@
 
 (define macguffin%
   (class item%
-    (super-new [char #\$]
-               [name "MacGuffin"]))); TODO have it change for each dungeon
+    (super-new [char #\$])))
