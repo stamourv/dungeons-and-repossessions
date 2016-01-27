@@ -53,7 +53,7 @@
       (+ 14 (min dexterity 2) ; scale armor ; TODO have logic in item defn
          2)) ; shield
     (define/override (get-damage-die)
-      (lambda _ (+ (d6) strength))) ; hand axe ; TODO have logic in item defn
+      (dice d6 strength)) ; hand axe ; TODO have logic in item defn
 
     (define/public (level-up [new-level (add1 level)])
       ;; TODO increase stats at the right levels, etc.

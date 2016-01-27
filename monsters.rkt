@@ -41,60 +41,60 @@
     (hash-set! monsters->xp def-name xp)))
 
 (define-simple-monster bat% #\b "bat" #:themes '(vermin tomb)
-  #:max-hp (lambda _ (max (- (d4) 1) 1)) #:speed 6
-  #:attack-bonus 0 #:ac 12 #:damage-die (lambda _ 1)
+  #:max-hp (dice d4 -1) #:speed 6
+  #:attack-bonus 0 #:ac 12 #:damage-die (dice 1)
   #:xp-value 10 #:ai cower-ai%)
 (define-simple-monster rat% #\r "rat" #:themes '(vermin tomb)
-  #:max-hp (lambda _ (max (- (d4) 1) 1)) #:speed 4
-  #:attack-bonus 0 #:ac 10 #:damage-die (lambda _ 1)
+  #:max-hp (dice d4 -1) #:speed 4
+  #:attack-bonus 0 #:ac 10 #:damage-die (dice 1)
   #:xp-value 10 #:ai wander-ai%)
 (define-simple-monster spider% #\s "spider" #:themes '(vermin)
-  #:max-hp (lambda _ (max (- (d4) 1) 1)) #:speed 4
-  #:attack-bonus 4 #:ac 12 #:damage-die (lambda _ 1)
+  #:max-hp (dice d4 -1) #:speed 4
+  #:attack-bonus 4 #:ac 12 #:damage-die (dice 1)
   #:xp-value 10 #:ai wander-ai%)
 ;; TODO should ignore difficult terrain. and add poison to attack
 
 (define-simple-monster giant-rat% #\R "giant rat" #:themes '(vermin)
-  #:max-hp (lambda _ (+ (d6) (d6))) #:speed 6
-  #:attack-bonus 4 #:ac 12 #:damage-die (lambda _ (+ (d4) 2))
+  #:max-hp (dice 2 d6) #:speed 6
+  #:attack-bonus 4 #:ac 12 #:damage-die (dice d4 2)
   #:xp-value 25 #:ai rush-ai%)
 ;; TODO pack tactics, once I implement advantage
 (define-simple-monster kobold% #\k "kobold" #:themes '(vermin)
-  #:max-hp (lambda _ (max (+ (d6) (d6) -2) 1)) #:speed 6
-  #:attack-bonus 4 #:ac 12 #:damage-die (lambda _ (+ (d4) 2))
+  #:max-hp (dice 2 d6 -2) #:speed 6
+  #:attack-bonus 4 #:ac 12 #:damage-die (dice d4 2)
   #:xp-value 25 #:ai injury-shy-ai%)
 ;; TODO + slinger variant
 ;; TODO pack tactics, once I implement advantage
 
 (define-simple-monster goblin% #\g "goblin" #:themes '(vermin)
-  #:max-hp (lambda _ (+ (d6) (d6))) #:speed 6
-  #:attack-bonus 4 #:ac 15 #:damage-die (lambda _ (+ (d6) 2))
+  #:max-hp (dice 2 d6) #:speed 6
+  #:attack-bonus 4 #:ac 15 #:damage-die (dice d6 2)
   #:xp-value 50 #:ai injury-shy-ai%)
 ;; TODO + archer variant
 (define-simple-monster wolf% #\w "wolf" #:themes '(vermin)
-  #:max-hp (lambda _ (+ (d8) (d8) 2)) #:speed 8
-  #:attack-bonus 4 #:ac 13 #:damage-die (lambda _ (+ (d4) (d4) 2))
+  #:max-hp (dice 2 d8 2) #:speed 8
+  #:attack-bonus 4 #:ac 13 #:damage-die (dice 2 d4 2)
   #:xp-value 50 #:ai rush-ai%)
 ;; TODO pack tactics, once I implement advantage. + knock prone from attack
 
 (define-simple-monster orc% #\o "orc" #:themes '(vermin)
-  #:max-hp (lambda _ (+ (d8) (d8) 6)) #:speed 6
-  #:attack-bonus 5 #:ac 13 #:damage-die (lambda _ (+ (d12) 3))
+  #:max-hp (dice 2 d8 6) #:speed 6
+  #:attack-bonus 5 #:ac 13 #:damage-die (dice d12 3)
   #:xp-value 100 #:ai rush-ai%)
 ;; TODO javelin variant. aggressive trait
 (define-simple-monster gnoll% #\n "gnoll" #:themes '(vermin)
-  #:max-hp (lambda _ (+ (d8) (d8) (d8) (d8) (d8))) #:speed 6
-  #:attack-bonus 4 #:ac 15 #:damage-die (lambda _ (+ (d6) 2))
+  #:max-hp (dice 5 d8) #:speed 6
+  #:attack-bonus 4 #:ac 15 #:damage-die (dice d6 2)
   #:xp-value 100 #:ai injury-shy-ai%)
 ;; TODO + bite attack, and archer variant
 (define-simple-monster hobgoblin% #\h "hobgoblin" #:themes '(vermin)
-  #:max-hp (lambda _ (+ (d8) (d8) 2)) #:speed 6
-  #:attack-bonus 3 #:ac 18 #:damage-die (lambda _ (+ (d8) 1))
+  #:max-hp (dice 2 d8 2) #:speed 6
+  #:attack-bonus 3 #:ac 18 #:damage-die (dice d8 1)
   #:xp-value 100 #:ai rush-ai%)
 ;; TODO martial advantage. archer variant
 (define-simple-monster worg% #\W "worg" #:themes '(vermin)
-  #:max-hp (lambda _ (+ (d10) (d10) (d10) (d10) 4)) #:speed 10
-  #:attack-bonus 5 #:ac 13 #:damage-die (lambda _ (+ (d6) (d6) 3))
+  #:max-hp (dice 4 d10 4) #:speed 10
+  #:attack-bonus 5 #:ac 13 #:damage-die (dice 2 d6 3)
   #:xp-value 100 #:ai rush-ai%)
 
 
@@ -104,29 +104,29 @@
   #:xp-value 10 #:ai cower-ai%)
 
 (define-simple-monster guard% #\u "guard" #:themes '(cult castle)
-  #:max-hp (lambda _ (+ (d8) (d8) 2)) #:speed 6
-  #:attack-bonus 3 #:ac 16 #:damage-die (lambda _ (+ (d6) 1))
+  #:max-hp (dice 2 d8 2) #:speed 6
+  #:attack-bonus 3 #:ac 16 #:damage-die (dice d6 1)
   #:xp-value 25 #:ai rush-ai%)
 (define-simple-monster cultist% #\l "cultist" #:themes '(cult)
-  #:max-hp (lambda _ (+ (d8) (d8))) #:speed 6
-  #:attack-bonus 4 #:ac 12 #:damage-die (lambda _ (+ (d6) 1))
+  #:max-hp (dice 2 d8) #:speed 6
+  #:attack-bonus 4 #:ac 12 #:damage-die (dice d6 1)
   #:xp-value 25 #:ai rush-ai%)
 
 (define-simple-monster acolyte% #\a "acolyte" #:themes '(cult)
-  #:max-hp (lambda _ (+ (d8) (d8))) #:speed 6
+  #:max-hp (dice 2 d8) #:speed 6
   #:attack-bonus 2 #:ac 10 #:damage-die d4
   #:xp-value 50 #:ai injury-shy-ai%)
 ;; TODO has healing spells, plus misc other spells (o/w not worth 50 xp)
 
 
 (define-simple-monster skeleton% #\t "skeleton" #:themes '(tomb)
-  #:max-hp (lambda _ (+ (d8) (d8) 4)) #:speed 6
-  #:attack-bonus 4 #:ac 13 #:damage-die (lambda _ (+ (d6) 2))
+  #:max-hp (dice 2 d8 4) #:speed 6
+  #:attack-bonus 4 #:ac 13 #:damage-die (dice d6 2)
   #:xp-value 50 #:ai rush-ai%)
 ;; TODO + archer variant
 (define-simple-monster zombie% #\z "zombie" #:themes '(tomb)
-  #:max-hp (lambda _ (+ (d8) (d8) (d8) 9)) #:speed 4
-  #:attack-bonus 3 #:ac 8 #:damage-die (lambda _ (+ (d6) 1))
+  #:max-hp (dice 3 d8 9) #:speed 4
+  #:attack-bonus 3 #:ac 8 #:damage-die (dice d6 1)
   #:xp-value 50 #:ai wander-ai%)
 
 

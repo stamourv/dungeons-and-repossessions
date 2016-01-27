@@ -16,3 +16,17 @@
 (define (d10) (random 1 11))
 (define (d12) (random 1 13))
 (define (d20) (random 1 21))
+
+(define (dice . args)
+  (define (loop args)
+    (match args
+      ['()
+       0]
+      [`(,(? integer? n))
+       n]
+      [`(,(? integer? n) ,d . ,rest)
+       (+ (for/sum ([i (in-range n)]) (d))
+          (loop rest))]
+      [`(,d . ,rest)
+       (+ (d) (loop rest))]))
+  (lambda _ (max 1 (loop args))))
