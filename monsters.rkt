@@ -77,6 +77,26 @@
   #:xp-value 50 #:ai rush-ai%)
 ;; TODO pack tactics, once I implement advantage. + knock prone from attack
 
+(define-simple-monster orc% #\o "orc"
+  #:themes '(vermin) #:max-hp (lambda _ (+ (d8) (d8) 6)) #:speed 6
+  #:attack-bonus 5 #:ac 13 #:damage-die (lambda _ (+ (d12) 3))
+  #:xp-value 100 #:ai rush-ai%)
+;; TODO javelin variant. aggressive trait
+(define-simple-monster gnoll% #\n "gnoll"
+  #:themes '(vermin) #:max-hp (lambda _ (+ (d8) (d8) (d8) (d8) (d8))) #:speed 6
+  #:attack-bonus 4 #:ac 15 #:damage-die (lambda _ (+ (d6) 2))
+  #:xp-value 100 #:ai injury-shy-ai%)
+;; TODO + bite attack, and archer variant
+(define-simple-monster hobgoblin% #\h "hobgoblin"
+  #:themes '(vermin) #:max-hp (lambda _ (+ (d8) (d8) 2)) #:speed 6
+  #:attack-bonus 3 #:ac 18 #:damage-die (lambda _ (+ (d8) 1))
+  #:xp-value 100 #:ai rush-ai%)
+;; TODO martial advantage. archer variant
+(define-simple-monster worg% #\W "worg"
+  #:themes '(vermin) #:max-hp (lambda _ (+ (d10) (d10) (d10) (d10) 4)) #:speed 10
+  #:attack-bonus 5 #:ac 13 #:damage-die (lambda _ (+ (d6) (d6) 3))
+  #:xp-value 100 #:ai rush-ai%)
+
 
 (define-simple-monster commoner% #\c "commoner"
   #:themes '(cult) #:max-hp d8 #:speed 6
