@@ -130,7 +130,18 @@
   #:xp-value 50 #:ai wander-ai%)
 
 
-;; TODO bandits (25 xp) could be a good monster. what theme, though?
+(define-simple-monster bandit% #\d "bandit" #:themes '(castle)
+  #:max-hp (dice 2 d8 2) #:speed 6
+  #:attack-bonus 4 #:ac 12 #:damage-die (dice d6 1)
+  #:xp-value 25 #:ai injury-shy-ai%)
+;; TODO crossbow variant
+
+(define-simple-monster thug% #\U "thug" #:themes '(castle)
+  #:max-hp (dice 5 d8 10) #:speed 6
+  #:attack-bonus 4 #:ac 11 #:damage-die (dice d6 2)
+  #:xp-value 100 #:ai rush-ai%)
+;; TODO pack tactics. multiattack. crossbow variant
+;; TODO warhorse for CR 1/2? or is that just silly?
 
 
 ;; TODO already a lot of collisions for display characters
