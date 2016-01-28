@@ -46,11 +46,6 @@
   #:max-hp (dice d4 -1) #:speed 4
   #:attack-bonus 0 #:ac 10 #:damage-die (dice 1)
   #:cr 0 #:ai wander-ai%)
-(define-simple-monster spider% #\s "spider" #:themes '(vermin)
-  #:max-hp (dice d4 -1) #:speed 4
-  #:attack-bonus 4 #:ac 12 #:damage-die (dice 1)
-  #:cr 0 #:ai wander-ai%)
-;; TODO should ignore difficult terrain. and add poison to attack
 
 (define-simple-monster giant-rat% #\R "giant rat" #:themes '(vermin)
   #:max-hp (dice 2 d6) #:speed 6
@@ -123,6 +118,11 @@
   #:cr 1/4 #:ai wander-ai%)
 
 
+(define-simple-monster commoner% #\c "commoner" #:themes '(castle)
+  #:max-hp d8 #:speed 6
+  #:attack-bonus 2 #:ac 10 #:damage-die d4
+  #:cr 0 #:ai cower-ai%)
+
 (define-simple-monster bandit% #\d "bandit" #:themes '(castle)
   #:max-hp (dice 2 d8 2) #:speed 6
   #:attack-bonus 4 #:ac 12 #:damage-die (dice d6 1)
@@ -136,6 +136,11 @@
 ;; TODO pack tactics. multiattack. crossbow variant
 ;; TODO warhorse for CR 1/2? or is that just silly?
 
+(define-simple-monster spider% #\s "spider" #:themes '(jungle)
+  #:max-hp (dice d4 -1) #:speed 4
+  #:attack-bonus 4 #:ac 12 #:damage-die (dice 1)
+  #:cr 0 #:ai wander-ai%)
+;; TODO should ignore difficult terrain. and add poison to attack
 
 ;; TODO already a lot of collisions for display characters
 ;;   maybe it's ok to have collisions across themes?
