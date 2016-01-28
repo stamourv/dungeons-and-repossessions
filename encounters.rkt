@@ -47,7 +47,7 @@
 ;; given the player's level, allocate a day's xp budget between a number
 ;; of encounters of varying difficulty
 ;; returns a list of difficulties
-(define (generate-encounter-template character-level)
+(define (generate-dungeon-template character-level)
   (define budget (day-experience-budget character-level))
   (define costs
     (for/list ([d (in-list all-difficulties)])
@@ -75,7 +75,7 @@
         (when (empty? possible-difficulties)
           ;; we're not close enough, and nothing can fit
           ;; that probably shouldn't happen. internal error
-          (raise-arguments-error 'generate-encounter-template "nothing can fit"
+          (raise-arguments-error 'generate-dungeon-template "nothing can fit"
                                  "encounters" encs-so-far
                                  "remaining budget" remaining-budget
                                  "level" character-level))
@@ -90,10 +90,10 @@
 
 ;; (module+ main ; to test it out
 ;;   (for ([i 10])
-;;     (displayln (generate-encounter-template 1))))
+;;     (displayln (generate-dungeon-template 1))))
 
 ;; pick concrete encounters given a template and the character level
-(define (fill-encounter-template template level)
+(define (fill-dungeon-template template level)
   (define possible-themes ; stick to one theme for the dungeon
     (for/list ([t (in-list all-themes)]
                ;; can we populate the template with this theme?
@@ -110,7 +110,7 @@
 
 ;; generates a list of encounters for a given player level
 (define (generate-encounters level)
-  (fill-encounter-template (generate-encounter-template level) level))
+  (fill-dungeon-template (generate-dungeon-template level) level))
 
 (define (instantiate-encounter e)
   (define inst (for/list ([m-c (in-list e)]) (new m-c)))
