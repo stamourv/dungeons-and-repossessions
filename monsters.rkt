@@ -38,10 +38,6 @@
       (hash-update! theme+cr-table (cons t cr)
                     (lambda (l) (cons def-name l)) '()))))
 
-(define-simple-monster bat% #\b "bat" #:themes '(vermin tomb)
-  #:max-hp (dice d4 -1) #:speed 6
-  #:attack-bonus 0 #:ac 12 #:damage-die (dice 1)
-  #:cr 0 #:ai cower-ai%)
 (define-simple-monster rat% #\r "rat" #:themes '(vermin tomb)
   #:max-hp (dice d4 -1) #:speed 4
   #:attack-bonus 0 #:ac 10 #:damage-die (dice 1)
@@ -85,10 +81,21 @@
   #:attack-bonus 3 #:ac 18 #:damage-die (dice d8 1)
   #:cr 1/2 #:ai rush-ai%)
 ;; TODO martial advantage. archer variant
-(define-simple-monster worg% #\W "worg" #:themes '(vermin)
-  #:max-hp (dice 4 d10 4) #:speed 10
-  #:attack-bonus 5 #:ac 13 #:damage-die (dice 2 d6 3)
-  #:cr 1/2 #:ai rush-ai%)
+;; (define-simple-monster worg% #\W "worg" #:themes '(vermin)
+;;   #:max-hp (dice 4 d10 4) #:speed 10
+;;   #:attack-bonus 5 #:ac 13 #:damage-die (dice 2 d6 3)
+;;   #:cr 1/2 #:ai rush-ai%) ; TODO want #\W for dire wolf instead
+
+(define-simple-monster bugbear% #\b "bugbear" #:themes '(vermin)
+  #:max-hp (dice 5 d8 5) #:speed 6
+  #:attack-bonus 4 #:ac 16 #:damage-die (dice 2 d8 2)
+  #:cr 1 #:ai rush-ai%)
+;; TODO surprise attack. javelin variant
+(define-simple-monster dire-wolf% #\W "dire wolf" #:themes '(vermin)
+  #:max-hp (dice 5 d10 10) #:speed 10
+  #:attack-bonus 5 #:ac 14 #:damage-die (dice 2 d6 3)
+  #:cr 1 #:ai rush-ai%)
+;; TODO pack tactics, once I implement advantage. + knock prone from attack
 
 
 ;; TODO removing cult for now. not very interesting, esp. with acolyte
@@ -105,6 +112,11 @@
 ;;   #:cr 1/4 #:ai injury-shy-ai%)
 ;; ;; TODO has healing spells, plus misc other spells (o/w not worth 50 xp)
 
+
+(define-simple-monster bat% #\b "bat" #:themes '(tomb)
+  #:max-hp (dice d4 -1) #:speed 6
+  #:attack-bonus 0 #:ac 12 #:damage-die (dice 1)
+  #:cr 0 #:ai cower-ai%)
 
 (define-simple-monster skeleton% #\s "skeleton" #:themes '(tomb)
   #:max-hp (dice 2 d8 4) #:speed 6
