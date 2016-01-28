@@ -147,9 +147,10 @@
 (define (enumerate-encounter-templates level difficulty)
   (define budget (encounter-experience-budget level difficulty))
   (define possible-crs
-    (for/list ([cr (in-list all-crs)]
-               #:when (< cr level))
-      cr))
+    (drop (for/list ([cr (in-list all-crs)]
+                     #:when (< cr level))
+            cr)
+          (max 0 (- level 3)))) ; at level 4, no more rats ; TODO tweak
   ;; enumerate up to max encounter size
   (set->list
    (for*/set ([n (in-range 1 (add1 max-monsters-per-encounter))]
