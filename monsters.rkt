@@ -62,12 +62,12 @@
 (define-simple-monster goblin% #\g "goblin" #:themes '(vermin)
   #:max-hp (dice 2 d6) #:speed 6
   #:attack-bonus 4 #:ac 15 #:damage-die (dice d6 2)
-  #:cr 1/2 #:ai injury-shy-ai%)
+  #:cr 1/4 #:ai injury-shy-ai%)
 ;; TODO + archer variant
 (define-simple-monster wolf% #\w "wolf" #:themes '(vermin)
   #:max-hp (dice 2 d8 2) #:speed 8
   #:attack-bonus 4 #:ac 13 #:damage-die (dice 2 d4 2)
-  #:cr 1/2 #:ai rush-ai%)
+  #:cr 1/4 #:ai rush-ai%)
 ;; TODO pack tactics, once I implement advantage. + knock prone from attack
 
 (define-simple-monster orc% #\o "orc" #:themes '(vermin)
