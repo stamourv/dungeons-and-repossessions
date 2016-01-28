@@ -75,10 +75,10 @@
   #:attack-bonus 5 #:ac 13 #:damage-die (dice d12 3)
   #:cr 1/2 #:ai rush-ai%)
 ;; TODO javelin variant. aggressive trait
-(define-simple-monster gnoll% #\n "gnoll" #:themes '(vermin)
-  #:max-hp (dice 5 d8) #:speed 6
-  #:attack-bonus 4 #:ac 15 #:damage-die (dice d6 2)
-  #:cr 1/2 #:ai injury-shy-ai%)
+;; (define-simple-monster gnoll% #\n "gnoll" #:themes '(vermin)
+;;   #:max-hp (dice 5 d8) #:speed 6
+;;   #:attack-bonus 4 #:ac 15 #:damage-die (dice d6 2)
+;;   #:cr 1/2 #:ai injury-shy-ai%)
 ;; TODO + bite attack, and archer variant
 (define-simple-monster hobgoblin% #\h "hobgoblin" #:themes '(vermin)
   #:max-hp (dice 2 d8 2) #:speed 6
@@ -91,23 +91,22 @@
   #:cr 1/2 #:ai rush-ai%)
 
 
-(define-simple-monster guard% #\u "guard" #:themes '(cult castle)
-  #:max-hp (dice 2 d8 2) #:speed 6
-  #:attack-bonus 3 #:ac 16 #:damage-die (dice d6 1)
-  #:cr 1/8 #:ai rush-ai%)
-(define-simple-monster cultist% #\l "cultist" #:themes '(cult)
-  #:max-hp (dice 2 d8) #:speed 6
-  #:attack-bonus 4 #:ac 12 #:damage-die (dice d6 1)
-  #:cr 1/8 #:ai rush-ai%)
+;; TODO removing cult for now. not very interesting, esp. with acolyte
+;;  that has no spells
 
-(define-simple-monster acolyte% #\a "acolyte" #:themes '(cult)
-  #:max-hp (dice 2 d8) #:speed 6
-  #:attack-bonus 2 #:ac 10 #:damage-die d4
-  #:cr 1/4 #:ai injury-shy-ai%)
-;; TODO has healing spells, plus misc other spells (o/w not worth 50 xp)
+;; (define-simple-monster cultist% #\c "cultist" #:themes '(cult)
+;;   #:max-hp (dice 2 d8) #:speed 6
+;;   #:attack-bonus 4 #:ac 12 #:damage-die (dice d6 1)
+;;   #:cr 1/8 #:ai rush-ai%)
+
+;; (define-simple-monster acolyte% #\a "acolyte" #:themes '(cult)
+;;   #:max-hp (dice 2 d8) #:speed 6
+;;   #:attack-bonus 2 #:ac 10 #:damage-die d4
+;;   #:cr 1/4 #:ai injury-shy-ai%)
+;; ;; TODO has healing spells, plus misc other spells (o/w not worth 50 xp)
 
 
-(define-simple-monster skeleton% #\t "skeleton" #:themes '(tomb)
+(define-simple-monster skeleton% #\s "skeleton" #:themes '(tomb)
   #:max-hp (dice 2 d8 4) #:speed 6
   #:attack-bonus 4 #:ac 13 #:damage-die (dice d6 2)
   #:cr 1/4 #:ai rush-ai%)
@@ -123,18 +122,24 @@
   #:attack-bonus 2 #:ac 10 #:damage-die d4
   #:cr 0 #:ai cower-ai%)
 
-(define-simple-monster bandit% #\d "bandit" #:themes '(castle)
+(define-simple-monster bandit% #\b "bandit" #:themes '(castle)
   #:max-hp (dice 2 d8 2) #:speed 6
   #:attack-bonus 4 #:ac 12 #:damage-die (dice d6 1)
   #:cr 1/8 #:ai injury-shy-ai%)
 ;; TODO crossbow variant
 
-(define-simple-monster thug% #\U "thug" #:themes '(castle)
+(define-simple-monster guard% #\g "guard" #:themes '(#|cult|# castle)
+  #:max-hp (dice 2 d8 2) #:speed 6
+  #:attack-bonus 3 #:ac 16 #:damage-die (dice d6 1)
+  #:cr 1/4 #:ai rush-ai%) ; rules say CR 1/8, but stronger than a goblin...
+
+(define-simple-monster thug% #\t "thug" #:themes '(castle)
   #:max-hp (dice 5 d8 10) #:speed 6
   #:attack-bonus 4 #:ac 11 #:damage-die (dice d6 2)
   #:cr 1/2 #:ai rush-ai%)
 ;; TODO pack tactics. multiattack. crossbow variant
 ;; TODO warhorse for CR 1/2? or is that just silly?
+
 
 (define-simple-monster spider% #\s "spider" #:themes '(jungle)
   #:max-hp (dice d4 -1) #:speed 4
@@ -142,8 +147,5 @@
   #:cr 0 #:ai wander-ai%)
 ;; TODO should ignore difficult terrain. and add poison to attack
 
-;; TODO already a lot of collisions for display characters
-;;   maybe it's ok to have collisions across themes?
-;;   start using color?
 
 ;; TODO other monsters. see page 61 of DM Basic Rules for monster per CR
