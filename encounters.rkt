@@ -158,7 +158,7 @@
               #:when (close-enough? (encounter-template-cost e) budget))
      ;; order doesn't matter, templates are bags of CRs
      ;; canonicalize representation to avoid repeats
-     (sort e < #:key eq-hash-code))))
+     (sort e <))))
 
 
 (module+ main
