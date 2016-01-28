@@ -6,13 +6,15 @@
 (provide generate-encounters instantiate-encounter)
 
 ;; An Encounter is a (Listof Monster)
+;; An Encounter Template is a (Listof CR)
+;; A Dungeon Template is a (Listof Difficulty)
 
-(define (encounter-cost monsters)
+(define (encounter-template-cost crs)
   (define total-xp
-    (for/sum ([m (in-list monsters)]) (monster->xp m)))
+    (for/sum ([cr (in-list crs)]) (cr->xp cr)))
   (define adjusted-xp
     (* total-xp
-       (encounter-multiplier (length monsters))
+       (encounter-multiplier (length crs))
        ;; additional fudge factor
        ;; we have a single character, so things are even harder
        ;; and makes it possible to fit certain budgets that would
@@ -23,9 +25,6 @@
        ;; allowing skipping the budget check, as we had before)
        (exact->inexact 5/3))) ; float for printing
   adjusted-xp)
-
-;; maps (level difficulty theme) triples to sets of encounters
-(define all-encounters (make-hash))
 
 (define all-difficulties '(easy medium hard deadly))
 
@@ -92,21 +91,32 @@
 ;;   (for ([i 10])
 ;;     (displayln (generate-dungeon-template 1))))
 
+(define (theme->valid-templates theme templates)
+  (for/list ([t (in-list templates)]
+             #:when (for/and ([cr (in-list t)])
+                      (not (empty? (theme+cr->monsters theme cr)))))
+    t))
+
 ;; pick concrete encounters given a template and the character level
 (define (fill-dungeon-template template level)
-  (define possible-themes ; stick to one theme for the dungeon
-    (for/list ([t (in-list all-themes)]
-               ;; can we populate the template with this theme?
-               #:when (for/and ([d (in-list (remove-duplicates template))])
-                        (not (empty?
-                              (dict-ref all-encounters
-                                        (list level d t)
-                                        (lambda ()
-                                          (enumerate-encounters level d t)))))))
-      t))
-  (define theme (random-ref possible-themes))
+  (define required-difficulties (remove-duplicates template))
+  (define potential-encounter-templates
+    (for/list ([d (in-list required-difficulties)])
+      (cons d (enumerate-encounter-templates level d))))
+  (define (get-valid-templates theme)
+    (for/list ([(d ts) (in-dict potential-encounter-templates)])
+      (cons d (theme->valid-templates theme ts))))
+  (define possible-themes
+    (for*/list ([theme  (in-list all-themes)]
+                [ds+tss (in-value (get-valid-templates theme))]
+                #:when (for/and ([(d ts) (in-dict ds+tss)]) (not (empty? ts))))
+      (cons theme ds+tss)))
+  (define theme (random-ref possible-themes)) ; stick to one theme per dungeon
   (for/list ([diff (in-list template)])
-    (random-ref (dict-ref all-encounters (list level diff theme)))))
+    (match-define (cons t ds+tss) theme)
+    (define encounter-template (random-ref (dict-ref ds+tss diff)))
+    (for/list ([cr (in-list encounter-template)])
+      (random-ref (theme+cr->monsters t cr)))))
 
 ;; generates a list of encounters for a given player level
 (define (generate-encounters level)
@@ -132,39 +142,48 @@
 ;; More for efficiency than for balance. Encounter multiplier takes care of
 ;; balance already, but since this number is the exponent for encounter
 ;; enumeration, want to keep it low. n^6 is already pretty bad. n is the
-;; number of monsters that need to be considered at once (e.g. same theme).
-;; FWIW, with the monsters available as of this writing, a max of 6 has
-;; enumeration of all levels, difficulties and themes take ~30s. A max of 8
-;; for to like level 6 in 10 minutes. Not reasonable.
+;; number of CRs that need to be considered at once.
 (define max-monsters-per-encounter 6)
-(define (enumerate-encounters level difficulty theme)
+(define (enumerate-encounter-templates level difficulty)
   (define budget (encounter-experience-budget level difficulty))
-  (define ms (dict-ref monsters-by-theme theme))
+  (define possible-crs
+    (for/list ([cr (in-list all-crs)]
+               #:when (< cr level))
+      cr))
   ;; enumerate up to max encounter size
-  (define es
-    (set->list
-     (for*/set ([n (in-range 1 (add1 max-monsters-per-encounter))]
-                ;; enumerate all encounters of n monsters (within budget)
-                [e (in-list (apply cartesian-product (make-list n ms)))]
-                #:when (close-enough? (encounter-cost e) budget))
-       ;; order doesn't matter, encounters are bags of monsters
-       ;; canonicalize representation to avoid repeats
-       (sort e < #:key eq-hash-code))))
-  ;; cache the result
-  (hash-set! all-encounters (list level difficulty theme) es)
-  es)
+  (set->list
+   (for*/set ([n (in-range 1 (add1 max-monsters-per-encounter))]
+              ;; enumerate all encounters of n monsters (within budget)
+              [e (in-list (apply cartesian-product (make-list n possible-crs)))]
+              #:when (close-enough? (encounter-template-cost e) budget))
+     ;; order doesn't matter, templates are bags of CRs
+     ;; canonicalize representation to avoid repeats
+     (sort e < #:key eq-hash-code))))
 
 
 (module+ main
-  ;; generate all encounters
-  (for* ([level (in-range 1 8 #|21|#)]
-         [diff  (in-list all-difficulties)]
-         [theme (in-list all-themes)])
-    (printf "generating: ~a ~a ~a\n" level diff theme)
-    (hash-set! all-encounters
-               (list level diff theme)
-               (enumerate-encounters level diff theme)))
-  ;; show how many of each kind of encounter we have, split by theme
+
+  ;; show number of encounter templates for each level+difficulty
+  ;; then, for each theme, show how many of those are possible
+
+  (define all-encounter-templates (make-hash))
+
+  (for ([d all-difficulties])
+    (display (~a d #:min-width 10)))
+  (newline)
+  (for ([l (in-range 1 8 #|21|#)])
+    (define counts
+      (for/list ([d all-difficulties])
+        (define templates (enumerate-encounter-templates l d))
+        (hash-set! all-encounter-templates (cons l d) templates)
+        (length templates)))
+    (unless (andmap zero? counts)
+      (display (~a l #:min-width 5))
+      (for ([c counts])
+        (display (~a c #:min-width 10)))
+      (newline)))
+  (newline)
+
   (for ([t all-themes])
     (displayln t)
     (display (~a "" #:min-width 5))
@@ -174,7 +193,8 @@
     (for ([l (in-range 1 8 #|21|#)])
       (define counts
         (for/list ([d all-difficulties])
-          (length (dict-ref all-encounters (list l d t) '()))))
+          (define templates (hash-ref all-encounter-templates (cons l d)))
+          (length (theme->valid-templates t templates))))
       (unless (andmap zero? counts)
         (display (~a l #:min-width 5))
         (for ([c counts])
@@ -253,3 +273,22 @@
     [( 7  8  9 10) 3]
     [(11 12 13 14) 4]
     [else          5]))
+
+;; from DM Basic Rules, page 61 and on
+(define all-crs (append '(0 1/8 1/4 1/2) (range 1 11)))
+(define (cr->xp cr)
+  (case cr
+    [(  0)   10]
+    [(1/8)   25]
+    [(1/4)   50]
+    [(1/2)  100]
+    [(  1)  200]
+    [(  2)  450]
+    [(  3)  700]
+    [(  4) 1100]
+    [(  5) 1800]
+    [(  6) 2300]
+    [(  7) 2900]
+    [(  8) 3900]
+    [(  9) 5000]
+    [( 10) 5900]))
