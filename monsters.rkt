@@ -41,7 +41,7 @@
 (define-simple-monster rat% #\r "rat" #:themes '(vermin tomb)
   #:max-hp (dice d4 -1) #:speed 4
   #:attack-bonus 0 #:ac 10 #:damage-die (dice 1)
-  #:cr 0 #:ai injury-shy-ai%)
+  #:cr 0 #:ai wander-ai%)
 
 (define-simple-monster giant-rat% #\R "giant rat" #:themes '(vermin)
   #:max-hp (dice 2 d6) #:speed 6
@@ -116,7 +116,7 @@
 (define-simple-monster bat% #\b "bat" #:themes '(tomb)
   #:max-hp (dice d4 -1) #:speed 6
   #:attack-bonus 0 #:ac 12 #:damage-die (dice 1)
-  #:cr 0 #:ai injury-shy-ai%)
+  #:cr 0 #:ai wander-ai%)
 
 (define-simple-monster skeleton% #\s "skeleton" #:themes '(tomb)
   #:max-hp (dice 2 d8 4) #:speed 6

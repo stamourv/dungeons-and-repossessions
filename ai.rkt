@@ -136,8 +136,9 @@
     (define/override (act state)
       (define pos        (get-field pos monster))
       (define player-pos (get-player-pos state))
-      (cond [(adjacent? pos player-pos)
-             (go-or-wait monster player-pos state)]
+      (cond [(< (manhattan-distance pos player-pos) 5)
+             ;; Note: this can "see" through walls. but not that big a deal
+             (go-or-wait monster (rush pos state) state)]
             [else ; wander randomly
              (go-or-wait monster
                          (pos-if-ok ((random-ref (list up down left right)) pos)
