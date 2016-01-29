@@ -132,12 +132,14 @@
 ;; in which case it attacks
 (define wander-ai%
   (class ai%
-    (inherit-field monster)
+    (inherit update-fov)
+    (inherit-field monster seen-player?)
     (define/override (act state)
       (define pos        (get-field pos monster))
       (define player-pos (get-player-pos state))
-      (cond [(< (manhattan-distance pos player-pos) 5)
-             ;; Note: this can "see" through walls. but not that big a deal
+      (update-fov state)
+      (cond [(and seen-player? ; within range. rush
+                  (< (manhattan-distance pos player-pos) 5))
              (go-or-wait monster (rush pos state) state)]
             [else ; wander randomly
              (go-or-wait monster
