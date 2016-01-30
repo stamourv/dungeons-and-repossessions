@@ -22,7 +22,8 @@
                       def-name ch n #:themes ts
                       #:max-hp hp #:speed sp
                       #:attack-bonus ab #:ac ac #:damage-die dmg
-                      #:cr cr #:ai ai)
+                      #:cr cr #:ai ai
+                      init-args ...)
   (begin
     (define def-name
       (class monster%
@@ -32,7 +33,8 @@
         (define/override (get-attack-bonus) ab)
         (define/override (get-ac)           ac)
         (define/override (get-damage-die)   dmg)
-        (super-new [name n] [char ch] [max-hp (hp)] [speed sp])))
+        (super-new [name n] [char ch] [max-hp (hp)] [speed sp]
+                   init-args ...)))
     (for ([t (in-list ts)])
       (add-theme! t)
       (hash-update! theme+cr-table (cons t cr)
@@ -69,7 +71,8 @@
 (define-simple-monster orc% #\o "orc" #:themes '(vermin)
   #:max-hp (dice 2 d8 6) #:speed 6
   #:attack-bonus 5 #:ac 13 #:damage-die (dice d12 3)
-  #:cr 1/2 #:ai rush-ai%)
+  #:cr 1/2 #:ai rush-ai%
+  [an? #t])
 ;; TODO javelin variant. aggressive trait
 ;; (define-simple-monster gnoll% #\n "gnoll" #:themes '(vermin)
 ;;   #:max-hp (dice 5 d8) #:speed 6

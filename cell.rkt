@@ -46,7 +46,7 @@
 
 (define empty-cell%
   (class free-cell%
-    (super-new [char #\space] [name "empty cell"])))
+    (super-new [char #\space] [name "empty cell"] [an? #t])))
 (register-cell-type! empty-cell% #\space)
 
 (define void-cell% (class cell% (super-new [char #\.] [name "void cell"])))
@@ -139,6 +139,7 @@
 (define entrance%
   (class free-cell%
     (super-new [char #\⋂] ; doorway
-               [name "entrance"])))
+               [name "entrance"]
+               [an?  #t])))
 (register-cell-type! entrance% #\⋂)
 ;; other candidates: ≣∬⪋⬆∆ (i.e., stairs, arrows)
