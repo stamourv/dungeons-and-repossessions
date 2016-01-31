@@ -24,7 +24,8 @@
   p)
 
 (define (init-dungeon player)
-  (generate player))
+  (begin0 (generate player)
+    (display-briefing)))
 
 (define (game-loop s)
   (define player (state-player s))

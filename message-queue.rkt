@@ -9,3 +9,10 @@
   (set! message-queue (cons m message-queue)))
 (define (reset-message-queue!)
   (set! message-queue '()))
+
+;; similar, but for mission briefings
+(define briefing-queue '())
+(define (enqueue-briefing! m)
+  (set! briefing-queue (cons m briefing-queue)))
+(define (reset-briefing-queue!)
+  (set! briefing-queue '()))

@@ -7,7 +7,8 @@
          "grid.rkt"
          "cell.rkt"
          "items.rkt"
-         "utils.rkt")
+         "utils.rkt"
+         "message-queue.rkt")
 
 (provide generate)
 
@@ -21,7 +22,18 @@
 
 (define (generate player)
   (define lvl        (get-field level player))
-  (define encounters (generate-encounters lvl))
+  (define encounters (map instantiate-encounter (generate-encounters lvl)))
+
+  ;; find all the monsters used
+  (define monster-kinds
+    (sort
+     (set->list (for*/set ([e (in-list encounters)]
+                           [m (in-list e)])
+                  (cons (send m show) (send m describe))))
+     char<? #:key car))
+  (for ([(c d) (in-dict monster-kinds)])
+    (enqueue-briefing! (format "~a : ~a" c d)))
+
   ;; need enough rooms for all the encounters, plus a starting room
   ;; (we don't want monsters in the starting room)
   (define n-encounters (length encounters))
@@ -71,7 +83,7 @@
                #:when #t ; nest iteration
                [poss (in-value (random-room-poss r (length e)))]
                #:when #t ; nest iteration
-               [m    (in-list (instantiate-encounter e))]
+               [m    (in-list e)]
                [pos  (in-list poss)])
       (claim-room-cell! r pos)
       (cons m pos)))
