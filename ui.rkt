@@ -5,7 +5,8 @@
          "message-queue.rkt"
          "state.rkt"
          "wall-smoothing.rkt"
-         "terminal.rkt")
+         "terminal.rkt"
+         "utils.rkt")
 
 (provide set-up-ui
          tear-down-ui
@@ -71,8 +72,12 @@
 ;; show mission briefing before entering a dungeon
 (define (display-briefing)
   (clear-all)
-  (for ([m (in-list (reverse briefing-queue))])
-    (printf "    ~a\n" m))
+  (for* ([m  (in-list (reverse briefing-queue))]
+         [ls (in-value (string-split (break-lines m 72) "\n"))]
+         [l  (in-list (if (empty? ls)
+                          '("") ; if we enqueued a newline, still show a newline
+                          ls))])
+    (printf "    ~a\n" l))
   (reset-briefing-queue!)
   (printf "\n\n    Press any key to continue")
   (read-key))
