@@ -71,8 +71,6 @@
 ;; show mission briefing before entering a dungeon
 (define (display-briefing)
   (clear-all)
-  ;; TODO randomly-generated "backstory" (generate in some other file)
-  (printf "\n\n    Enemies:\n")
   (for ([m (in-list (reverse briefing-queue))])
     (printf "    ~a\n" m))
   (reset-briefing-queue!)

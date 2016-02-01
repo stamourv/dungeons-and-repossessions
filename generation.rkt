@@ -21,8 +21,10 @@
 
 
 (define (generate player)
-  (define lvl        (get-field level player))
-  (define encounters (map instantiate-encounter (generate-encounters lvl)))
+  (define lvl (get-field level player))
+  (define-values (theme pre-encounters) (generate-encounters lvl))
+  (define encounters (map instantiate-encounter pre-encounters))
+  (enqueue-briefing! (generate-backstory theme))
 
   ;; find all the monsters used
   (define monster-kinds
@@ -31,6 +33,7 @@
                            [m (in-list e)])
                   (cons (send m show) (send m describe))))
      char<? #:key car))
+  (enqueue-briefing! "\n\n    Enemies:")
   (for ([(c d) (in-dict monster-kinds)])
     (enqueue-briefing! (format "~a : ~a" c d)))
 
@@ -89,6 +92,31 @@
       (cons m pos)))
   (new-state player grid
              #:characters (cons (cons player player-pos) monster-poss)))
+
+
+(define (generate-backstory theme)
+  (define body
+    (break-lines
+     (string-append ;; TODO actually fill in the blanks
+      (format
+       "You have been asked to investigate the ~a of <ominous name>."
+       (random-ref
+        (case theme
+          [(vermin) '("lair" "den" "burrow" "sty" "dump")]
+          [(tomb)   '("tomb" "crypt" "mausoleum" "catacombs")]
+          [(castle) '("castle" "tower" "bastion" "fortress" "hideout")]
+          [(jungle) '("ruins" "ancient city" "forgotten temple")])))
+      " Its <grand poobah> has not been paying <his> <gambling> debts, and you"
+      " must therefore collect <the MacGuffin> to satisfy <his> creditors.")
+     74)) ; columns
+  (string-append
+   "\n\n"
+   (apply string-append
+          (for/list ([l (in-list (string-split body "\n"))])
+            (format "    ~a\n" l)))
+   "\n"
+   "    Godspeed, and don't break it."
+   "\n"))
 
 
 (module+ main

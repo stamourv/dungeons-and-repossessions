@@ -106,17 +106,19 @@
   (define (get-valid-templates theme)
     (for/list ([(d ts) (in-dict potential-encounter-templates)])
       (cons d (theme->valid-templates theme ts))))
-  (define possible-themes
+  (define possible-themes+
     (for*/list ([theme  (in-list all-themes)]
                 [ds+tss (in-value (get-valid-templates theme))]
                 #:when (for/and ([(d ts) (in-dict ds+tss)]) (not (empty? ts))))
       (cons theme ds+tss)))
-  (define theme (random-ref possible-themes)) ; stick to one theme per dungeon
-  (for/list ([diff (in-list template)])
-    (match-define (cons t ds+tss) theme)
-    (define encounter-template (random-ref (dict-ref ds+tss diff)))
-    (for/list ([cr (in-list encounter-template)])
-      (random-ref (theme+cr->monsters t cr)))))
+  (define theme+ (random-ref possible-themes+)) ; stick to one theme per dungeon
+  (match-define (cons theme ds+tss) theme+)
+  (values
+   theme
+   (for/list ([diff (in-list template)])
+     (define encounter-template (random-ref (dict-ref ds+tss diff)))
+     (for/list ([cr (in-list encounter-template)])
+       (random-ref (theme+cr->monsters theme cr))))))
 
 ;; generates a list of encounters for a given player level
 (define (generate-encounters level)
