@@ -100,16 +100,20 @@
   (enqueue-briefing! "\n")
   (enqueue-briefing!
    (string-append
-    (format ;; TODO actually fill in the blanks
-     "You have been asked to investigate the ~a of <ominous name>."
-     (random-ref
-      (case theme
-        [(vermin) '("lair" "den" "burrow" "sty" "dump")]
-        [(tomb)   '("tomb" "crypt" "mausoleum" "catacombs")]
-        [(castle) '("castle" "tower" "bastion" "fortress" "hideout")]
-        [(jungle) '("ruins" "ancient city" "forgotten temple")])))
-    " Its <grand poobah> has not been paying <his> <gambling> debts, and you"
-    " must therefore collect <the MacGuffin> to satisfy <his> creditors."))
+    "You, O adventurer, have been asked to investigate the "
+    (random-ref
+     (case theme
+       [(vermin) '("lair" "den" "burrow" "sty" "dump")]
+       [(tomb)   '("tomb" "crypt" "mausoleum" "catacombs")]
+       [(castle) '("castle" "tower" "bastion" "fortress" "hideout")]
+       [(jungle) '("ruins" "ancient city" "forgotten temple")]))
+    " of <ominous name>." ; TODO actually fill in the blanks
+    " Its <grand poobah> has not been paying <his> "
+    (random-ref '("gambling debts" "stronghold-building loan"
+                  "potion speculation debts" "student loans"
+                  "alimony" "bar tab" "protection money"))
+    ", and you must therefore collect"
+    " <the MacGuffin> to satisfy <his> creditors."))
   (enqueue-briefing! "\n")
   (enqueue-briefing! "Godspeed, and don't break it.")
   (enqueue-briefing! "\n"))
