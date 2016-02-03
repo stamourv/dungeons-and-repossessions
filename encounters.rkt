@@ -82,7 +82,6 @@
           (discrete-dist (map car possible-difficulties)
                          (map cdr possible-difficulties)))
         (define new (sample dist))
-        ;; TODO try preventing 2+ deadlies in the same dungeon?
         (loop (cons new encs-so-far)
               (- budget (dict-ref costs new)))])))
   (try))
