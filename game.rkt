@@ -58,6 +58,7 @@
   (define exn #f)
   ;; whatever we do, always tear down UI
   (with-handlers ([values (lambda (e) (set! exn e))])
+    (display-title)
     (game-loop (init-dungeon (init-player))))
   (void (tear-down-ui))
   (when exn (raise exn)))

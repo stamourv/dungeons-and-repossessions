@@ -11,6 +11,7 @@
 (provide set-up-ui
          tear-down-ui
          display-state
+         display-title
          display-briefing
          read-key
          handle-input)
@@ -69,6 +70,39 @@
              (display " ")]))
     (newline)))
 
+(define (press-any-key)
+  (printf "\n\n    Press any key to continue")
+  (read-key))
+
+;; see network-science.de/ascii/ font: big
+(define (display-title)
+  (clear-all)
+  (newline) (newline)
+  (displayln #<<END
+     _____                                                             _
+    |  __ \                                                           | |
+    | |  | |_   _ _ __   __ _  ___  ___  _ __  ___      __ _ _ __   __| |
+    | |  | | | | | '_ \ / _` |/ _ \/ _ \| '_ \/ __|    / _` | '_ \ / _` |
+    | |__| | |_| | | | | (_| |  __/ (_) | | | \__ \   | (_| | | | | (_| |
+    |_____/ \__,_|_| |_|\__, |\___|\___/|_| |_|___/    \__,_|_| |_|\__,_|
+                         __/ |
+                        |___/
+     _____                                        _
+    |  __ \                                      (_)
+    | |__) |___ _ __   ___  ___ ___  ___  ___ ___ _  ___  _ __  ___
+    |  _  // _ \ '_ \ / _ \/ __/ __|/ _ \/ __/ __| |/ _ \| '_ \/ __|
+    | | \ \  __/ |_) | (_) \__ \__ \  __/\__ \__ \ | (_) | | | \__ \
+    |_|  \_\___| .__/ \___/|___/___/\___||___/___/_|\___/|_| |_|___/
+               | |
+               |_|
+END
+)
+    (newline)
+    (press-any-key))
+
+
+
+
 ;; show mission briefing before entering a dungeon
 (define (display-briefing)
   (clear-all)
@@ -79,8 +113,7 @@
                           ls))])
     (printf "    ~a\n" l))
   (reset-briefing-queue!)
-  (printf "\n\n    Press any key to continue")
-  (read-key))
+  (press-any-key))
 
 
 (define (read-key)

@@ -112,7 +112,7 @@
     (random-ref '("gambling debts" "stronghold-building loan"
                   "potion speculation debts" "student loans"
                   "alimony" "bar tab" "protection money"))
-    ", and you must therefore collect"
+    ", and you must therefore repossess"
     " <the MacGuffin> to satisfy <his> creditors."))
   (enqueue-briefing! "\n")
   (enqueue-briefing! "Godspeed, and don't break it.")
