@@ -114,7 +114,7 @@
                   "potion speculation debts" "student loans"
                   "alimony" "bar tab" "protection money"))
     ", and you must therefore repossess "
-    (send treasure describe #:specific? #t)
+    (send treasure describe)
     " to satisfy <his> creditors."))
   (enqueue-briefing! "\n")
   (enqueue-briefing! "Godspeed, and don't break it.")
