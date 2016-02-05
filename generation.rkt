@@ -24,7 +24,9 @@
   (define lvl (get-field level player))
   (define-values (theme pre-encounters) (generate-encounters lvl))
   (define encounters (map instantiate-encounter pre-encounters))
-  (generate-backstory theme)
+
+  (define treasure (new macguffin% [name "MacGuffin"]))
+  (generate-backstory theme treasure)
 
   ;; find all the monsters used
   (define monster-kinds
@@ -75,8 +77,7 @@
   (array-set! grid player-pos (new entrance%))
   (define goal-pos (first (random-room-poss goal-room 1)))
   (claim-room-cell! goal-room goal-pos)
-  (array-set! grid goal-pos
-              (new chest% [items (list (new macguffin% [name "MacGuffin"]))]))
+  (array-set! grid goal-pos (new chest% [items (list treasure)]))
 
   ;; place encounters
   (define encounter-rooms ; excludes player's room. don't start with monsters
@@ -95,7 +96,7 @@
              #:characters (cons (cons player player-pos) monster-poss)))
 
 
-(define (generate-backstory theme)
+(define (generate-backstory theme treasure)
   (enqueue-briefing! "\n")
   (enqueue-briefing! "\n")
   (enqueue-briefing!
@@ -112,8 +113,9 @@
     (random-ref '("gambling debts" "stronghold-building loan"
                   "potion speculation debts" "student loans"
                   "alimony" "bar tab" "protection money"))
-    ", and you must therefore repossess"
-    " <the MacGuffin> to satisfy <his> creditors."))
+    ", and you must therefore repossess "
+    (send treasure describe #:specific? #t)
+    " to satisfy <his> creditors."))
   (enqueue-briefing! "\n")
   (enqueue-briefing! "Godspeed, and don't break it.")
   (enqueue-briefing! "\n"))
