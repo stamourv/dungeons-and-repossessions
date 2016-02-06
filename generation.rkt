@@ -97,6 +97,26 @@
 
 
 (define (generate-backstory theme treasure)
+  (match-define (list title potential-pronouns)
+    (random-ref '(("grand poobah" ("his"))
+                  ("lord" ("his"))
+                  ("lady" ("her"))
+                  ("shaman" ("his" "her"))
+                  ("high priest" ("his"))
+                  ("high priestess" ("her"))
+                  ("commander-in-chief" ("his"))
+                  ("boss" ("his" "her"))
+                  ("chieftain" ("his" "her"))
+                  ("grand vizier" ("his"))
+                  ("chairman" ("his"))
+                  ("chairwoman" ("her"))
+                  ("prefect" ("his"))
+                  ("general secretary" ("his" "her"))
+                  ("warlord" ("his"))
+                  ("warlady" ("her"))
+                  ("master of ceremonies" ("his"))
+                  ("mistress of ceremonies" ("her")))))
+  (define pronoun (random-ref potential-pronouns))
   (enqueue-briefing! "\n")
   (enqueue-briefing! "\n")
   (enqueue-briefing!
@@ -109,13 +129,13 @@
        [(castle) '("castle" "tower" "bastion" "fortress" "hideout")]
        [(jungle) '("ruins" "ancient city" "forgotten temple")]))
     " of <ominous name>." ; TODO actually fill in the blanks
-    " Its <grand poobah> has not been paying <his> "
+    " Its " title " has not been paying " pronoun " "
     (random-ref '("gambling debts" "stronghold-building loan"
                   "potion speculation debts" "student loans"
                   "alimony" "bar tab" "protection money"))
     ", and you must therefore repossess "
     (send treasure describe)
-    " to satisfy <his> creditors."))
+    " to satisfy " pronoun " creditors."))
   (enqueue-briefing! "\n")
   (enqueue-briefing! "Godspeed, and don't break it.")
   (enqueue-briefing! "\n"))
