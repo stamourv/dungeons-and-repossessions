@@ -454,7 +454,7 @@
               connections)]
     [#f ; failed, try again
      (log-warning "generate-dungeon: had to restart")
-     (generate-dungeon)]))
+     (generate-dungeon min-n-rooms)]))
 
 
 (module+ main
