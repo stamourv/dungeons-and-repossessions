@@ -457,6 +457,43 @@
      (generate-dungeon min-n-rooms)]))
 
 
+(module+ test
+  ;; test that all free tiles are reachable from all other free tiles
+  ;; this is stronger than checking for room connectedness, which is done
+  ;; as part of generation
+
+  (define flooded-cell% (class cell% (super-new)))
+  (define (flood-fill! grid start)
+    (let loop ([queue (list start)])
+      (unless (empty? queue)
+        (define next (first queue))
+        (cond [(and (within-grid? grid next)
+                    (or (is-a? (grid-ref grid next) free-cell%)
+                        ;; floor through doors
+                        (is-a? (grid-ref grid next) door%)))
+               (array-set! grid next 'flooded)
+               (loop
+                (append (rest queue)
+                        (list (up next) (down next) (left next) (right next))))]
+              [else
+               (loop (rest queue))]))))
+
+  ;; if a flood-fill starting from any free cell reaches the others, they can
+  ;; all reach each other
+  (define (check-reachable dungeon)
+    (define grid (dungeon-grid dungeon))
+    (define all-free-cells (append-map room-free-cells (dungeon-rooms dungeon)))
+    ;; assumption: will have at least one free cell
+    (flood-fill! grid (first all-free-cells))
+    (for*/and ([f (in-list all-free-cells)])
+      (eq? (grid-ref grid f) 'flooded)))
+
+  ;; try it on 100 random dungeons
+  (for ([i 100])
+    (check-true (check-reachable (generate-dungeon (random 4 8)))))
+  )
+
+
 (module+ main
   ;; generate an example
   (define ex (make-bsp))
