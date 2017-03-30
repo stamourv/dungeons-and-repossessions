@@ -38,8 +38,8 @@
 (define (set-cursor-position! x (y #f))
   (terminal-command (format "[~a~aH" x (if y (format ";~a" y) ""))))
 
-(define (cursor-on)  (system "setterm -cursor on"))
-(define (cursor-off) (system "setterm -cursor off"))
+(define (cursor-on)  (system "tput cnorm"))
+(define (cursor-off) (system "tput civis"))
 
 (define (intercept-tty)
   (system "stty raw -echo opost"))

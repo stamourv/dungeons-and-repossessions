@@ -20,8 +20,8 @@
   (cursor-off)
   (echo-off))
 (define (tear-down-ui)
-  (cursor-on)
-  (echo-on))
+  (echo-on)
+  (cursor-on))
 
 (define sidebar-col 63)
 
