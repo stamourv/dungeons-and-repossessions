@@ -7,7 +7,11 @@ warm welcome.
 Work-in-progress (by which I mean incomplete, not so much progressing)
 roguelike, vaguely based on 5e DnD.
 
-Help (may be out of sync with the implementation!):
+## Installation
+* Clone the repo, enter the repo's directory
+* `raco pkg install`
+
+## Help (may be out of sync with the implementation!):
 * arrow keys: movement
 * `o`: open
 * `c`: close
@@ -16,6 +20,8 @@ Help (may be out of sync with the implementation!):
 * `s`: suicide
 * `q`: quit
 * space: wait
+
+## Notes
 
 For people stalking my "projects" (hi mom!), this is less featureful
 than my previous roguelike (no online help, items, etc. etc.) but what
