@@ -11,6 +11,9 @@ roguelike, vaguely based on 5e DnD.
 * Clone the repo, enter the repo's directory
 * `raco pkg install`
 
+## Playing
+* `racket -l dungeons-and-repossessions`
+
 ## Help (may be out of sync with the implementation!):
 * arrow keys: movement
 * `o`: open
