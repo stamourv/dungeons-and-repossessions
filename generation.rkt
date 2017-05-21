@@ -128,8 +128,10 @@
        [(tomb)   '("tomb" "crypt" "mausoleum" "catacombs")]
        [(castle) '("castle" "tower" "bastion" "fortress" "hideout")]
        [(jungle) '("ruins" "ancient city" "forgotten temple")]))
-    " of <ominous name>." ; TODO actually fill in the blanks
-    " Its " title " has not been paying " pronoun " "
+    " of "
+    (random-ref '("doom" "tears" "fear" "darkness" "evil" "death"
+                  "Gargakkhan" "Xyrthyrthilixth" "Barney"))
+    ". Its " title " has not been paying " pronoun " "
     (random-ref '("gambling debts" "stronghold-building loan"
                   "potion speculation debts" "student loans"
                   "alimony" "bar tab" "protection money"))
