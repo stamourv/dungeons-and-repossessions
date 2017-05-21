@@ -26,7 +26,7 @@
   (define encounters (map instantiate-encounter pre-encounters))
 
   (define treasure (new macguffin% [name "MacGuffin"]))
-  (generate-backstory theme treasure)
+  (enqueue-backstory! theme treasure)
 
   ;; find all the monsters used
   (define monster-kinds
@@ -95,7 +95,13 @@
   (new-state player grid
              #:characters (cons (cons player player-pos) monster-poss)))
 
+(define (enqueue-backstory! theme treasure)
+  (enqueue-briefing! "\n\n")
+  (enqueue-briefing! (generate-backstory theme treasure))
+  (enqueue-briefing! "\n\nGodspeed, and don't break it.\n"))
 
+;; Note: can't have newlines in the result, or will confuse line breaking.
+;; TODO probably better to fix the line breaking function to deal with newlines
 (define (generate-backstory theme treasure)
   (match-define (list title potential-pronouns)
     (random-ref '(("grand poobah" ("his"))
@@ -117,30 +123,24 @@
                   ("master of ceremonies" ("his"))
                   ("mistress of ceremonies" ("her")))))
   (define pronoun (random-ref potential-pronouns))
-  (enqueue-briefing! "\n")
-  (enqueue-briefing! "\n")
-  (enqueue-briefing!
-   (string-append
-    "You, O adventurer, have been asked to investigate the "
-    (random-ref
-     (case theme
-       [(vermin) '("lair" "den" "burrow" "sty" "dump")]
-       [(tomb)   '("tomb" "crypt" "mausoleum" "catacombs")]
-       [(castle) '("castle" "tower" "bastion" "fortress" "hideout")]
-       [(jungle) '("ruins" "ancient city" "forgotten temple")]))
-    " of "
-    (random-ref '("doom" "tears" "fear" "darkness" "evil" "death"
-                  "Gargakkhan" "Xyrthyrthilixth" "Barney"))
-    ". Its " title " has not been paying " pronoun " "
-    (random-ref '("gambling debts" "stronghold-building loan"
-                  "potion speculation debts" "student loans"
-                  "alimony" "bar tab" "protection money"))
-    ", and you must therefore repossess "
-    (send treasure describe)
-    " to satisfy " pronoun " creditors."))
-  (enqueue-briefing! "\n")
-  (enqueue-briefing! "Godspeed, and don't break it.")
-  (enqueue-briefing! "\n"))
+  (string-append
+   "You, O adventurer, have been asked to investigate the "
+   (random-ref
+    (case theme
+      [(vermin) '("lair" "den" "burrow" "sty" "dump")]
+      [(tomb)   '("tomb" "crypt" "mausoleum" "catacombs")]
+      [(castle) '("castle" "tower" "bastion" "fortress" "hideout")]
+      [(jungle) '("ruins" "ancient city" "forgotten temple")]))
+   " of "
+   (random-ref '("doom" "tears" "fear" "darkness" "evil" "death"
+                 "Gargakkhan" "Xyrthyrthilixth" "Barney"))
+   ". Its " title " has not been paying " pronoun " "
+   (random-ref '("gambling debts" "stronghold-building loan"
+                 "potion speculation debts" "student loans"
+                 "alimony" "bar tab" "protection money"))
+   ", and you must therefore repossess "
+   (send treasure describe)
+   " to satisfy " pronoun " creditors."))
 
 
 (module+ main
