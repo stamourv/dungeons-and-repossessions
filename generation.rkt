@@ -25,8 +25,11 @@
   (define-values (theme pre-encounters) (generate-encounters lvl))
   (define encounters (map instantiate-encounter pre-encounters))
 
-  (define treasure (new macguffin% [name "MacGuffin"]))
-  (enqueue-backstory! theme treasure)
+  (define-values (backstory treasure)
+    (generate-backstory theme))
+  (enqueue-briefing! "\n\n")
+  (enqueue-briefing! backstory)
+  (enqueue-briefing! "\n\nGodspeed, and don't break it.\n")
 
   ;; find all the monsters used
   (define monster-kinds
@@ -95,14 +98,9 @@
   (new-state player grid
              #:characters (cons (cons player player-pos) monster-poss)))
 
-(define (enqueue-backstory! theme treasure)
-  (enqueue-briefing! "\n\n")
-  (enqueue-briefing! (generate-backstory theme treasure))
-  (enqueue-briefing! "\n\nGodspeed, and don't break it.\n"))
-
 ;; Note: can't have newlines in the result, or will confuse line breaking.
 ;; TODO probably better to fix the line breaking function to deal with newlines
-(define (generate-backstory theme treasure)
+(define (generate-backstory theme)
   (match-define (list title potential-pronouns)
     (random-ref '(("grand poobah" ("his"))
                   ("lord" ("his"))
@@ -123,24 +121,58 @@
                   ("master of ceremonies" ("his"))
                   ("mistress of ceremonies" ("her")))))
   (define pronoun (random-ref potential-pronouns))
-  (string-append
-   "You, O adventurer, have been asked to investigate the "
-   (random-ref
-    (case theme
-      [(vermin) '("lair" "den" "burrow" "sty" "dump")]
-      [(tomb)   '("tomb" "crypt" "mausoleum" "catacombs")]
-      [(castle) '("castle" "tower" "bastion" "fortress" "hideout")]
-      [(jungle) '("ruins" "ancient city" "forgotten temple")]))
-   " of "
-   (random-ref '("doom" "tears" "fear" "darkness" "evil" "death"
-                 "Gargakkhan" "Xyrthyrthilixth" "Barney"))
-   ". Its " title " has not been paying " pronoun " "
-   (random-ref '("gambling debts" "stronghold-building loan"
-                 "potion speculation debts" "student loans"
-                 "alimony" "bar tab" "protection money"))
-   ", and you must therefore repossess "
-   (send treasure describe)
-   " to satisfy " pronoun " creditors."))
+  (match-define (list treasure-name treasure-article)
+    ;; specifying articles directly (instead of relying on `describe`
+    ;; to be able to have possessives and specific articles (i.e., `the`)
+    (random-ref `(("magical macguffin" "a")
+                  ("Golden Goat" "The")
+                  (,(string-append "painting of " pronoun " "
+                                   ;; father is not funny enough
+                                   (random-ref
+                                    '("mother" "uncle" "aunt" "grand-mother"
+                                      "great-uncle" "great-aunt"
+                                      "poodle" "late guinea pig")))
+                   "a")
+                  ("amulet of bling-bling" ,pronoun)
+                  (,(string-append "collection of designer "
+                                   (random-ref
+                                    '("cloaks" "robes" "pantaloons"
+                                      "helmets" "vambraces" "greaves")))
+                   ,pronoun)
+                  ("dwarven oar" "a")
+                  ("jeweled chandelier" ,pronoun)
+                  ("convertible sports cart" ,pronoun)
+                  ("orb of HBO viewing" ,pronoun)
+                  (,(string-append (random-ref '("amulet" "ring" "earring"))
+                                   " of "
+                                   (random-ref ominous-names))
+                   "the"))))
+  (define treasure (new macguffin% [name treasure-name]))
+  (values
+   (string-append
+    "You, O adventurer, have been asked to investigate the "
+    (random-ref
+     (case theme
+       [(vermin) '("lair" "den" "burrow" "sty" "dump")]
+       [(tomb)   '("tomb" "crypt" "mausoleum" "catacombs")]
+       [(castle) '("castle" "tower" "bastion" "fortress" "hideout")]
+       [(jungle) '("ruins" "ancient city" "forgotten temple")]))
+    " of "
+    (random-ref ominous-names)
+    ". Its " title " has not been paying " pronoun " "
+    (random-ref '("gambling debts" "stronghold-building loan"
+                  "potion speculation debts" "student loans"
+                  "alimony" "bar tab" "protection money"))
+    ", and you must therefore repossess "
+    treasure-article " " treasure-name
+    " to satisfy " pronoun " creditors.")
+   treasure))
+
+(define ominous-names
+  '("doom" "tears" "darkness" "evil" "death" "sin" "danger" "peril"
+    "mild disappointment" "fear" "unease" "anger" "rage" "fury"
+    "spikes" "champions" "foulness"
+    "Gargakkhan" "Xyrthyrthilixth" "Barney"))
 
 
 (module+ main

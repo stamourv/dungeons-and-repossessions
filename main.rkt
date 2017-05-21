@@ -36,7 +36,7 @@
     (cond [(send player check-win-condition)
            => (lambda (item)
                 (enqueue-message!
-                 (format "~a has retrieved the ~a."
+                 (format "~a has retrieved ~a."
                          (send player describe #:capitalize? #t)
                          (send item   describe #:specific?   #t)))
                 (enqueue-message! "Press any key for the next dungeon")
