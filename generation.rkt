@@ -126,20 +126,12 @@
     ;; to be able to have possessives and specific articles (i.e., `the`)
     (random-ref `(("magical macguffin" "a")
                   ("Golden Goat" "The")
-                  (,(string-append "painting of " pronoun " "
-                                   ;; father is not funny enough
-                                   (random-ref
-                                    '("mother" "uncle" "aunt" "grand-mother"
-                                      "great-uncle" "great-aunt"
-                                      "poodle" "late guinea pig")))
-                   "a")
                   ("amulet of bling-bling" ,pronoun)
                   (,(string-append "collection of designer "
                                    (random-ref
                                     '("cloaks" "robes" "pantaloons"
                                       "helmets" "vambraces" "greaves")))
                    ,pronoun)
-                  ("dwarven oar" "a")
                   ("jeweled chandelier" ,pronoun)
                   ("convertible sports cart" ,pronoun)
                   ("orb of HBO viewing" ,pronoun)
@@ -174,6 +166,37 @@
     "spikes" "champions" "foulness"
     "Gargakkhan" "Xyrthyrthilixth" "Barney"))
 
+;; not macguffins. "decoys" of sorts
+(define (generate-bogus-item owner)
+  (random-ref
+   ;; all of those should work with "a" (i.e., no "an")
+   ;; because I'm lazy
+   '(,(string-append "painting of the " owner "'s "
+                     ;; father is not funny enough
+                     (random-ref
+                      '("mother" "uncle" "aunt" "grand-mother"
+                        "great-uncle" "great-aunt"
+                        "poodle" "late guinea pig")))
+     "dwarven oar"
+     "used wig"
+     "pile of empty potion bottles"
+     "collection of nail clippings"
+     "half-eaten turkey"
+     "broken vase"
+     "dented helmet"
+     "stolen sign for The Unarmed Chicken pub"
+     "copper saucepan"
+     "very large feather"
+     ,(string-append "fan letter to the " owner)
+     "misplaced guinea pig"
+     "stash of instant noodles"
+     "vial of plate mail wax"
+     "stack of unpaid bills"
+     "two-year-old jury summons"
+     "miniature shield"
+     "bag with a hole in it"
+     "single marble"
+     )))
 
 (module+ main
   (require "grid.rkt" "player.rkt")
