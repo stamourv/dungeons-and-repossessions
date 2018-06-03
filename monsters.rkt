@@ -72,7 +72,7 @@
   #:max-hp (dice 2 d8 6) #:speed 6
   #:attack-bonus 5 #:ac 13 #:damage-die (dice d12 3)
   #:cr 1/2 #:ai rush-ai%
-  [an? #t])
+  [article "an"])
 ;; TODO javelin variant. aggressive trait
 ;; (define-simple-monster gnoll% #\n "gnoll" #:themes '(vermin)
 ;;   #:max-hp (dice 5 d8) #:speed 6
