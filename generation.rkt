@@ -27,7 +27,7 @@
   (define-values (theme pre-encounters) (generate-encounters lvl))
   (define encounters (map instantiate-encounter pre-encounters))
 
-  (define-values (backstory treasure)
+  (define-values (backstory boss treasure)
     (generate-backstory theme))
   (enqueue-briefing! "\n\n")
   (enqueue-briefing! backstory)
@@ -80,9 +80,17 @@
   (define player-pos (random-room-pos player-room))
   (claim-room-cell! player-room player-pos)
   (array-set! grid player-pos (new entrance%))
-  (define goal-pos (random-room-poss goal-room))
+  (define goal-pos (random-room-pos goal-room))
   (claim-room-cell! goal-room goal-pos)
   (array-set! grid goal-pos (new chest% [items (list treasure)]))
+
+  ;; add decoy items in some (with some probability) of the other rooms
+  (for ([r (in-list rooms)]
+        #:unless (eq? r goal-room)
+        #:when (random-bool bogus-chest-probability))
+    (define chest-pos (random-room-pos r))
+    (define decoy     (new decoy% [name (generate-bogus-item boss)]))
+    (array-set! grid chest-pos (new chest% [items (list decoy)])))
 
   ;; place encounters
   (define encounter-rooms ; excludes player's room. don't start with monsters
@@ -160,6 +168,7 @@
     ", and you must therefore repossess "
     treasure-article " " treasure-name
     " to satisfy " pronoun " creditors.")
+   title
    treasure))
 
 (define ominous-names
@@ -199,6 +208,8 @@
      "bag with a hole in it"
      "single marble"
      )))
+;; chance that a room has a chest with a bogus item
+(define bogus-chest-probability 0.7)
 
 (module+ main
   (require "grid.rkt" "player.rkt")

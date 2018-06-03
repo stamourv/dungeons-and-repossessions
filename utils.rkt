@@ -31,6 +31,9 @@
        (+ (d) (loop rest))]))
   (lambda _ (max 1 (loop args))))
 
+(define (random-bool [probability 0.5])
+  (< (random) probability))
+
 ;; Takes a string, and breaks it into lines.
 (define (break-lines s [columns (pretty-print-columns)])
   (define res (open-output-string))

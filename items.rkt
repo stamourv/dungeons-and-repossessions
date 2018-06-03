@@ -11,3 +11,7 @@
 (define macguffin%
   (class item%
     (super-new [char #\$])))
+
+(define decoy%
+  (class item%
+    (super-new [char #\$])))
