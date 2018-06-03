@@ -182,7 +182,7 @@
   (random-ref
    ;; all of those should work with "a" (i.e., no "an")
    ;; because I'm lazy
-   '(,(string-append "painting of the " owner "'s "
+   `(,(string-append "painting of the " owner "'s "
                      ;; father is not funny enough
                      (random-ref
                       '("mother" "uncle" "aunt" "grand-mother"
