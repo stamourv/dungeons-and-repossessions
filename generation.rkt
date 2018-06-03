@@ -18,6 +18,8 @@
 
 (define (random-room-poss room n)
   (random-sample (room-free-cells room) n #:replacement? #f))
+(define (random-room-pos room)
+  (first (random-room-poss room 1)))
 
 
 (define (generate player)
@@ -75,10 +77,10 @@
       (if (> distance max-distance) ; found a more distant pair
           (values r1 r2 distance)
           (values player-room goal-room max-distance))))
-  (define player-pos (first (random-room-poss player-room 1)))
+  (define player-pos (random-room-pos player-room))
   (claim-room-cell! player-room player-pos)
   (array-set! grid player-pos (new entrance%))
-  (define goal-pos (first (random-room-poss goal-room 1)))
+  (define goal-pos (random-room-poss goal-room))
   (claim-room-cell! goal-room goal-pos)
   (array-set! grid goal-pos (new chest% [items (list treasure)]))
 
