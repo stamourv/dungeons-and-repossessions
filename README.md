@@ -14,7 +14,7 @@ roguelike, vaguely based on 5e DnD.
 ## Playing
 * `racket -l dungeons-and-repossessions`
 
-## Help (may be out of sync with the implementation!):
+## Help
 * arrow keys: movement
 * `o`: open
 * `c`: close
