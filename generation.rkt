@@ -131,25 +131,31 @@
                   ("master of ceremonies" ("his"))
                   ("mistress of ceremonies" ("her")))))
   (define pronoun (random-ref potential-pronouns))
-  (match-define (list treasure-name treasure-article)
-    ;; specifying articles directly (instead of relying on `describe`
-    ;; to be able to have possessives and specific articles (i.e., `the`)
+  (match-define (list-rest treasure-name
+                           treasure-article
+                           (or (list treasure-describe-article)
+                               (and treasure-describe-article #f)))
+    ;; two articles here, one for the backstory (where possessives make sense
+    ;; and are nice), and one for in-game description (where they don't)
     (random-ref `(("magical macguffin" "a")
                   ("Golden Goat" "The")
-                  ("amulet of bling-bling" ,pronoun)
+                  ("amulet of bling-bling" ,pronoun "an")
                   (,(string-append "collection of designer "
                                    (random-ref
                                     '("cloaks" "robes" "pantaloons"
                                       "helmets" "vambraces" "greaves")))
-                   ,pronoun)
-                  ("jeweled chandelier" ,pronoun)
-                  ("convertible sports cart" ,pronoun)
-                  ("orb of HBO viewing" ,pronoun)
+                   ,pronoun "a")
+                  ("jeweled chandelier" ,pronoun "a")
+                  ("convertible sports cart" ,pronoun "a")
+                  ("orb of HBO viewing" ,pronoun "an")
                   (,(string-append (random-ref '("amulet" "ring" "earring"))
                                    " of "
                                    (random-ref ominous-names))
                    "the"))))
-  (define treasure (new macguffin% [name treasure-name]))
+  (define treasure
+    (new macguffin%
+         [name    treasure-name]
+         [article (or treasure-describe-article treasure-article)]))
   (values
    (string-append
     "You, O adventurer, have been asked to investigate the "
