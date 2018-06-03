@@ -1,0 +1,12 @@
+saw that one once...
+
+match-define: no matching clause for #f
+  location...:
+   vision.rkt:13:2
+  context...:
+   /home/vincent/src/racket-6.9/collects/racket/match/runtime.rkt:24:0: match:error
+   /home/vincent/src/roguelike2/vision.rkt:12:0: compute-fov
+   /home/vincent/src/roguelike2/ai.rkt:16:4: update-fov method in ai%
+   /home/vincent/src/roguelike2/ai.rkt:157:4: act method in injury-shy-ai%
+   /home/vincent/src/roguelike2/main.rkt:30:0: game-loop
+   (submod /home/vincent/src/roguelike2/main.rkt main): [running body]
