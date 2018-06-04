@@ -231,8 +231,8 @@
       (define height-shortest? (= height shortest-dim))
       (define pos (vector (+ start-x (if height-shortest? pos-short pos-long))
                           (+ start-y (if height-shortest? pos-long pos-short))))
-      (array-set! grid pos (new pillar%))
-      (set-room-free-cells! r (remove pos (room-free-cells r))))))
+      (claim-room-cell! r pos)
+      (array-set! grid pos (new pillar%)))))
 
 
 (define (generate-rooms [a-bsp (prune-bsp (make-bsp))])
