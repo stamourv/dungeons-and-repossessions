@@ -12,16 +12,6 @@
 
 (provide generate)
 
-(define (room-centroid r)
-  (match-define (room (vector x y) height width _1 _2) r)
-  (vector (+ x (/ height 2.0)) (+ y (/ width 2.0))))
-
-(define (random-room-poss room n)
-  (random-sample (room-free-cells room) n #:replacement? #f))
-(define (random-room-pos room)
-  (first (random-room-poss room 1)))
-
-
 (define (generate player)
   (define lvl (get-field level player))
   (define-values (theme pre-encounters) (generate-encounters lvl))
@@ -215,6 +205,15 @@
   (new decoy% [name name] [article article]))
 ;; probability that a room has a chest with a bogus item
 (define bogus-chest-probability 0.7)
+
+(define (room-centroid r)
+  (match-define (room (vector x y) height width _1 _2) r)
+  (vector (+ x (/ height 2.0)) (+ y (/ width 2.0))))
+
+(define (random-room-poss room n)
+  (random-sample (room-free-cells room) n #:replacement? #f))
+(define (random-room-pos room)
+  (first (random-room-poss room 1)))
 
 (module+ main
   (require "grid.rkt" "player.rkt")
