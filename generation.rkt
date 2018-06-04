@@ -71,16 +71,13 @@
   (claim-room-cell! player-room player-pos)
   (array-set! grid player-pos (new entrance%))
   (define goal-pos (random-room-pos goal-room))
-  (claim-room-cell! goal-room goal-pos)
-  (array-set! grid goal-pos (new chest% [items (list treasure)]))
+  (add-chest! grid goal-room goal-pos treasure)
 
   ;; add decoy items in some (with some probability) of the other rooms
   (for ([r (in-list rooms)]
         #:unless (eq? r goal-room)
         #:when (random-bool bogus-chest-probability))
-    (define chest-pos (random-room-pos r))
-    (define decoy     (generate-bogus-item boss))
-    (array-set! grid chest-pos (new chest% [items (list decoy)])))
+    (add-chest! grid r (random-room-pos r) (generate-bogus-item boss)))
 
   ;; place encounters
   (define encounter-rooms ; excludes player's room. don't start with monsters
@@ -214,6 +211,10 @@
   (random-sample (room-free-cells room) n #:replacement? #f))
 (define (random-room-pos room)
   (first (random-room-poss room 1)))
+
+(define (add-chest! grid room pos . contents)
+  (claim-room-cell! room pos)
+  (array-set! grid pos (new chest% [items contents])))
 
 (module+ main
   (require "grid.rkt" "player.rkt")
