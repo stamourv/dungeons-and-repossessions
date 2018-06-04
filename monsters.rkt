@@ -163,4 +163,14 @@
 ;; TODO should ignore difficult terrain. and add poison to attack
 
 
+;; TODO for tomb: animated armor? (1), ghoul (1)
+;; TODO for castle: knight (3)
+;; TODO for jungle: lizard (0), poisonous snake? (1/8), constrictor snake? (1/4), giant lizard (1/4), giant poisonous snake (1/4), giant wolf spider (1/4), crocodile? (1/2), lizardfolk (1/2) (the whole point of ruin), swarm of insects (1/2), giant spider? (1)
+;; (have one snake or the other. probably constrictor, since I don't have poison rules, and that will also make it less likely we'll have lower-level ruin encounters, which would be boring)
+
+;; TODO need to look at actual encounters / dungeons
+;;   or, for each theme+template pair, how much variety is there actually...
+
+;; TODO looked at list up to CR2
+
 ;; TODO other monsters. see page 61 of DM Basic Rules for monster per CR
