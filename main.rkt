@@ -10,11 +10,6 @@
 
 (define init-level
   (command-line
-   #:once-each
-   [("--reveal-map") "Show entire map (for debugging)."
-    (set-debug:reveal-map!)]
-   [("--god-mode")   "Make player invincible (for debugging)."
-    (set-debug:god-mode!)]
    #:args ([init-level "1"])
    (string->number init-level)))
 

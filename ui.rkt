@@ -2,6 +2,7 @@
 
 (require "grid.rkt"
          "cell.rkt"
+         "flags.rkt"
          "message-queue.rkt"
          "state.rkt"
          "wall-smoothing.rkt"
@@ -194,6 +195,9 @@ END
                 'invalid])]
         [#\space
          'wait]
+        ;; debugging commands
+        [#\G (set-debug:god-mode!)   'invalid]
+        [#\R (set-debug:reveal-map!) 'invalid]
         [_
          (invalid-command)])
     (restore-tty)))
