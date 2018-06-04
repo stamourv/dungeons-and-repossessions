@@ -4,13 +4,6 @@
 
 (provide sprite%)
 
-(define (add-article capitalize? specific?
-                     #:article [article #f])
-  ((if capitalize? string-titlecase values)
-   (if specific? ; specific trumps all
-       "the"
-       (or article "a"))))
-
 (define sprite%
   (class object%
     (init-field name
@@ -20,6 +13,12 @@
       char)
     (define/public (describe #:capitalize? [capitalize? #f]
                              #:specific?   [specific?   #f])
-      (string-append (add-article capitalize? specific? #:article article)
-                     " " name))
+      (define no-article (eq? article 'none))
+      (define a (cond [no-article ""]
+                      [specific?  "the"] ; specific trumps all
+                      [article    article]
+                      [else       "a"]))
+      (string-append (if capitalize? (string-titlecase a) a)
+                     (if no-article "" " ")
+                     name))
     (super-new)))

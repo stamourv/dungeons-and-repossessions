@@ -182,37 +182,37 @@
 
 ;; not macguffins. "decoys" of sorts
 (define (generate-bogus-item owner)
-  (define name
+  (match-define (list name article)
     (random-ref
-     ;; all of those should work with "a" (i.e., no "an")
-     ;; because I'm lazy
-     `(,(string-append "painting of the " owner "'s "
-                       ;; father is not funny enough
-                       (random-ref
-                        '("mother" "uncle" "aunt" "grand-mother"
-                          "great-uncle" "great-aunt"
-                          "poodle" "late guinea pig")))
-       "dwarven oar"
-       "used wig"
-       "pile of empty potion bottles"
-       "collection of nail clippings"
-       "half-eaten turkey"
-       "broken vase"
-       "dented helmet"
-       "stolen sign for The Unarmed Chicken pub"
-       "copper saucepan"
-       "very large feather"
-       ,(string-append "fan letter to the " owner)
-       "misplaced guinea pig"
-       "stash of instant noodles"
-       "vial of plate mail wax"
-       "stack of unpaid bills"
-       "two-year-old jury summons"
-       "miniature shield"
-       "bag with a hole in it"
-       "single marble"
-       )))
-  (new decoy% [name name]))
+     `((,(string-append "painting of the " owner "'s "
+                        ;; father is not funny enough
+                        (random-ref
+                         '("mother" "uncle" "aunt" "grand-mother"
+                           "great-uncle" "great-aunt"
+                           "poodle" "late guinea pig")))
+        "a")
+       ("dwarven oar" "a")
+       ("used wig" "a")
+       ("pile of empty potion bottles" "a")
+       ("collection of nail clippings" "a")
+       ("half-eaten turkey" "a")
+       ("broken vase" "a")
+       ("dented helmet" "a")
+       ("stolen sign for The Unarmed Chicken pub" "a")
+       ("copper saucepan" "a")
+       ("very large feather" "a")
+       (,(string-append "fan letter to the " owner) "a")
+       ("misplaced guinea pig" "a")
+       ("stash of instant noodles" "a")
+       ("vial of plate mail wax" "a")
+       ("stack of unpaid bills" "a")
+       ("two-year-old jury summons" "a")
+       ("miniature shield" "a")
+       ("bag with a hole in it" "a")
+       ("single marble" "a")
+       ("canned goods" none)
+       ("lawn flamingoes" none))))
+  (new decoy% [name name] [article article]))
 ;; chance that a room has a chest with a bogus item
 (define bogus-chest-probability 0.7)
 
