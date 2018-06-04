@@ -131,9 +131,7 @@
                   ("master of ceremonies" ("his"))
                   ("mistress of ceremonies" ("her")))))
   (define pronoun (random-ref potential-pronouns))
-  (match-define (list-rest treasure-name
-                           treasure-article
-                           treasure-describe-article)
+  (match-define (list treasure-name treasure-article treasure-describe-article)
     ;; two articles here, one for the backstory (where possessives make sense
     ;; and are nice), and one for in-game description (where they don't)
     (random-ref `(("magical macguffin" "a" "a")
