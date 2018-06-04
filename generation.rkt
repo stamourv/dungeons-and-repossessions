@@ -133,12 +133,11 @@
   (define pronoun (random-ref potential-pronouns))
   (match-define (list-rest treasure-name
                            treasure-article
-                           (or (list treasure-describe-article)
-                               (and treasure-describe-article #f)))
+                           treasure-describe-article)
     ;; two articles here, one for the backstory (where possessives make sense
     ;; and are nice), and one for in-game description (where they don't)
-    (random-ref `(("magical macguffin" "a")
-                  ("Golden Goat" "The")
+    (random-ref `(("magical macguffin" "a" "a")
+                  ("Golden Goat" "The" "The")
                   ("amulet of bling-bling" ,pronoun "an")
                   (,(string-append "collection of designer "
                                    (random-ref
@@ -151,7 +150,7 @@
                   (,(string-append (random-ref '("amulet" "ring" "earring"))
                                    " of "
                                    (random-ref ominous-names))
-                   "the"))))
+                   "the" "the"))))
   (define treasure
     (new macguffin%
          [name    treasure-name]
