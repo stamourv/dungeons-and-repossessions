@@ -213,7 +213,7 @@
        ("canned goods" none)
        ("lawn flamingoes" none))))
   (new decoy% [name name] [article article]))
-;; chance that a room has a chest with a bogus item
+;; probability that a room has a chest with a bogus item
 (define bogus-chest-probability 0.7)
 
 (module+ main
