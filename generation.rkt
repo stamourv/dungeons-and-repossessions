@@ -89,7 +89,7 @@
         #:unless (eq? r goal-room)
         #:when (random-bool bogus-chest-probability))
     (define chest-pos (random-room-pos r))
-    (define decoy     (new decoy% [name (generate-bogus-item boss)]))
+    (define decoy     (generate-bogus-item boss))
     (array-set! grid chest-pos (new chest% [items (list decoy)])))
 
   ;; place encounters
@@ -182,35 +182,37 @@
 
 ;; not macguffins. "decoys" of sorts
 (define (generate-bogus-item owner)
-  (random-ref
-   ;; all of those should work with "a" (i.e., no "an")
-   ;; because I'm lazy
-   `(,(string-append "painting of the " owner "'s "
-                     ;; father is not funny enough
-                     (random-ref
-                      '("mother" "uncle" "aunt" "grand-mother"
-                        "great-uncle" "great-aunt"
-                        "poodle" "late guinea pig")))
-     "dwarven oar"
-     "used wig"
-     "pile of empty potion bottles"
-     "collection of nail clippings"
-     "half-eaten turkey"
-     "broken vase"
-     "dented helmet"
-     "stolen sign for The Unarmed Chicken pub"
-     "copper saucepan"
-     "very large feather"
-     ,(string-append "fan letter to the " owner)
-     "misplaced guinea pig"
-     "stash of instant noodles"
-     "vial of plate mail wax"
-     "stack of unpaid bills"
-     "two-year-old jury summons"
-     "miniature shield"
-     "bag with a hole in it"
-     "single marble"
-     )))
+  (define name
+    (random-ref
+     ;; all of those should work with "a" (i.e., no "an")
+     ;; because I'm lazy
+     `(,(string-append "painting of the " owner "'s "
+                       ;; father is not funny enough
+                       (random-ref
+                        '("mother" "uncle" "aunt" "grand-mother"
+                          "great-uncle" "great-aunt"
+                          "poodle" "late guinea pig")))
+       "dwarven oar"
+       "used wig"
+       "pile of empty potion bottles"
+       "collection of nail clippings"
+       "half-eaten turkey"
+       "broken vase"
+       "dented helmet"
+       "stolen sign for The Unarmed Chicken pub"
+       "copper saucepan"
+       "very large feather"
+       ,(string-append "fan letter to the " owner)
+       "misplaced guinea pig"
+       "stash of instant noodles"
+       "vial of plate mail wax"
+       "stack of unpaid bills"
+       "two-year-old jury summons"
+       "miniature shield"
+       "bag with a hole in it"
+       "single marble"
+       )))
+  (new decoy% [name name]))
 ;; chance that a room has a chest with a bogus item
 (define bogus-chest-probability 0.7)
 
