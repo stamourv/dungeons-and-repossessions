@@ -31,11 +31,11 @@
   (clear-all)
   ;; sidebar
   (set-cursor-position! 2 sidebar-col)
-  (displayln (show-mode s))
-  (set-cursor-position! 4 sidebar-col)
   (printf "~a / ~a HP\n"
           (get-field current-hp player)
           (get-field max-hp player))
+  (set-cursor-position! 4 sidebar-col)
+  (displayln (show-mode s))
   ;; main display
   (cursor-home)
   (newline) ; top "margin"
