@@ -41,10 +41,15 @@
 (define (cursor-on)  (system "tput cnorm"))
 (define (cursor-off) (system "tput civis"))
 
+(define tty-intercepted? #f)
 (define (intercept-tty)
-  (system "stty raw -echo opost"))
+  (unless tty-intercepted?
+    (system "stty raw -echo opost")
+    (set! tty-intercepted? #t)))
 (define (restore-tty)
-  (system "stty cooked echo"))
+  (when tty-intercepted?
+    (system "stty cooked echo")
+    (set! tty-intercepted? #f)))
 
 (define (echo-on)  (system "stty echo"))
 (define (echo-off) (system "stty -echo"))
