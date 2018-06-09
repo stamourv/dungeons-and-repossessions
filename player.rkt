@@ -18,7 +18,8 @@
     ;; Note: all of those are filled in by subclasses.
     ;; Note: monsters don't need those; all their info (e.g., AC, attack
     ;; bonus, etc.) is built-in
-    (init-field strength dexterity constitution intelligence wisdom charisma)
+    (init-field strength dexterity constitution intelligence wisdom charisma
+                armor-ac armor-max-dex shield-ac weapon-damage-die)
     (field [level             #f] ; we call `level-up` on construction
            [proficiency-bonus #f] ; ditto
            [fov               #f] ; initialized by `enter-dungeon`
@@ -48,10 +49,11 @@
       ;; Note: assumes we're proficient with whatever weapon we're using
       (+ proficiency-bonus strength))
     (define/override (get-ac)
-      (+ 14 (min dexterity 2) ; scale armor ; TODO have logic in item defn
-         2)) ; shield
+      (+ 10
+         armor-ac (min dexterity armor-max-dex)
+         shield-ac))
     (define/override (get-damage-die)
-      (dice d6 strength)) ; hand axe ; TODO have logic in item defn
+      (dice weapon-damage-die strength))
 
     (define/public (level-up [new-level (add1 level)])
       ;; TODO increase stats at the right levels, etc.
@@ -110,7 +112,11 @@
                [constitution 2]
                [intelligence 0]
                [wisdom       -1]
-               [charisma     1])))
+               [charisma     1]
+               [armor-ac          4] ; scale armor
+               [armor-max-dex     2]
+               [shield-ac         2] ; regular shield
+               [weapon-damage-die d6]))) ; hand axe
 
 
 (module+ test
