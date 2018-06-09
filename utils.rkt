@@ -36,7 +36,11 @@
           [`(,(? integer? n) ,d . ,rest)
            (cons (format "~a~a" n d) (format-dice rest))]
           [`(,d . ,rest)
-           (cons (format "~a" d)     (format-dice rest))]))
+           (define s  (format "~a" d))
+           ;; if it starts with a number, leave it alone, otherwise prefix "1"
+           ;; (ugly, but can't think of a much better way with "nested" dice...)
+           (define s* (if (regexp-match "^[1-9]" s) s (format "1~a" s)))
+           (cons s* (format-dice rest))]))
       (string-join (format-dice prefix) "+"))
     (define end (last args))
     (cond [(integer? end)
