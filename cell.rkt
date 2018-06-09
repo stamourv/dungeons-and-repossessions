@@ -91,14 +91,12 @@
 (register-cell-type! pillar% #\+)
 
 
-(define door%
+(define openable%
   (class cell%
     (init-field [open? #f])
     (inherit-field occupant char)
     (define/override (free? #:occupant-ok? [ok? #f])
       (and open? (or ok? (not occupant))))
-    (define/override (opaque?)
-      (not open?))
     (define (-show show-occupant?)
       (define chars (get-field char this))
       (if open?
@@ -119,6 +117,13 @@
            (format "~a is already closed."
                    (send this describe #:capitalize? #t #:specific? #t)))))
     (super-new)))
+
+(define door%
+  (class openable%
+    (inherit-field open?)
+    (define/override (opaque?)
+      (not open?))
+    (super-new)))
 (define vertical-door%
   (class door% (super-new [char '(#\_ #\|)] [name "door"])))
 (register-cell-type! vertical-door% #\|)
@@ -129,9 +134,9 @@
 (register-cell-type! (class horizontal-door% (super-new [open? #t])) #\')
 
 (define chest%
-  (class door% ; behaves almost the same
+  (class openable%
     (inherit-field open?)
-    (define/override (opaque?) #f) ; unlike doors
+    (define/override (opaque?) #f) ; can always see through
     (super-new [char '(#\= #\≘)] [name "chest"])))
 (register-cell-type! chest% #\≘)
 (register-cell-type! chest% #\=)
