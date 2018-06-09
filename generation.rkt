@@ -17,13 +17,8 @@
   (define-values (theme pre-encounters) (generate-encounters lvl))
   (define encounters (map instantiate-encounter pre-encounters))
 
-  (define-values (backstory epilogue boss treasure)
+  (define-values (boss treasure)
     (generate-backstory theme))
-  (enqueue-briefing! "\n\n")
-  (enqueue-briefing! backstory)
-  (enqueue-briefing! "\n\nGodspeed, and don't break it.\n")
-  (enqueue-ending! "\n\n")
-  (enqueue-ending! epilogue)
 
   ;; find all the monsters used
   (define monster-kinds
@@ -151,31 +146,31 @@
         [(jungle) '("ruins" "ancient city" "forgotten temple")]))
      " of "
      (random-ref ominous-names)))
-  (define briefing
-    (string-append
-     "You, O adventurer, have been asked to investigate the "
-     dungeon-name
-     ". Its " title " has not been paying " pronoun " "
-     (random-ref '("gambling debts" "stronghold-building loan"
-                   "potion speculation debts" "student loans"
-                   "alimony" "bar tab" "protection money"))
-     ", and you must therefore repossess "
-     treasure-article " " treasure-name
-     " to satisfy " pronoun " creditors."))
-  (define ending
-    (string-append
-     "The heroic repo man narrowly escapes the "
-     dungeon-name
-     " with "
-     (send treasure describe #:specific? #t) ; no possessive here
-     " in hand.\n\n"
-     "The " title
-     "'s creditors are mollified. For now."))
-  (values
-   briefing
-   ending
-   title
-   treasure))
+
+  (enqueue-briefing! "\n\n")
+  (enqueue-briefing!
+   (string-append
+    "You, O adventurer, have been asked to investigate the "
+    dungeon-name
+    ". Its " title " has not been paying " pronoun " "
+    (random-ref '("gambling debts" "stronghold-building loan"
+                  "potion speculation debts" "student loans"
+                  "alimony" "bar tab" "protection money"))
+    ", and you must therefore repossess "
+    treasure-article " " treasure-name
+    " to satisfy " pronoun " creditors."))
+  (enqueue-briefing! "\n\nGodspeed, and don't break it.\n")
+
+  (enqueue-ending! "\n\n")
+  (enqueue-ending!
+   (string-append
+    "The heroic repo man narrowly escapes the " dungeon-name
+    " with " (send treasure describe #:specific? #t) ; no possessive here
+    " in hand."))
+  (enqueue-ending! "\n\n")
+  (enqueue-ending! (format "The ~a's creditors are mollified. For now." title))
+
+  (values title treasure))
 
 (define ominous-names
   '("doom" "tears" "darkness" "evil" "death" "sin" "danger" "peril"
