@@ -13,7 +13,7 @@
 
 (define (init-dungeon player)
   (begin0 (generate player)
-    (display-briefing)))
+    (full-screen-message (drain-briefing!))))
 
 (define (game-loop s)
   (define player (state-player s))
@@ -22,7 +22,7 @@
   (unless (equal? action-taken 'quit)
     (define new-s (state-cleanup (next-state s action-taken)))
     (cond [(send player check-win-condition)
-           (display-ending)]
+           (full-screen-message (drain-ending!))]
           [(or (positive? (get-field current-hp player))
                debug:god-mode)
            (game-loop new-s)] ; alive, keep going

@@ -13,8 +13,7 @@
          tear-down-ui
          display-state
          display-title
-         display-briefing
-         display-ending
+         full-screen-message
          read-key
          handle-input)
 
@@ -103,21 +102,9 @@ END
 
 
 
-
-;; show mission briefing before entering a dungeon
-(define (display-briefing)
+(define (full-screen-message ms)
   (clear-all)
-  (for* ([m  (in-list (drain-briefing!))]
-         [ls (in-value (string-split (break-lines m 72) "\n"))]
-         [l  (in-list (if (empty? ls)
-                          '("") ; if we enqueued a newline, still show a newline
-                          ls))])
-    (printf "    ~a\n" l))
-  (press-any-key))
-
-(define (display-ending)
-  (clear-all)
-  (for* ([m  (in-list (drain-ending!))]
+  (for* ([m  (in-list ms)]
          [ls (in-value (string-split (break-lines m 72) "\n"))]
          [l  (in-list (if (empty? ls)
                           '("") ; if we enqueued a newline, still show a newline
@@ -125,7 +112,6 @@ END
     (printf "    ~a\n" l))
   (press-any-key)
   (clear-all))
-
 
 (define (read-key)
   (intercept-tty)
