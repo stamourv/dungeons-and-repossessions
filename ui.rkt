@@ -135,10 +135,7 @@ END
       ;; did not get a number, try again
       (choose-hero candidate-classes)))
 
-(define (read-key)
-  (-read-key))
-
-(define (-read-key) ; reads a "whole" key (incl. escape sequences)
+(define (read-key) ; reads a "whole" key (incl. escape sequences)
   (define char (read-char))
   (if (= (char->integer char) 27) ; escape
       (which-direction?)
@@ -161,7 +158,7 @@ END
     [else  #f]))
 
 (define (choose-direction)
-  (case (-read-key)
+  (case (read-key)
     [(up)    up]
     [(down)  down]
     [(left)  left]
@@ -208,7 +205,7 @@ END
          'invalid]
         [#\q ; quit
          (printf "Do you really want to quit? (y/n)\n")
-         (define key (-read-key))
+         (define key (read-key))
          (cond [(equal? key #\y)
                 'quit]
                [else
