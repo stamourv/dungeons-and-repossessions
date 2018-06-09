@@ -19,7 +19,7 @@
     ;; Note: monsters don't need those; all their info (e.g., AC, attack
     ;; bonus, etc.) is built-in
     (init-field strength dexterity constitution intelligence wisdom charisma
-                armor-ac armor-max-dex shield-ac weapon-damage-die)
+                hit-die armor-ac armor-max-dex shield-ac weapon-damage-die)
     (field [level             #f] ; we call `level-up` on construction
            [proficiency-bonus #f] ; ditto
            [fov               #f] ; initialized by `enter-dungeon`
@@ -59,7 +59,7 @@
       ;; TODO increase stats at the right levels, etc.
       ;;   also other level benefits, like fighting styles, etc.
       (set! level             new-level)
-      (set! max-hp            (* level (+ 10 constitution))) ; as a fighter
+      (set! max-hp            (* level (+ hit-die constitution)))
       (set! current-hp        max-hp)
       (set! proficiency-bonus (+ (quotient (sub1 level) 4) 2)))
 
@@ -107,6 +107,7 @@
 (define fighter%
   (class player%
     (super-new [name "Plain Pablo"]
+               [hit-die      10] ; fighter class
                [strength     3] ; as a "standard" fighter (based on pre-gens)
                [dexterity    2] ; Note: stored as bonus only, for simplicity
                [constitution 2]
