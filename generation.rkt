@@ -170,6 +170,14 @@
   (enqueue-ending! "\n\n")
   (enqueue-ending! (format "The ~a's creditors are mollified. For now." title))
 
+  (enqueue-game-over! "\n\n")
+  (enqueue-game-over!
+   (string-append
+    "Your attempt at retrieving " (send treasure describe #:specific? #t)
+    " has been a resounding failure."))
+  (enqueue-game-over! "\n\n")
+  (enqueue-game-over! (format "The ~a lives to defraud another day." title))
+
   (values title treasure))
 
 (define ominous-names

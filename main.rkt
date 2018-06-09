@@ -27,10 +27,7 @@
                debug:god-mode)
            (game-loop new-s)] ; alive, keep going
           [else
-           (enqueue-message!
-            (format "~a has died.\nGame over.\n"
-                    (send player describe #:capitalize? #t)))
-           (display-state new-s)])))
+           (full-screen-message (drain-game-over!))])))
 
 (module+ main
   (void (set-up-ui))

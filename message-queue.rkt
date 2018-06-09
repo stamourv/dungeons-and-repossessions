@@ -15,5 +15,6 @@
 (define-queue enqueue-message! drain-messages!)
 
 ;; similar, but for mission briefing and ending
-(define-queue enqueue-briefing! drain-briefing!)
-(define-queue enqueue-ending!   drain-ending!)
+(define-queue enqueue-briefing!  drain-briefing!)
+(define-queue enqueue-ending!    drain-ending!)
+(define-queue enqueue-game-over! drain-game-over!)
