@@ -150,9 +150,9 @@
               (define p (new player%))
               (define d (new training-dummy%))
               (for ([i 5]) (send p attack d))))
-   (string-join '("The player attacks the training dummy and deals 7 damage!"
-                  "The player attacks the training dummy and deals 9 damage!"
-                  "The player attacks the training dummy and deals 6 damage!"
+   (string-join '("The player attacks the training dummy and misses."
                   "The player attacks the training dummy and deals 4 damage!"
-                  "The player attacks the training dummy and misses.")
+                  "The player attacks the training dummy and deals 6 damage!"
+                  "The player attacks the training dummy and deals 9 damage!"
+                  "The player attacks the training dummy and deals 7 damage!")
                 "\n")))
