@@ -229,4 +229,4 @@
 
 (module+ main
   (require "grid.rkt" "player.rkt")
-  (display (show-grid (state-grid (generate (new player%))))))
+  (display (show-grid (state-grid (generate (new fighter%))))))

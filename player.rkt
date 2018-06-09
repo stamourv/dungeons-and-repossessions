@@ -11,21 +11,19 @@
          "utils.rkt"
          "flags.rkt")
 
-(provide player%)
+(provide fighter%)
 
 (define player%
   (class character%
+    ;; Note: all of those are filled in by subclasses.
+    ;; Note: monsters don't need those; all their info (e.g., AC, attack
+    ;; bonus, etc.) is built-in
+    (init-field strength dexterity constitution intelligence wisdom charisma)
     (field [level             #f] ; we call `level-up` on construction
            [proficiency-bonus #f] ; ditto
-           [strength     3] ; as a "standard" fighter (based on pre-gens)
-           [dexterity    2] ; Note: monsters don't need stats, as all their
-           [constitution 2] ;   info (e.g., AC, attack bonus) is pre-computed
-           [intelligence 0] ; Note: stored as bonus only, for simplicity
-           [wisdom       -1]
-           [charisma     1]
-           [fov          #f] ; initialized by `enter-dungeon`
-           [seen         #f] ; ditto
-           [inventory    '()])
+           [fov               #f] ; initialized by `enter-dungeon`
+           [seen              #f] ; ditto
+           [inventory         '()])
     (inherit-field pos grid name max-hp current-hp)
 
     (define/override (describe #:capitalize? [capitalize? #f]
@@ -99,9 +97,20 @@
              (set! inventory (remove item inventory))
              item)))
 
-    (super-new [char #\@] [name "player"]) ; TODO have a name and use no article
+    (super-new [char #\@] [article 'none])
     (level-up 1)
     (enter-dungeon)))
+
+;; balanced melee fighter
+(define fighter%
+  (class player%
+    (super-new [name "Plain Pablo"]
+               [strength     3] ; as a "standard" fighter (based on pre-gens)
+               [dexterity    2] ; Note: stored as bonus only, for simplicity
+               [constitution 2]
+               [intelligence 0]
+               [wisdom       -1]
+               [charisma     1])))
 
 
 (module+ test
@@ -109,7 +118,7 @@
            "grid.rkt" "ai.rkt")
 
   (define (render-grid g) (string-join g "\n" #:after-last "\n"))
-  (define p1 (new player%))
+  (define p1 (new fighter%))
   (define g1
     '("XXXX"
       "X  X"
@@ -147,7 +156,7 @@
   (random-seed 10)
   (check-equal?
    (get-log (lambda ()
-              (define p (new player%))
+              (define p (new fighter%))
               (define d (new training-dummy%))
               (for ([i 5]) (send p attack d))))
    (string-join '("The player attacks the training dummy and misses."

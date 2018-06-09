@@ -9,7 +9,7 @@
          "flags.rkt")
 
 (define (init-player)
-  (new player%))
+  (new fighter%))
 
 (define (init-dungeon player)
   (begin0 (generate player)
