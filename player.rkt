@@ -111,12 +111,12 @@
   (class player%
     (super-new [name "Bland Alan"]
                [hit-die      10] ; fighter class
-               [strength     3] ; as a "standard" fighter (based on pre-gens)
-               [dexterity    2] ; Note: stored as bonus only, for simplicity
+               [strength     2] ; Note: stored as bonus only, for simplicity
+               [dexterity    2]
                [constitution 2]
                [intelligence 0]
-               [wisdom       -1]
-               [charisma     1]
+               [wisdom       0]
+               [charisma     0]
                [body-armor (new scale-armor%)]
                [shield     (new shield%)]
                [weapon     (new hand-axe%)])))
