@@ -45,8 +45,7 @@
   (display-grid/fov (state-grid s)
                     (get-field fov player)
                     (get-field seen player))
-  (for-each displayln (reverse message-queue))
-  (reset-message-queue!))
+  (for-each displayln (drain-messages!)))
 
 (define (display-grid/fov grid fov seen)
   ;; to avoid leaking info about what's on the other side of a wall,
@@ -108,24 +107,22 @@ END
 ;; show mission briefing before entering a dungeon
 (define (display-briefing)
   (clear-all)
-  (for* ([m  (in-list (reverse briefing-queue))]
+  (for* ([m  (in-list (drain-briefing!))]
          [ls (in-value (string-split (break-lines m 72) "\n"))]
          [l  (in-list (if (empty? ls)
                           '("") ; if we enqueued a newline, still show a newline
                           ls))])
     (printf "    ~a\n" l))
-  (reset-briefing-queue!)
   (press-any-key))
 
 (define (display-ending)
   (clear-all)
-  (for* ([m  (in-list (reverse ending-queue))]
+  (for* ([m  (in-list (drain-ending!))]
          [ls (in-value (string-split (break-lines m 72) "\n"))]
          [l  (in-list (if (empty? ls)
                           '("") ; if we enqueued a newline, still show a newline
                           ls))])
     (printf "    ~a\n" l))
-  (reset-ending-queue!)
   (press-any-key)
   (clear-all))
 

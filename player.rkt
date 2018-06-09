@@ -142,8 +142,7 @@
 
   (define (get-log thunk)
     (thunk)
-    (begin0 (string-join message-queue "\n")
-      (reset-message-queue!)))
+    (string-join (drain-messages!) "\n"))
 
   (random-seed 10)
   (check-equal?

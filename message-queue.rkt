@@ -2,24 +2,18 @@
 
 (provide (all-defined-out))
 
+(define-syntax-rule (define-queue enqueue! drain!)
+  (begin (define queue '())
+         (define (enqueue! m)
+           (set! queue (cons m queue)))
+         (define (drain!)
+           (begin0 (reverse queue)
+             (set! queue '())))))
+
 ;; list of strings (messages) which were produced since the previous
-;; previous display, and need to be displayed now
-(define message-queue '())
-(define (enqueue-message! m)
-  (set! message-queue (cons m message-queue)))
-(define (reset-message-queue!)
-  (set! message-queue '()))
+;; display, and need to be displayed now
+(define-queue enqueue-message! drain-messages!)
 
-;; similar, but for mission briefings
-(define briefing-queue '())
-(define (enqueue-briefing! m)
-  (set! briefing-queue (cons m briefing-queue)))
-(define (reset-briefing-queue!)
-  (set! briefing-queue '()))
-
-;; similar, but for ending
-(define ending-queue '())
-(define (enqueue-ending! m)
-  (set! ending-queue (cons m ending-queue)))
-(define (reset-ending-queue!)
-  (set! ending-queue '()))
+;; similar, but for mission briefing and ending
+(define-queue enqueue-briefing! drain-briefing!)
+(define-queue enqueue-ending!   drain-ending!)
