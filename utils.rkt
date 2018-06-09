@@ -2,15 +2,21 @@
 
 (provide (all-defined-out))
 
-(define (d4)  (random 1 5))
-(define (d6)  (random 1 7))
-(define (d8)  (random 1 9))
-(define (d10) (random 1 11))
-(define (d12) (random 1 13))
-(define (d20) (random 1 21))
+(struct -dice (roll description)
+        #:property prop:procedure
+        (struct-field-index roll)
+        #:methods gen:custom-write
+        [(define (write-proc d port mode)
+           (write-string (-dice-description d) port))])
+
+(define-syntax-rule (fixed-dice [name max] ...)
+  (begin (define name
+           (-dice (lambda _ (random 1 (add1 max))) (symbol->string 'name)))
+         ...))
+(fixed-dice [d4 4] [d6 6] [d8 8] [d10 10] [d12 12] [d20 20])
 
 (define (dice . args)
-  (define (loop args)
+  (define (roll args)
     (match args
       ['()
        0]
@@ -18,10 +24,30 @@
        n]
       [`(,(? integer? n) ,d . ,rest)
        (+ (for/sum ([i (in-range n)]) (d))
-          (loop rest))]
+          (roll rest))]
       [`(,d . ,rest)
-       (+ (d) (loop rest))]))
-  (lambda _ (max 1 (loop args))))
+       (+ (d) (roll rest))]))
+  (define (describe args)
+    (define (format-prefix prefix) ; mix of dice and multiplied dice
+      (define (format-dice dice)
+        (match dice
+          ['()
+           '()]
+          [`(,(? integer? n) ,d . ,rest)
+           (cons (format "~a~a" n d) (format-dice rest))]
+          [`(,d . ,rest)
+           (cons (format "~a" d)     (format-dice rest))]))
+      (string-join (format-dice prefix) "+"))
+    (define end (last args))
+    (cond [(integer? end)
+           (define prefix (format-prefix (drop-right args 1)))
+           (if (positive? end)
+               (format "~a+~a" prefix end)
+               (format "~a-~a" prefix end))]
+          [else
+           (format-prefix args)]))
+  (-dice (lambda _ (max 1 (roll args)))
+         (describe args)))
 
 (define (random-bool [probability 0.5])
   (< (random) probability))

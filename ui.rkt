@@ -2,6 +2,7 @@
 
 (require "grid.rkt"
          "cell.rkt"
+         "character.rkt"
          "flags.rkt"
          "message-queue.rkt"
          "state.rkt"
@@ -31,10 +32,19 @@
   (clear-all)
   ;; sidebar
   (set-cursor-position! 2 sidebar-col)
-  (printf "~a / ~a HP\n"
+  (printf "HP:  ~a / ~a\n"
           (get-field current-hp player)
           (get-field max-hp player))
   (set-cursor-position! 4 sidebar-col)
+  (printf "AC:      ~a\n"
+          (send player get-ac))
+  (set-cursor-position! 5 sidebar-col)
+  (printf "Attack:  +~a\n"
+          (send player get-attack-bonus))
+  (set-cursor-position! 6 sidebar-col)
+  (printf "Damage:  ~a\n"
+          (send player get-damage-die))
+  (set-cursor-position! 8 sidebar-col)
   (displayln (show-mode s))
   ;; main display
   (cursor-home)
