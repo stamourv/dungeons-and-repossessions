@@ -20,10 +20,12 @@
 
 (define (set-up-ui)
   (cursor-off)
-  (echo-off))
+  (echo-off)
+  (intercept-tty))
 (define (tear-down-ui)
   (echo-on)
-  (cursor-on))
+  (cursor-on)
+  (restore-tty))
 
 (define sidebar-col 63)
 
@@ -134,9 +136,7 @@ END
       (choose-hero candidate-classes)))
 
 (define (read-key)
-  (intercept-tty)
-  (begin0 (-read-key)
-    (restore-tty)))
+  (-read-key))
 
 (define (-read-key) ; reads a "whole" key (incl. escape sequences)
   (define char (read-char))
@@ -187,7 +187,6 @@ END
 
 ;; game-state -> kind-of-action-performed
 (define (handle-input s)
-  (intercept-tty)
   (define player (state-player s))
   (define mode   (state-mode   s)) ; to check move validity
   (define in (read-char))
@@ -221,5 +220,4 @@ END
         [#\G (set-debug:god-mode!)   'invalid]
         [#\R (set-debug:reveal-map!) 'invalid]
         [_
-         (invalid-command)])
-    (restore-tty)))
+         (invalid-command)])))
