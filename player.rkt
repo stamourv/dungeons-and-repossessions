@@ -11,7 +11,7 @@
          "utils.rkt"
          "flags.rkt")
 
-(provide fighter%)
+(provide fighter% brute%)
 
 (define player%
   (class character%
@@ -119,7 +119,22 @@
                [charisma     0]
                [body-armor (new scale-armor%)]
                [shield     (new shield%)]
-               [weapon     (new hand-axe%)])))
+               [weapon     (new handaxe%)])))
+
+;; high offense, low defense
+(define brute%
+  (class player%
+    (super-new [name "Reckless Rick"]
+               [hit-die      8]
+               [strength     4]
+               [dexterity    2]
+               [constitution 0]
+               [intelligence 0]
+               [wisdom       0]
+               [charisma     0]
+               [body-armor (new leather-armor%)]
+               [shield     #f]
+               [weapon     (new greatsword%)])))
 
 
 (module+ test
