@@ -15,16 +15,16 @@
 
 (define player%
   (class character%
-    (field [level             0] ; we call `level-up` on construction
-           [proficiency-bonus #f]
+    (field [level             #f] ; we call `level-up` on construction
+           [proficiency-bonus #f] ; ditto
            [strength     3] ; as a "standard" fighter (based on pre-gens)
            [dexterity    2] ; Note: monsters don't need stats, as all their
            [constitution 2] ;   info (e.g., AC, attack bonus) is pre-computed
            [intelligence 0] ; Note: stored as bonus only, for simplicity
            [wisdom       -1]
            [charisma     1]
-           [fov          #f]
-           [seen         #f]
+           [fov          #f] ; initialized by `enter-dungeon`
+           [seen         #f] ; ditto
            [inventory    '()])
     (inherit-field pos grid name max-hp current-hp)
 
@@ -63,12 +63,9 @@
       (set! current-hp        max-hp)
       (set! proficiency-bonus (+ (quotient (sub1 level) 4) 2)))
 
-    (define/public (next-dungeon)
+    (define/public (enter-dungeon)
       (set! fov  (set))
-      (set! seen (set))
-      ;; level up for each new dungeon
-      ;; not enough xp in each to level up naturally
-      (level-up))
+      (set! seen (set)))
 
     (define/public (pick-up) ; TODO bring up a dialog to ask what to pick up
       (define cell  (grid-ref grid pos))
@@ -102,8 +99,9 @@
              (set! inventory (remove item inventory))
              item)))
 
-    (super-new [char #\@] [name "player"]) ; TODO have a name
-    (next-dungeon)))
+    (super-new [char #\@] [name "player"]) ; TODO have a name and use no article
+    (level-up 1)
+    (enter-dungeon)))
 
 
 (module+ test

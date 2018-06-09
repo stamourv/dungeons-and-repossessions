@@ -8,15 +8,8 @@
          "ui.rkt"
          "flags.rkt")
 
-(define init-level
-  (command-line
-   #:args ([init-level "1"])
-   (string->number init-level)))
-
 (define (init-player)
-  (define p (new player%))
-  (send p level-up init-level)
-  p)
+  (new player%))
 
 (define (init-dungeon player)
   (begin0 (generate player)
@@ -34,11 +27,7 @@
                  (format "~a has retrieved ~a."
                          (send player describe #:capitalize? #t)
                          (send item   describe #:specific?   #t)))
-                (enqueue-message! "Press any key for the next dungeon")
-                (display-state new-s)
-                (read-key)
-                (send player next-dungeon)
-                (game-loop (init-dungeon player)))]
+                (display-state new-s))]
           [(or (positive? (get-field current-hp player))
                debug:god-mode)
            (game-loop new-s)] ; alive, keep going

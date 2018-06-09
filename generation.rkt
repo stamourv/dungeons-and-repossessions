@@ -96,7 +96,6 @@
              #:characters (cons (cons player player-pos) monster-poss)))
 
 ;; Note: can't have newlines in the result, or will confuse line breaking.
-;; TODO probably better to fix the line breaking function to deal with newlines
 (define (generate-backstory theme)
   (match-define (list title potential-pronouns)
     (random-ref '(("grand poobah" ("his"))
