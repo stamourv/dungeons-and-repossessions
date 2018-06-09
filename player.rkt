@@ -82,7 +82,7 @@
                                      (send i describe))
                                    ", ")))
              'wait])) ; ends turn
-    (define/public (show-inventory) ; TODO have it be a separate dialog
+    (define/public (show-inventory)
       (cond [(empty? inventory)
              (enqueue-message! "You have nothing in your inventory.")]
             [else
