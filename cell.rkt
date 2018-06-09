@@ -49,10 +49,13 @@
     (super-new [char #\space] [name "empty cell"] [article "an"])))
 (register-cell-type! empty-cell% #\space)
 
-(define void-cell% (class cell% (super-new [char #\.] [name "void cell"])))
+(define obstacle-cell% (class cell% (super-new)))
+
+(define void-cell%
+  (class obstacle-cell% (super-new [char #\.] [name "void cell"])))
 (register-cell-type! void-cell% #\.)
 
-(define wall% (class cell% (super-new [name "wall"])))
+(define wall% (class obstacle-cell% (super-new [name "wall"])))
 
 ;; during gameplay, the nicer walls below are used instead
 (define raw-wall% (class wall% (super-new [char #\X])))
@@ -84,7 +87,7 @@
 (define-wall four-corner-wall% #\u253c #\u256c info-leak-wall%)
 
 (define pillar%
-  (class cell%
+  (class obstacle-cell%
     (super-new [char (if double-bar? #\# #\+)]
                [name "pillar"])))
 (register-cell-type! pillar% #\#)
