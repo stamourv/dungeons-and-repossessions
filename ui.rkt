@@ -71,7 +71,7 @@
     (newline)))
 
 (define (press-any-key)
-  (printf "\n\n    Press any key to continue")
+  (printf "\n\n    Press any key")
   (read-key))
 
 ;; see network-science.de/ascii/ font: big
