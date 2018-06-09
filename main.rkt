@@ -9,7 +9,7 @@
          "flags.rkt")
 
 (define (init-player)
-  (new (class fighter%
+  (new (class (choose-hero hero-classes)
          (define/override (act state)
            (send this update-fov)
            (display-state state)

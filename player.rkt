@@ -9,7 +9,7 @@
          "utils.rkt"
          "flags.rkt")
 
-(provide fighter% brute%)
+(provide hero-classes)
 
 (define player%
   (class character%
@@ -126,6 +126,8 @@
                [body-armor (new leather-armor%)]
                [shield     #f]
                [weapon     (new greatsword%)])))
+
+(define hero-classes (list fighter% brute%))
 
 
 (module+ test

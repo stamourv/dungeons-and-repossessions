@@ -237,4 +237,4 @@
 
 (module+ main
   (require "grid.rkt" "player.rkt")
-  (display (show-grid (state-grid (generate (new fighter%))))))
+  (display (show-grid (state-grid (generate (new (first hero-classes)))))))

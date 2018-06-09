@@ -15,7 +15,7 @@
          display-state
          display-title
          full-screen-message
-         read-key
+         choose-hero
          handle-input)
 
 (define (set-up-ui)
@@ -108,8 +108,6 @@ END
     (newline)
     (press-any-key))
 
-
-
 (define (full-screen-message ms)
   (clear-all)
   (for* ([m  (in-list ms)]
@@ -120,6 +118,20 @@ END
     (printf "    ~a\n" l))
   (press-any-key)
   (clear-all))
+
+(define (choose-hero candidate-classes)
+  (clear-all)
+  (display "\n\nChoose your hero:\n\n")
+  (for ([i  (in-naturals 1)]
+        [c% (in-list candidate-classes)])
+    (define hero (new c%))
+    (printf "  ~a: ~a" i (send hero describe))
+    (display "\n\n"))
+  (define n (choose-number (length candidate-classes)))
+  (if n
+      (list-ref candidate-classes n)
+      ;; did not get a number, try again
+      (choose-hero candidate-classes)))
 
 (define (read-key)
   (intercept-tty)
@@ -166,6 +178,12 @@ END
                  [else (invalid-command)]))]
         [else
          (invalid-command)]))
+
+(define (choose-number max) ; between 1 and max, returns choice -1
+  (define k (read-key))
+  (cond [(and (char? k) (string->number (string k)))
+         => sub1]
+        [else #f]))
 
 ;; game-state -> kind-of-action-performed
 (define (handle-input s)
