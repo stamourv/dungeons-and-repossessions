@@ -2,7 +2,7 @@
 
 (require "grid.rkt" "cell.rkt")
 
-(provide compute-fov)
+(provide compute-fov reveal-map)
 
 (define debug-fov #f)
 
@@ -56,6 +56,10 @@
     (cast-light 1 1.0 0.0 dx 0  0  dy))
   fov)
 
+(define (reveal-map grid) ; for debugging, set the FOV to be the whole grid
+  (for*/set ([x (in-range (grid-height grid))]
+             [y (in-range (grid-width  grid))])
+            (vector x y)))
 
 (define (apply-fov! grid fov) ; for testing
   (for ([pos (in-set fov)])

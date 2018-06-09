@@ -31,11 +31,9 @@
 
     (define sight-range 7)
     (define/public (update-fov)
-      (set! fov  (compute-fov grid pos sight-range))
-      (when debug:reveal-map ; set the FOV to be the whole map
-        (set! fov (for*/set ([x (in-range (grid-height grid))]
-                             [y (in-range (grid-width  grid))])
-                     (vector x y))))
+      (set! fov  (if debug:reveal-map
+                     (reveal-map grid)
+                     (compute-fov grid pos sight-range)))
       (set! seen (set-union seen fov)))
 
     (define/override (get-attack-bonus)
