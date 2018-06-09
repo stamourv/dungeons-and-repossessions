@@ -16,3 +16,10 @@
   (set! briefing-queue (cons m briefing-queue)))
 (define (reset-briefing-queue!)
   (set! briefing-queue '()))
+
+;; similar, but for ending
+(define ending-queue '())
+(define (enqueue-ending! m)
+  (set! ending-queue (cons m ending-queue)))
+(define (reset-ending-queue!)
+  (set! ending-queue '()))

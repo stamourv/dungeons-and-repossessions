@@ -17,11 +17,13 @@
   (define-values (theme pre-encounters) (generate-encounters lvl))
   (define encounters (map instantiate-encounter pre-encounters))
 
-  (define-values (backstory boss treasure)
+  (define-values (backstory epilogue boss treasure)
     (generate-backstory theme))
   (enqueue-briefing! "\n\n")
   (enqueue-briefing! backstory)
   (enqueue-briefing! "\n\nGodspeed, and don't break it.\n")
+  (enqueue-ending! "\n\n")
+  (enqueue-ending! epilogue)
 
   ;; find all the monsters used
   (define monster-kinds
@@ -139,24 +141,39 @@
     (new macguffin%
          [name    treasure-name]
          [article (or treasure-describe-article treasure-article)]))
+  (define dungeon-name
+    (string-append
+     (random-ref
+      (case theme
+        [(vermin) '("lair" "den" "burrow" "sty" "dump")]
+        [(tomb)   '("tomb" "crypt" "mausoleum" "catacombs")]
+        [(castle) '("castle" "tower" "bastion" "fortress" "hideout")]
+        [(jungle) '("ruins" "ancient city" "forgotten temple")]))
+     " of "
+     (random-ref ominous-names)))
+  (define briefing
+    (string-append
+     "You, O adventurer, have been asked to investigate the "
+     dungeon-name
+     ". Its " title " has not been paying " pronoun " "
+     (random-ref '("gambling debts" "stronghold-building loan"
+                   "potion speculation debts" "student loans"
+                   "alimony" "bar tab" "protection money"))
+     ", and you must therefore repossess "
+     treasure-article " " treasure-name
+     " to satisfy " pronoun " creditors."))
+  (define ending
+    (string-append
+     "The heroic repo man narrowly escapes the "
+     dungeon-name
+     " with "
+     (send treasure describe #:specific? #t) ; no possessive here
+     " in hand.\n\n"
+     "The " title
+     "'s creditors are mollified. For now."))
   (values
-   (string-append
-    "You, O adventurer, have been asked to investigate the "
-    (random-ref
-     (case theme
-       [(vermin) '("lair" "den" "burrow" "sty" "dump")]
-       [(tomb)   '("tomb" "crypt" "mausoleum" "catacombs")]
-       [(castle) '("castle" "tower" "bastion" "fortress" "hideout")]
-       [(jungle) '("ruins" "ancient city" "forgotten temple")]))
-    " of "
-    (random-ref ominous-names)
-    ". Its " title " has not been paying " pronoun " "
-    (random-ref '("gambling debts" "stronghold-building loan"
-                  "potion speculation debts" "student loans"
-                  "alimony" "bar tab" "protection money"))
-    ", and you must therefore repossess "
-    treasure-article " " treasure-name
-    " to satisfy " pronoun " creditors.")
+   briefing
+   ending
    title
    treasure))
 

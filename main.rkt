@@ -22,12 +22,7 @@
   (unless (equal? action-taken 'quit)
     (define new-s (state-cleanup (next-state s action-taken)))
     (cond [(send player check-win-condition)
-           => (lambda (item)
-                (enqueue-message!
-                 (format "~a has retrieved ~a."
-                         (send player describe #:capitalize? #t)
-                         (send item   describe #:specific?   #t)))
-                (display-state new-s))]
+           (display-ending)]
           [(or (positive? (get-field current-hp player))
                debug:god-mode)
            (game-loop new-s)] ; alive, keep going

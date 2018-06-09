@@ -14,6 +14,7 @@
          display-state
          display-title
          display-briefing
+         display-ending
          read-key
          handle-input)
 
@@ -115,6 +116,18 @@ END
     (printf "    ~a\n" l))
   (reset-briefing-queue!)
   (press-any-key))
+
+(define (display-ending)
+  (clear-all)
+  (for* ([m  (in-list (reverse ending-queue))]
+         [ls (in-value (string-split (break-lines m 72) "\n"))]
+         [l  (in-list (if (empty? ls)
+                          '("") ; if we enqueued a newline, still show a newline
+                          ls))])
+    (printf "    ~a\n" l))
+  (reset-ending-queue!)
+  (press-any-key)
+  (clear-all))
 
 
 (define (read-key)
