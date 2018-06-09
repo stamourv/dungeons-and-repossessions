@@ -27,7 +27,9 @@
     (cond [(hash-ref free-cache pos #f) => values]
           [else
            (define c   (grid-ref grid pos))
-           (define res (or (is-a? c empty-cell%) (is-a? c door%)))
+           (define res (or (is-a? c empty-cell%)
+                           (is-a? c door%)
+                           (is-a? c chest%)))
            (hash-set! free-cache pos res)
            res]))
   (define (wall-or-door? pos)
