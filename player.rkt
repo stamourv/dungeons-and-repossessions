@@ -1,11 +1,9 @@
 #lang racket
 
 (require "character.rkt"
-         "state.rkt"
          "message-queue.rkt"
          "vision.rkt"
          "items.rkt"
-         "ui.rkt"
          "cell.rkt"
          "grid.rkt"
          "utils.rkt"
@@ -31,13 +29,8 @@
                                #:specific?   [specific? 'n/a]) ; always specific
       (super describe #:capitalize? capitalize? #:specific? #t))
 
-    (define/override (act state)
-      (update-fov)
-      (display-state state)
-      (handle-input state))
-
     (define sight-range 7)
-    (define (update-fov)
+    (define/public (update-fov)
       (set! fov  (compute-fov grid pos sight-range))
       (when debug:reveal-map ; set the FOV to be the whole map
         (set! fov (for*/set ([x (in-range (grid-height grid))]
@@ -139,7 +132,7 @@
 
 (module+ test
   (require rackunit
-           "grid.rkt" "ai.rkt")
+           "grid.rkt" "ai.rkt" "state.rkt")
 
   (define (render-grid g) (string-join g "\n" #:after-last "\n"))
   (define p1 (new fighter%))

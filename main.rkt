@@ -9,7 +9,12 @@
          "flags.rkt")
 
 (define (init-player)
-  (new fighter%))
+  (new (class fighter%
+         (define/override (act state)
+           (send this update-fov)
+           (display-state state)
+           (handle-input state))
+         (super-new))))
 
 (define (init-dungeon player)
   (begin0 (generate player)
