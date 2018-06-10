@@ -106,7 +106,7 @@
   (class player%
     (super-new
      [name  "Bland Alan"]
-     [blurb "A balanced fighter. Perfect for unbalanced debtors."]
+     [blurb "A balanced fighter. Perfect for unbalanced ledgers."]
      [hit-die      10] ; fighter class
      [strength     2] ; Note: stored as bonus only, for simplicity
      [dexterity    2]
@@ -123,7 +123,7 @@
   (class player%
     (super-new
      [name  "Reckless Rick"]
-     [blurb "Focuses on attack. For offending would-be defaulters."]
+     [blurb "Focuses on offense. Beats deadbeats dead."]
      [hit-die      8]
      [strength     4]
      [dexterity    2]
