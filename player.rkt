@@ -106,7 +106,7 @@
   (class player%
     (super-new
      [name  "Bland Alan"]
-     [blurb "A balanced fighter. Perfect for unbalanced ledgers."]
+     [blurb "A balanced fighter. For unbalanced ledgers."]
      [hit-die      10] ; fighter class
      [strength     2] ; Note: stored as bonus only, for simplicity
      [dexterity    2]
