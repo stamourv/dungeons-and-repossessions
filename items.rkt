@@ -34,14 +34,20 @@
 (define leather-armor%
   (class body-armor%
     (super-new [name "leather armor"] [ac 2] [max-dex 10])))
-(define scale-armor%
+(define scale-mail%
   (class body-armor%
-    (super-new [name "scale armor"] [ac 4] [max-dex 2])))
+    (super-new [name "scale mail"] [ac 4] [max-dex 2])))
+(define plate-mail%
+  (class body-armor%
+    (super-new [name "plate mail"] [ac 8] [max-dex 0])))
 
 (define weapon%
   (class equippable%
     (init-field [damage-die d1])
     (super-new [char #\!])))
+(define light-hammer%
+  (class weapon%
+    (super-new [name "light hammer"] [damage-die d4])))
 (define handaxe%
   (class weapon%
     (super-new [name "handaxe"] [damage-die d6])))

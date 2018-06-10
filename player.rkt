@@ -114,7 +114,7 @@
      [intelligence 0]
      [wisdom       0]
      [charisma     0]
-     [body-armor (new scale-armor%)]
+     [body-armor (new scale-mail%)]
      [shield     (new shield%)]
      [weapon     (new handaxe%)])))
 
@@ -135,7 +135,24 @@
      [shield     #f]
      [weapon     (new greatsword%)])))
 
-(define hero-classes (list fighter% brute%))
+;; high defense, terrible offence
+(define tank%
+  (class player%
+    (super-new
+     [name  "Tin-can Timmy"]
+     [blurb "Close as a clam. Makes borrowers shell out."]
+     [hit-die      12]
+     [strength     -2] ; idea: misses a lot, and barely does damage
+     [dexterity    0]
+     [constitution 4]
+     [intelligence 0]
+     [wisdom       0]
+     [charisma     0]
+     [body-armor (new plate-mail%)]
+     [shield     (new shield%)]
+     [weapon     (new light-hammer%)])))
+
+(define hero-classes (list fighter% brute% tank%))
 
 
 (module+ test
