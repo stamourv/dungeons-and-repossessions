@@ -47,7 +47,7 @@
            (define prefix (format-prefix (drop-right args 1)))
            (if (positive? end)
                (format "~a+~a" prefix end)
-               (format "~a-~a" prefix end))]
+               (format "~a~a"  prefix end))] ; the `-` is already in the number
           [else
            (format-prefix args)]))
   (-dice (lambda _ (max 1 (roll args)))
