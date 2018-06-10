@@ -127,8 +127,16 @@ END
   (for ([i  (in-naturals 1)]
         [c% (in-list candidate-classes)])
     (define hero (new c%))
-    (printf "  ~a: ~a" i (send hero describe))
-    (display "\n\n"))
+    (printf "  ~a: ~a\n" i (send hero describe))
+    (printf "     HP: ~a Attack: +~a Damage: ~a\n"
+            (~a #:width 10 (get-field max-hp hero))
+            (~a #:width 10 (send hero get-attack-bonus))
+            (send hero get-damage-die))
+    (printf "     Equipment: ~a\n"
+            (string-join (for/list ([e (in-list (send hero get-equipment))])
+                           (send e describe #:no-article? #t))
+                         ", "))
+    (newline))
   (define n (choose-number (length candidate-classes)))
   (if n
       (list-ref candidate-classes n)

@@ -49,6 +49,9 @@
       (dice (if weapon (get-field damage-die weapon) d1)
             strength))
 
+    (define/public (get-equipment)
+      (filter values (list weapon body-armor shield)))
+
     (define/public (level-up [new-level (add1 level)])
       ;; TODO increase stats at the right levels, etc.
       ;;   also other level benefits, like fighting styles, etc.

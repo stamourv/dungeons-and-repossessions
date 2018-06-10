@@ -12,8 +12,9 @@
     (define/public (show)
       char)
     (define/public (describe #:capitalize? [capitalize? #f]
-                             #:specific?   [specific?   #f])
-      (define no-article (eq? article 'none))
+                             #:specific?   [specific?   #f]
+                             #:no-article? [no-article? #f])
+      (define no-article (or no-article? (eq? article 'none)))
       (define a (cond [no-article ""]
                       [specific?  "the"] ; specific trumps all
                       [article    article]
