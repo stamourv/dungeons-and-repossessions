@@ -17,7 +17,8 @@
     ;; Note: monsters don't need those; all their info (e.g., AC, attack
     ;; bonus, etc.) is built-in
     (init-field strength dexterity constitution intelligence wisdom charisma
-                hit-die body-armor shield weapon)
+                hit-die body-armor shield weapon
+                blurb)
     (field [level             #f] ; we call `level-up` on construction
            [proficiency-bonus #f] ; ditto
            [fov               #f] ; initialized by `enter-dungeon`
@@ -103,32 +104,36 @@
 ;; balanced melee fighter
 (define fighter%
   (class player%
-    (super-new [name "Bland Alan"]
-               [hit-die      10] ; fighter class
-               [strength     2] ; Note: stored as bonus only, for simplicity
-               [dexterity    2]
-               [constitution 2]
-               [intelligence 0]
-               [wisdom       0]
-               [charisma     0]
-               [body-armor (new scale-armor%)]
-               [shield     (new shield%)]
-               [weapon     (new handaxe%)])))
+    (super-new
+     [name  "Bland Alan"]
+     [blurb "A balanced fighter. Perfect for unbalanced debtors."]
+     [hit-die      10] ; fighter class
+     [strength     2] ; Note: stored as bonus only, for simplicity
+     [dexterity    2]
+     [constitution 2]
+     [intelligence 0]
+     [wisdom       0]
+     [charisma     0]
+     [body-armor (new scale-armor%)]
+     [shield     (new shield%)]
+     [weapon     (new handaxe%)])))
 
 ;; high offense, low defense
 (define brute%
   (class player%
-    (super-new [name "Reckless Rick"]
-               [hit-die      8]
-               [strength     4]
-               [dexterity    2]
-               [constitution 0]
-               [intelligence 0]
-               [wisdom       0]
-               [charisma     0]
-               [body-armor (new leather-armor%)]
-               [shield     #f]
-               [weapon     (new greatsword%)])))
+    (super-new
+     [name  "Reckless Rick"]
+     [blurb "Focuses on attack. For offending would-be defaulters."]
+     [hit-die      8]
+     [strength     4]
+     [dexterity    2]
+     [constitution 0]
+     [intelligence 0]
+     [wisdom       0]
+     [charisma     0]
+     [body-armor (new leather-armor%)]
+     [shield     #f]
+     [weapon     (new greatsword%)])))
 
 (define hero-classes (list fighter% brute%))
 

@@ -128,8 +128,10 @@ END
         [c% (in-list candidate-classes)])
     (define hero (new c%))
     (printf "  ~a: ~a\n" i (send hero describe))
-    (printf "     HP: ~a Attack: +~a Damage: ~a\n"
+    (printf "     ~a\n" (get-field blurb hero))
+    (printf "     HP: ~a AC: ~a Attack: +~a Damage: ~a\n"
             (~a #:width 10 (get-field max-hp hero))
+            (~a #:width 10 (send hero get-ac))
             (~a #:width 10 (send hero get-attack-bonus))
             (send hero get-damage-die))
     (printf "     Equipment: ~a\n"
